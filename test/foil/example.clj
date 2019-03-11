@@ -23,6 +23,9 @@
             y a]
       (printf "%d %d\n" x y))
 
+    (dotimes [n 3]
+      (printf "%d\n" n))
+
     (my-fun x)
 
     (printf "%s" (if (= 10 x)

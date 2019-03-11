@@ -172,12 +172,16 @@
   (emit-block body " "))
 
 (defn- emit-range-based-for [[op bindings & body]]
-
   (doseq [[var binding] (partition 2 bindings)]
     (println (str *indent* "for (" (with-out-str
                                      (emit-var-declaration var "auto&")) " : " (with-out-str
                                      (emit-expression binding))
                   ")")))
+  (emit-block body))
+
+(defn- emit-classic-for [[op bindings & body]]
+  (doseq [[var limit] (partition 2 bindings)]
+    (println (str *indent* "for (int " var " = 0; " var " < " limit "; " var "++)")))
   (emit-block body))
 
 (defn- emit-conditional [[_ condition then else :as form]]
@@ -289,6 +293,7 @@
     while (emit-while form)
     recur (emit-goto form)
     doseq (emit-range-based-for form)
+    dotimes (emit-classic-for form)
     (do (print *indent*)
         (emit-expression form)
         (println ";"))))
