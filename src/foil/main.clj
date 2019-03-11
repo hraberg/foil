@@ -115,9 +115,11 @@
 
 (defn- emit-let [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
-    (emit-expression-statement (cons (concat (list 'lambda (map first bindings))
-                                             body)
-                                     (map second bindings)))))
+    (emit-application (with-meta
+                        (cons (concat (list 'lambda (map first bindings))
+                                      body)
+                              (map second bindings))
+                        (meta form)))))
 
 (defn- emit-conditional [[_ condition then else :as form]]
   (emit-expression condition)
@@ -160,6 +162,7 @@
       (case op
         if (emit-conditional form)
         (fn, lambda) (emit-lambda form)
+        (let, loop) (emit-let form)
         setq (emit-assignment form)
         (do (assert (not (special-symbol? op))
                     (str "Unsupported form: " (pr-str form)))
@@ -179,7 +182,6 @@
   (case op
     return (emit-return form)
     while (emit-while form)
-    (let, loop) (emit-let form)
     recur (emit-goto form)
     (do (print *indent*)
         (emit-expression form)
@@ -188,7 +190,9 @@
 (defn- emit-expression-in-lambda [form]
   (println "[&] () {")
   (binding [*indent* (str *indent* default-indent)]
-    (emit-expression-statement (list 'return form)))
+    (emit-expression-statement (with-meta
+                                 (list 'return form)
+                                 (meta form))))
   (print (str *indent* "}()"))  )
 
 (defn- emit-body
@@ -198,7 +202,9 @@
    (loop [[x & xs] body]
      (when x
        (emit-expression-statement (if (and (not xs) return?)
-                                    (list 'return x)
+                                    (with-meta
+                                      (list 'return x)
+                                      (meta x))
                                     x))
        (recur xs)))))
 

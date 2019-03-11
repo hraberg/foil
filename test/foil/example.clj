@@ -11,6 +11,6 @@
 
     (printf "%s" (if (= 10 x)
                    "ten\n"
-                   "not ten\n")))
+                   "not ten\n"))
 
-  0)
+    0))
