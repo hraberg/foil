@@ -12,6 +12,7 @@
         m ^"const char*" {:foo "bar"}
         my-fun (fn [x] (printf "hello, world %d\n" x))]
 
+    (aset a 0 4)
     (printf "%d %d %s %.2f\n" (.-x pt) (aget a 0) (:foo m) foo)
 
     (while (< x 10)
