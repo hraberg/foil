@@ -1,7 +1,8 @@
 (ns foil.main
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.walk :as w])
   (:import java.io.PushbackReader)
   (:gen-class))
 
@@ -12,8 +13,11 @@
 
 (def ^:private default-tag "void*")
 
-(defn form->tag [form]
-  (:tag (meta form) default-tag))
+(defn form->tag
+  ([form]
+   (form->tag form default-tag))
+  ([form default]
+   (:tag (meta form) default)))
 
 (defn- emit-include [[_ header]]
   (println "#include " (if (symbol? header)
@@ -31,11 +35,12 @@
 (def ^:private default-indent "    ")
 (def ^:dynamic ^:private *indent* "")
 
-(def ^:private unary-op '{inc ++
-                          dec --
-                          not !
+(def ^:private unary-op '{not !
                           ! !
                           bit-not "~"})
+
+(def ^:private unary-inc-dec-op '{inc +
+                                  dec -})
 
 (def ^:private binary-op '{+ +
                            - -
@@ -65,34 +70,48 @@
                            unsigned-bit-shift-right >>>
                            >>> >>>})
 
+(declare emit-block emit-expression)
+
 (defn- emit-application [[f & args :as form]]
   (cond
     (contains? unary-op f)
-    (print (get unary-op f) (first args))
+    (do (print (get unary-op f))
+        (emit-expression (first args)))
+
+    (contains? unary-inc-dec-op f)
+    (do (emit-expression (first args))
+        (print (str " " (get unary-inc-dec-op f) " 1")))
 
     (contains? binary-op f)
-    (print (first args) (get binary-op f) (second args))
+    (do (emit-expression (first args))
+        (print (str " " (get binary-op f)  " "))
+        (emit-expression (second args)))
 
     :else
-    (print (str f "(" (str/join ", " (map pr-str args)) ")"))))
+    (do (emit-expression f)
+        (print (str "(" (str/join ", " (map #(with-out-str
+                                               (emit-expression %)) args)) ")")))))
 
 (defn- emit-return [[_ value :as from]]
-  (print (str "return " (pr-str value))))
+  (print (str *indent* "return "))
+  (emit-expression value)
+  (println ";"))
 
 (defn- emit-assignment [[_ var value :as from]]
-  (print var " = " (pr-str value)))
-
-(declare emit-block emit-expression)
+  (print (str *indent* var " = "))
+  (emit-expression value)
+  (println ";"))
 
 (defn- emit-while [[_ condition & body :as form]]
-  (print "while (")
+  (print (str *indent* "while ("))
   (emit-expression condition)
   (print ")")
-  (emit-block body))
+  (emit-block body " "))
 
 (defn- emit-bindings [bindings]
   (doseq [[var binding] (partition 2 bindings)]
-    (println (form->tag var) " " var " " (pr-str binding) ";")
+    (print (str *indent* (form->tag var) " " var " = "))
+    (emit-expression binding)
     (println ";")))
 
 (defn- emit-let [[_ bindings & body :as form]]
@@ -100,6 +119,7 @@
   (emit-block body))
 
 (defn- emit-conditional [[_ condition then else :as form]]
+  (print *indent*)
   (emit-expression condition)
   (print " ? ")
   (emit-expression then)
@@ -112,26 +132,36 @@
   (emit-bindings bindings)
   (binding [*loop-state* {:label (gensym "loop")
                           :vars (mapv first bindings)}]
-    (println (str (:label *loop-state*) ":"))
+    (println (str *indent* (:label *loop-state*) ":"))
     (emit-block body)))
 
 (defn- emit-goto [[_ & expressions :as form]]
   (assert *loop-state* "Not in a loop.")
   (doseq [[var expression] (map vector (:vars *loop-state*) expressions)]
-    (print var " = ")
+    (print (str *indent* var " = "))
     (emit-expression expression)
     (println ";"))
-  (println "goto "(:label *loop-state*) ";"))
+  (println (str *indent* "goto "(:label *loop-state*) ";")))
 
-(defn- emit-expression [[op :as form]]
-  (when-let [tag (:tag (meta form))]
+(def ^:dynamic ^:private *lambda-state* (atom []))
+
+(defn- emit-lambda [form]
+  (let [sym (gensym "lambda")]
+    (swap! *lambda-state* conj [sym form])
+    (print sym)))
+
+(defn- emit-expression [form]
+  (when-let [tag (form->tag form nil)]
     (print "(" tag ") "))
-  (case op
-    if (emit-conditional form)
-    (do (assert (and (symbol? op)
-                     (not (special-symbol? op)))
-                (str "Unsupported form: " (pr-str form)))
-        (emit-application form))))
+  (if (seq? form)
+    (let [op (first form)]
+      (case op
+        if (emit-conditional form)
+        (fn, lambda) (emit-lambda form)
+        (do (assert (not (special-symbol? op))
+                    (str "Unsupported form: " (pr-str form)))
+            (emit-application form))))
+    (pr form)))
 
 (defn- emit-expression-statement [[op :as form]]
   (case op
@@ -141,41 +171,67 @@
     let (emit-let form)
     loop (emit-loop-init form)
     recur (emit-goto form)
-    (emit-expression form)))
+    (do (print *indent*)
+        (emit-expression form)
+        (println ";"))))
 
-(defn- emit-block [body]
-  (println (str *indent* "{"))
-  (binding [*indent* (str *indent* default-indent)]
-    (doseq [x body]
-      (assert (seq? x) (str "Unsupported form: " (pr-str x)))
-      (print *indent*)
-      (emit-expression-statement x)
-      (println ";")))
-  (println (str *indent* "}")))
+(defn- emit-body [body]
+  (doseq [x body]
+    (assert (seq? x) (str "Unsupported form: " (pr-str x)))
+    (emit-expression-statement x)))
 
-(defn- emit-function [[_ f args & body :as form]]
-  (print (str (form->tag args)
-              " "
-              f
-              (str "("
-                   (->> args
-                        (map #(str (form->tag %) " " %))
-                        (str/join ", "))
-                   ") {")))
-  (binding [*loop-state* {:label (gensym f)
-                          :vars args}
-            *indent* (str *indent* default-indent)]
-    (println)
-    (println (str (:label *loop-state*) ":"))
-    (emit-block body))
-  (println "}"))
+(defn- emit-block
+  ([body]
+   (emit-block body  *indent*))
+  ([body initial-indent]
+   (println (str initial-indent"{"))
+   (binding [*indent* (str *indent* default-indent)]
+     (emit-body body))
+   (println (str *indent* "}"))))
 
+(defn- needs-loop-target? [body]
+  (let [recur-found? (atom false)]
+    (w/prewalk #(if (seq? %)
+                  (case (first %)
+                    recur (do (reset! recur-found? true)
+                              %)
+                    loop nil
+                    %)
+                  %) body)
+    @recur-found?))
+
+(defn- emit-function [[op f args & body :as form]]
+  (binding [*lambda-state* (atom [])]
+    (let [fn-source (with-out-str
+                      (print (str (form->tag args "void")
+                                  " "
+                                  f
+                                  (str "("
+                                       (->> args
+                                            (map #(str (form->tag %) " " %))
+                                            (str/join ", "))
+                                       ") {")))
+                      (binding [*indent* (str *indent* default-indent)]
+                        (if (needs-loop-target? body)
+                          (binding [*loop-state* {:label (gensym f)
+                                                  :vars args}]
+                            (println)
+                            (println (str (:label *loop-state*) ":"))
+                            (emit-block body))
+                          (do (println)
+                              (emit-body body))))
+                      (println "}"))]
+      (doseq [[symbol lambda] @*lambda-state*]
+        (emit-function (concat ['lambda symbol]
+                               (rest lambda))))
+      (println fn-source))))
 
 (defn- emit-struct [[_ name fields :as form]]
   (println "typedef struct {")
   (doseq [field fields]
     (print (form->tag field) " " field ";"))
-  (println "} " name ";"))
+  (println "} " name ";")
+  (println))
 
 (defn- emit-source [in out]
   (binding [*out* out]

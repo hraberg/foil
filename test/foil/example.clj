@@ -3,5 +3,10 @@
         [stdint.h]))
 
 (defn main ^int []
-  (printf "hello, world\n")
+  (let [^int x 0]
+    (while (< x 10)
+      (setq x (+ x 1)))
+
+    ((fn ^void [^int x] (printf "hello, world %d\n" x)) x))
+
   (return 0))
