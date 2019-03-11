@@ -2,7 +2,7 @@ PROJECT = $(shell head project.clj -n1 | awk '{ print $$2 }' )
 VERSION = $(shell head project.clj -n1 | awk '{ print $$3 }' | sed s/\"//g )
 TARGET = ./target
 
-CFLAGS = -std=c11 -pedantic-errors -Wall -Wextra -Werror -O2
+CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -O2
 
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE=$(TARGET)/foil
@@ -18,8 +18,8 @@ clean:
 	rm -rf $(TARGET)
 
 check: $(UBERJAR)
-	cat test/foil/example.clj | java -jar $(UBERJAR) > $(TARGET)/example.c
-	gcc $(TARGET)/example.c $(CFLAGS) -o $(TARGET)/example
+	cat test/foil/example.clj | java -jar $(UBERJAR) > $(TARGET)/example.cc
+	$(CXX) $(TARGET)/example.cc $(CXXFLAGS) -o $(TARGET)/example
 	$(TARGET)/example | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
