@@ -4,4 +4,5 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.10.0"]]
+  :aot [foil.main]
   :main foil.main)
