@@ -171,12 +171,12 @@
   (print ")")
   (emit-block body " "))
 
-(defn- emit-for [[op bindings & body]]
+(defn- emit-range-based-for [[op bindings & body]]
 
   (doseq [[var binding] (partition 2 bindings)]
     (println (str *indent* "for (" (with-out-str
-                                     (emit-var-declaration var)) " : " (with-out-str
-                                                                         (emit-expression binding))
+                                     (emit-var-declaration var "auto&")) " : " (with-out-str
+                                     (emit-expression binding))
                   ")")))
   (emit-block body))
 
@@ -288,7 +288,7 @@
     return (emit-return form)
     while (emit-while form)
     recur (emit-goto form)
-    doseq (emit-for form)
+    doseq (emit-range-based-for form)
     (do (print *indent*)
         (emit-expression form)
         (println ";"))))
