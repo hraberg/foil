@@ -15,14 +15,17 @@
 (defn form->tag [form]
   (:tag (meta form) default-tag))
 
+(defn- emit-include [[_ header]]
+  (println "#include " (if (symbol? header)
+                         (str "<" header ">")
+                         (pr-str header))))
+
 (defn- emit-headers [[_ name & references :as form]]
   (doseq [[ref-type & lib-specs] references
           [lib :as lib-spec] lib-specs]
     (case ref-type
       :use
-      (println "#include " (if (symbol? lib)
-                             (str "<" lib ">")
-                             (pr-str lib)))))
+      (emit-include ['include lib])))
   (println))
 
 (def ^:private default-indent "    ")
@@ -173,8 +176,9 @@
     (doseq [[top-level :as form] (read-source in)]
       (case top-level
         ns (emit-headers form)
-        defn (emit-function form)
-        defrecord (emit-struct form)))))
+        (include, use) (emit-include form)
+        (defn, defun) (emit-function form)
+        (defrecord, defstruct) (emit-struct form)))))
 
 (defn -main [& args]
   (emit-source *in* *out*))
