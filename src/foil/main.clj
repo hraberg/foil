@@ -3,7 +3,8 @@
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as w])
-  (:import java.io.PushbackReader)
+  (:import java.io.PushbackReader
+           clojure.lang.Compiler)
   (:gen-class))
 
 (defn- read-source [in]
@@ -13,7 +14,7 @@
 
 (def ^:private default-tag "void*")
 
-(defn form->tag
+(defn- form->tag
   ([form]
    (form->tag form default-tag))
   ([form default]
@@ -98,7 +99,7 @@
   (println ";"))
 
 (defn- emit-assignment [[_ var value :as from]]
-  (print (str *indent* var " = "))
+  (print (str *indent* (munge var) " = "))
   (emit-expression value)
   (println ";"))
 
@@ -108,10 +109,19 @@
   (print ")")
   (emit-block body " "))
 
+(defn- emit-var-declaration
+  ([var]
+   (emit-var-declaration var default-tag))
+  ([var default-tag]
+   (print (if (string? var)
+            var
+            (str (form->tag var default-tag) " " (munge var))))))
+
 (defn- emit-bindings [bindings]
   (doseq [[var binding] (partition 2 bindings)]
-    (print (str *indent* (when-not (string? var)
-                           (form->tag var (form->tag binding))) " " var " = "))
+    (print *indent*)
+    (emit-var-declaration var (form->tag binding))
+    (print " = ")
     (emit-expression binding)
     (println ";")))
 
@@ -120,7 +130,6 @@
   (emit-block body))
 
 (defn- emit-conditional [[_ condition then else :as form]]
-  (print *indent*)
   (emit-expression condition)
   (print " ? ")
   (emit-expression then)
@@ -139,7 +148,7 @@
 (defn- emit-goto [[_ & expressions :as form]]
   (assert *loop-state* "Not in a loop.")
   (doseq [[var expression] (map vector (:vars *loop-state*) expressions)]
-    (print (str *indent* var " = "))
+    (print (str *indent* (munge var) " = "))
     (emit-expression expression)
     (println ";"))
   (println (str *indent* "goto "(:label *loop-state*) ";")))
@@ -162,7 +171,9 @@
         (do (assert (not (special-symbol? op))
                     (str "Unsupported form: " (pr-str form)))
             (emit-application form))))
-    (pr form)))
+    (if (symbol? form)
+      (print (munge form))
+      (pr form))))
 
 (defn- emit-expression-statement [[op :as form]]
   (case op
@@ -209,9 +220,8 @@
                                   f
                                   (str "("
                                        (->> args
-                                            (map #(if (string? %)
-                                                    %
-                                                    (str (form->tag %) " " %)))
+                                            (map #(with-out-str
+                                                    (emit-var-declaration %)))
                                             (str/join ", "))
                                        ") {")))
                       (binding [*indent* (str *indent* default-indent)]
