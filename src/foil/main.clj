@@ -20,7 +20,8 @@
    (form->tag form default-tag))
   ([form default]
    (cond-> (:tag (meta form) default)
-     (vector? form) (-> (name) (str/replace #"s$" "") (symbol)))))
+     (or (vector? form)
+         (map? form)) (-> (name) (str/replace #"s$" "") (symbol)))))
 
 (defn- emit-include [[_ header]]
   (println (str "#include " (if (symbol? header)
@@ -83,8 +84,11 @@
 
 (defn- field-access? [f]
   (and (symbol? f)
-       (or (str/starts-with? (name f) ".")
-           (str/starts-with? (name f) ".-"))))
+       (str/starts-with? (name f) ".-")))
+
+(defn- method-call? [f]
+  (and (symbol? f)
+       (str/starts-with? (name f) ".")))
 
 (defn- emit-array-access [[array & indexes]]
   (emit-expression array)
@@ -116,10 +120,13 @@
         (print " = ")
         (emit-expression (last args)))
 
+    (keyword? f)
+    (emit-array-access [(first args) (name f)])
+
     (field-access? f)
     (do (emit-expression (first args))
         (print ".")
-        (emit-expression (symbol (str/replace (name f) #"^\.-?" ""))))
+        (emit-expression (symbol (str/replace (name f) #"^\.-" ""))))
 
     (constructor? f)
     (do (emit-expression (symbol (-> (name f)
@@ -127,6 +134,13 @@
                                      (str/replace #"^->" ""))))
         (print (str "{" (str/join ", " (map #(with-out-str
                                                (emit-expression %)) args)) "}")))
+
+    (method-call? f)
+    (do (emit-expression (first args))
+        (emit-expression f)
+        (print (str "(" (str/join ", " (map #(with-out-str
+                                               (emit-expression %)) (rest args))) ")")))
+
     :else
     (do (emit-expression f)
         (print (str "(" (str/join ", " (map #(with-out-str
@@ -204,10 +218,12 @@
 (defmethod foil-macroexpand :default [form])
 
 (defn- emit-expression [form]
-  (when-let [tag (and (not (vector? form))
+  (when-let [tag (and (not (or (vector? form)
+                               (map? form)))
                       (form->tag form nil))]
     (print (str "(" tag ") ")))
-  (if (seq? form)
+  (cond
+    (seq? form)
     (let [op (first form)]
       (case op
         if (emit-conditional form)
@@ -215,17 +231,27 @@
         (if-let [macro-expansion (foil-macroexpand form)]
           (emit-expression macro-expansion)
           (emit-application form))))
-    (cond
-      (symbol? form)
-      (print (munge form))
 
-      (vector? form)
-      (print (str "std::array<" (form->tag form) "," (count form) ">"
-                  "{" (str/join ", " (map #(with-out-str
-                                             (emit-expression %)) form)) "}"))
+    (symbol? form)
+    (print (munge form))
 
-      :else
-      (pr form))))
+    (map? form)
+    (print (str "std::unordered_map<std::string," (form->tag form) ">"
+                "{" (str/join ", " (map (fn [[k v]]
+                                          (str "{"
+                                               (pr-str (name k))
+                                               ", "
+                                               (with-out-str
+                                                 (emit-expression v))
+                                               "}")) form)) "}"))
+
+    (vector? form)
+    (print (str "std::vector<" (form->tag form) ">"
+                "{" (str/join ", " (map #(with-out-str
+                                           (emit-expression %)) form)) "}"))
+
+    :else
+    (pr form)))
 
 (def ^:dynamic ^:private *file-name* nil)
 
@@ -325,7 +351,7 @@
   (println))
 
 (defn- emit-default-includes []
-  (doseq [header '[array]]
+  (doseq [header '[string vector unordered_map]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]

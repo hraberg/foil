@@ -7,9 +7,10 @@
   (let [x 0
         pt (Point. -1 2)
         a ^ints [2 3]
+        m ^"std::string" {:foo "bar"}
         my-fun (fn [x] (printf "hello, world %d\n" x))]
 
-    (printf "%d %d\n" (.x pt) (aget a 0))
+    (printf "%d %d %s\n" (.-x pt) (aget a 0) (.c-str (:foo m)))
 
     (while (< x 10)
       (set! x (+ x 1)))
