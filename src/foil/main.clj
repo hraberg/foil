@@ -155,12 +155,6 @@
   (emit-expression value)
   (println ";"))
 
-(defn- emit-while [[_ condition & body :as form]]
-  (print (str *indent* "while ("))
-  (emit-expression condition)
-  (print ")")
-  (emit-block body " "))
-
 (defn- emit-var-declaration
   ([var]
    (emit-var-declaration var default-tag))
@@ -170,6 +164,21 @@
    (print (if (string? var)
             var
             (str (form->tag var default-tag) " " (munge var))))))
+
+(defn- emit-while [[_ condition & body :as form]]
+  (print (str *indent* "while ("))
+  (emit-expression condition)
+  (print ")")
+  (emit-block body " "))
+
+(defn- emit-for [[op bindings & body]]
+
+  (doseq [[var binding] (partition 2 bindings)]
+    (println (str *indent* "for (" (with-out-str
+                                     (emit-var-declaration var)) " : " (with-out-str
+                                                                         (emit-expression binding))
+                  ")")))
+  (emit-block body))
 
 (defn- emit-conditional [[_ condition then else :as form]]
   (emit-expression condition)
@@ -279,6 +288,7 @@
     return (emit-return form)
     while (emit-while form)
     recur (emit-goto form)
+    doseq (emit-for form)
     (do (print *indent*)
         (emit-expression form)
         (println ";"))))
@@ -314,7 +324,7 @@
   ([body]
    (emit-block body  *indent*))
   ([body initial-indent]
-   (println (str initial-indent"{"))
+   (println (str initial-indent "{"))
    (binding [*indent* (str *indent* default-indent)]
      (emit-body body))
    (println (str *indent* "}"))))

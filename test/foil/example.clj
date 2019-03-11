@@ -19,6 +19,10 @@
     (while (< x 10)
       (set! x (+ x 1)))
 
+    (doseq [x s
+            y a]
+      (printf "%d %d\n" x y))
+
     (my-fun x)
 
     (printf "%s" (if (= 10 x)
