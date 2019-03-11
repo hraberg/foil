@@ -71,13 +71,13 @@
     (print (get unary-op f) (first args))
 
     (contains? binary-op f)
-    (print (first args) " " (get binary-op f) " "  (second args))
+    (print (first args) (get binary-op f) (second args))
 
     :else
-    (print f "(" (str/join ", " (map pr-str args)) ")")))
+    (print (str f "(" (str/join ", " (map pr-str args)) ")"))))
 
 (defn- emit-return [[_ value :as from]]
-  (print "return " (pr-str value)))
+  (print (str "return " (pr-str value))))
 
 (defn- emit-assignment [[_ var value :as from]]
   (print var " = " (pr-str value)))
@@ -112,7 +112,7 @@
   (emit-bindings bindings)
   (binding [*loop-state* {:label (gensym "loop")
                           :vars (mapv first bindings)}]
-    (println (:label *loop-state*) ":")
+    (println (str (:label *loop-state*) ":"))
     (emit-block body)))
 
 (defn- emit-goto [[_ & expressions :as form]]
@@ -144,14 +144,14 @@
     (emit-expression form)))
 
 (defn- emit-block [body]
-  (println "{")
+  (println (str *indent* "{"))
   (binding [*indent* (str *indent* default-indent)]
     (doseq [x body]
       (assert (seq? x) (str "Unsupported form: " (pr-str x)))
       (print *indent*)
       (emit-expression-statement x)
       (println ";")))
-  (println "}"))
+  (println (str *indent* "}")))
 
 (defn- emit-function [[_ f args & body :as form]]
   (print (str (form->tag args)
@@ -161,8 +161,14 @@
                    (->> args
                         (map #(str (form->tag %) " " %))
                         (str/join ", "))
-                   ") ")))
-  (emit-block body))
+                   ") {")))
+  (binding [*loop-state* {:label (gensym f)
+                          :vars args}
+            *indent* (str *indent* default-indent)]
+    (println)
+    (println (str (:label *loop-state*) ":"))
+    (emit-block body))
+  (println "}"))
 
 
 (defn- emit-struct [[_ name fields :as form]]
