@@ -15,13 +15,17 @@
 
 (def ^:private default-tag "auto")
 
+(defn- collection-literal? [form]
+  (or (vector? form)
+      (map? form)
+      (set? form)))
+
 (defn- form->tag
   ([form]
    (form->tag form default-tag))
   ([form default]
    (cond-> (:tag (meta form) default)
-     (or (vector? form)
-         (map? form)) (-> (name) (str/replace #"s$" "") (symbol)))))
+     (collection-literal? form) (-> (name) (str/replace #"s$" "") (symbol)))))
 
 (defn- emit-include [[_ header]]
   (println (str "#include " (if (symbol? header)
@@ -220,8 +224,7 @@
 (defmethod foil-macroexpand :default [form])
 
 (defn- emit-expression [form]
-  (when-let [tag (and (not (or (vector? form)
-                               (map? form)))
+  (when-let [tag (and (not (collection-literal? form))
                       (form->tag form nil))]
     (print (str "(" tag ") ")))
   (cond
@@ -239,6 +242,11 @@
 
     (keyword? form)
     (print (str "std::string(" (pr-str (str form)) ")"))
+
+    (set? form)
+    (print (str "std::unordered_set<" (form->tag form) ">"
+                "{" (str/join ", " (map #(with-out-str
+                                           (emit-expression %)) form)) "}"))
 
     (map? form)
     (print (str "std::unordered_map<std::string," (form->tag form) ">"
@@ -363,7 +371,7 @@
   (println ";"))
 
 (defn- emit-default-includes []
-  (doseq [header '[string vector unordered_map]]
+  (doseq [header '[string vector unordered_map unordered_set]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]
