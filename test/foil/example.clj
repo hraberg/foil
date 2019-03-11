@@ -6,7 +6,7 @@
 (defn main ^int []
   (let [x 0
         pt (Point. -1 2)
-        a ^ints [2 3]
+        a ^int [2 3]
         m ^"const char*" {:foo "bar"}
         my-fun (fn [x] (printf "hello, world %d\n" x))]
 
