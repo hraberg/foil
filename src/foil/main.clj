@@ -110,7 +110,8 @@
 
 (defn- emit-bindings [bindings]
   (doseq [[var binding] (partition 2 bindings)]
-    (print (str *indent* (form->tag var) " " var " = "))
+    (print (str *indent* (when-not (string? var)
+                           (form->tag var (form->tag binding))) " " var " = "))
     (emit-expression binding)
     (println ";")))
 
@@ -131,7 +132,7 @@
 (defn- emit-loop-init [[_ bindings & body :as form]]
   (emit-bindings bindings)
   (binding [*loop-state* {:label (gensym "loop")
-                          :vars (mapv first bindings)}]
+                          :vars (mapv first (partition 2 bindings))}]
     (println (str *indent* (:label *loop-state*) ":"))
     (emit-block body)))
 
@@ -208,7 +209,9 @@
                                   f
                                   (str "("
                                        (->> args
-                                            (map #(str (form->tag %) " " %))
+                                            (map #(if (string? %)
+                                                    %
+                                                    (str (form->tag %) " " %)))
                                             (str/join ", "))
                                        ") {")))
                       (binding [*indent* (str *indent* default-indent)]
