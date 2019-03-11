@@ -72,7 +72,7 @@
                            unsigned-bit-shift-right >>>
                            >>> >>>})
 
-(declare emit-block emit-expression emit-expression-in-lambda emit-function-body)
+(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body)
 
 (defn- emit-application [[f & args :as form]]
   (cond
@@ -113,17 +113,11 @@
             var
             (str (form->tag var default-tag) " " (munge var))))))
 
-(defn- emit-bindings [bindings]
-  (doseq [[var binding] (partition 2 bindings)]
-    (print *indent*)
-    (emit-var-declaration var (form->tag binding))
-    (print " = ")
-    (emit-expression binding)
-    (println ";")))
-
 (defn- emit-let [[_ bindings & body :as form]]
-  (emit-bindings bindings)
-  (emit-block body))
+  (let [bindings (partition 2 bindings)]
+    (emit-expression-statement (cons (concat (list 'lambda (map first bindings))
+                                             body)
+                                     (map second bindings)))))
 
 (defn- emit-conditional [[_ condition then else :as form]]
   (emit-expression condition)
@@ -137,13 +131,6 @@
   (emit-expression value))
 
 (def ^:dynamic ^:private *loop-state*)
-
-(defn- emit-loop-init [[_ bindings & body :as form]]
-  (emit-bindings bindings)
-  (binding [*loop-state* {:label (gensym "loop")
-                          :vars (mapv first (partition 2 bindings))}]
-    (println (str *indent* (:label *loop-state*) ":"))
-    (emit-block body)))
 
 (defn- emit-goto [[_ & expressions :as form]]
   (assert *loop-state* "Not in a loop.")
@@ -192,8 +179,7 @@
   (case op
     return (emit-return form)
     while (emit-while form)
-    let (emit-let form)
-    loop (emit-loop-init form)
+    (let, loop) (emit-let form)
     recur (emit-goto form)
     (do (print *indent*)
         (emit-expression form)
