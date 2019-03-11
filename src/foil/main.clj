@@ -227,10 +227,12 @@
                                   " "
                                   f
                                   (str "("
-                                       (->> args
-                                            (map #(with-out-str
-                                                    (emit-var-declaration %)))
-                                            (str/join ", "))
+                                       (if (empty? args)
+                                         "void"
+                                         (->> args
+                                              (map #(with-out-str
+                                                      (emit-var-declaration %)))
+                                              (str/join ", ")))
                                        ") {")))
                       (binding [*indent* (str *indent* default-indent)]
                         (if (needs-loop-target? body)
