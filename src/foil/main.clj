@@ -187,13 +187,19 @@
         (emit-expression form)
         (println ";"))))
 
+(defn- constant? [form]
+  (not (and (seq? form)
+            (not= 'quote (first form)))))
+
 (defn- emit-expression-in-lambda [form]
-  (println "[&] () {")
-  (binding [*indent* (str *indent* default-indent)]
-    (emit-expression-statement (with-meta
-                                 (list 'return form)
-                                 (meta form))))
-  (print (str *indent* "}()"))  )
+  (if (constant? form)
+    (emit-expression form)
+    (do (println "[&] () {")
+        (binding [*indent* (str *indent* default-indent)]
+          (emit-expression-statement (with-meta
+                                       (list 'return form)
+                                       (meta form))))
+        (print (str *indent* "}()")))))
 
 (defn- emit-body
   ([body]
