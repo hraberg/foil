@@ -121,7 +121,7 @@
         (emit-expression (last args)))
 
     (keyword? f)
-    (emit-array-access [(first args) (name f)])
+    (emit-array-access [(first args) f])
 
     (field-access? f)
     (do (emit-expression (first args))
@@ -235,11 +235,15 @@
     (symbol? form)
     (print (munge form))
 
+    (keyword? form)
+    (print (str "std::string(" (pr-str (str form)) ")"))
+
     (map? form)
     (print (str "std::unordered_map<std::string," (form->tag form) ">"
                 "{" (str/join ", " (map (fn [[k v]]
                                           (str "{"
-                                               (pr-str (name k))
+                                               (with-out-str
+                                                 (emit-expression k))
                                                ", "
                                                (with-out-str
                                                  (emit-expression v))
