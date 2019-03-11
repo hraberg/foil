@@ -12,4 +12,17 @@
 
 (defn -main [& args]
   (doseq [x (read-from *in*)]
-    (prn x)))
+    (case (first x)
+      ns (do (doseq [x (drop 2 x)]
+               (when (= :use (first x))
+                 (let [i (first (second x))]
+                   (println "#include " (if (symbol? i)
+                                          (str "<" i ">")
+                                          (pr-str i))))))
+             (println))
+      defn (let [[_ f args & body] x]
+             (println (str (:tag (meta args)) " " f "(void)" " {"))
+             (doseq [x body]
+               (when (symbol? (first x))
+                 (println (str "    " (first x) (pr-str (rest x)) ";"))))
+             (println "}")))))
