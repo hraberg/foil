@@ -1,6 +1,7 @@
 (ns foil.main
   (:require [clojure.edn :as edn]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import java.io.PushbackReader)
   (:gen-class))
 
@@ -10,7 +11,8 @@
          (take-while #(not= ::eof %)))))
 
 (defn- emit-ns [[_ name & references :as form]]
-  (doseq [[ref-type [lib :as lib-spec]] references]
+  (doseq [[ref-type & lib-specs] references
+          [lib :as lib-spec] lib-specs]
     (case ref-type
       :use
       (println "#include " (if (symbol? lib)
@@ -22,10 +24,24 @@
 (def ^:dynamic ^:private *indent* "")
 
 (defn- emit-application [[f & args :as form]]
-  (println (str *indent* f (pr-str args) ";")))
+  (println (str *indent* f "(" (str/join ", " (map pr-str args)) ");")))
+
+(defn- emit-return [[_ value :as from]]
+  (println (str *indent* "return " (pr-str value) ";")))
+
+(defn- emit-assignment [[_ var value :as from]]
+  (println (str *indent* var " = " (pr-str value) ";")))
 
 (defn- emit-defn [[_ f args & body :as form]]
-  (println (str (:tag (meta args)) " " f "(void)" " {"))
+  (println (str (:tag (meta args))
+                " "
+                f
+                (str "("
+                     (->> args
+                          (map #(str (:tag (meta %) "void*") " " %))
+                          (str/join ", "))
+                     ")")
+                " {"))
   (binding [*indent* (str *indent* default-indent)]
     (doseq [x body]
       (assert (seq? x) (str "Unsupported form: " (pr-str x)))
@@ -33,7 +49,10 @@
         (assert (and (symbol? head)
                      (not (special-symbol? head)))
                 (str "Unsupported form: " (pr-str x)))
-        (emit-application x))))
+        (case head
+          return (emit-return x)
+          setq (emit-assignment x)
+          (emit-application x)))))
   (println "}"))
 
 (defn- emit-source [in out]
