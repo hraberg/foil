@@ -1,16 +1,17 @@
 (ns foil.main
-  (:require [clojure.edn :as edn]
+  (:require [clojure.tools.reader :as r]
+            [clojure.tools.reader.reader-types :as rt]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as w])
-  (:import java.io.PushbackReader
-           clojure.lang.Compiler)
   (:gen-class))
 
 (defn- read-source [in]
-  (let [r (PushbackReader. (io/reader in))]
-    (->> (repeatedly #(edn/read {:eof ::eof} r))
-         (take-while #(not= ::eof %)))))
+  (let [r (rt/indexing-push-back-reader (io/reader in) 2)]
+    (binding [r/*read-eval* false]
+      (->> (repeatedly #(r/read {:eof ::eof} r))
+           (take-while #(not= ::eof %))
+           (vec)))))
 
 (def ^:private default-tag "void*")
 
@@ -175,7 +176,14 @@
       (print (munge form))
       (pr form))))
 
+(def ^:dynamic ^:private *file-name* nil)
+
+(defn- emit-line [form]
+  (when-let [line (:line (meta form))]
+    (println "#line" line (or (some-> *file-name* (pr-str)) ""))))
+
 (defn- emit-expression-statement [[op :as form]]
+  (emit-line form)
   (case op
     return (emit-return form)
     setq (emit-assignment form)
@@ -249,6 +257,7 @@
 (defn- emit-source [in out]
   (binding [*out* out]
     (doseq [[top-level :as form] (read-source in)]
+      (emit-line form)
       (case top-level
         ns (emit-headers form)
         (include, use) (emit-include form)
