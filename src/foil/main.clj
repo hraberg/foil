@@ -34,7 +34,7 @@
       (emit-include ['include lib])))
   (println))
 
-(def ^:private default-indent "    ")
+(def ^:private default-indent "  ")
 (def ^:dynamic ^:private *indent* "")
 
 (def ^:private unary-op '{not !
