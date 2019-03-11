@@ -19,12 +19,13 @@
   ([form]
    (form->tag form default-tag))
   ([form default]
-   (:tag (meta form) default)))
+   (cond-> (:tag (meta form) default)
+     (vector? form) (-> (name) (str/replace #"s$" "") (str "[]") (symbol)))))
 
 (defn- emit-include [[_ header]]
-  (println "#include " (if (symbol? header)
-                         (str "<" header ">")
-                         (pr-str header))))
+  (println (str "#include " (if (symbol? header)
+                              (str "<" header ">")
+                              (pr-str header)))))
 
 (defn- emit-headers [[_ name & references :as form]]
   (doseq [[ref-type & lib-specs] references
@@ -204,7 +205,7 @@
 
 (defn- emit-expression [form]
   (when-let [tag (form->tag form nil)]
-    (print "(" tag ") "))
+    (print (str "(" tag ") ")))
   (if (seq? form)
     (let [op (first form)]
       (case op
@@ -213,8 +214,15 @@
         (if-let [macro-expansion (foil-macroexpand form)]
           (emit-expression macro-expansion)
           (emit-application form))))
-    (if (symbol? form)
+    (cond
+      (symbol? form)
       (print (munge form))
+
+      (vector? form)
+      (print (str "[" (str/join ", " (map #(with-out-str
+                                             (emit-expression %)) form)) "]"))
+
+      :else
       (pr form))))
 
 (def ^:dynamic ^:private *file-name* nil)
