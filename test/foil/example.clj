@@ -3,6 +3,8 @@
 
 (defrecord Point [^int x ^int y])
 
+(def ^:const foo 3.14)
+
 (defn main ^int []
   (let [x 0
         pt (Point. -1 2)
@@ -10,7 +12,7 @@
         m ^"const char*" {:foo "bar"}
         my-fun (fn [x] (printf "hello, world %d\n" x))]
 
-    (printf "%d %d %s\n" (.-x pt) (aget a 0) (:foo m))
+    (printf "%d %d %s %.2f\n" (.-x pt) (aget a 0) (:foo m) foo)
 
     (while (< x 10)
       (set! x (+ x 1)))

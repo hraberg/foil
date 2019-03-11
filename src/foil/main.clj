@@ -161,6 +161,8 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
+   (when (:const (meta var))
+     (print "const "))
    (print (if (string? var)
             var
             (str (form->tag var default-tag) " " (munge var))))))
@@ -354,6 +356,12 @@
   (println (str "} " name ";"))
   (println))
 
+(defn- emit-global [[_ name value :as form]]
+  (emit-var-declaration name)
+  (print " = ")
+  (emit-expression value)
+  (println ";"))
+
 (defn- emit-default-includes []
   (doseq [header '[string vector unordered_map]]
     (emit-include (vector 'include header))))
@@ -366,6 +374,7 @@
       (case top-level
         ns (emit-headers form)
         (include, use) (emit-include form)
+        def (emit-global form)
         (defn, defun) (emit-function form)
         (defrecord, defstruct) (emit-struct form)))))
 
