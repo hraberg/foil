@@ -124,13 +124,13 @@
   (println "goto "(:label *loop-state*) ";"))
 
 (defn- emit-expression [[op :as form]]
+  (when-let [tag (:tag (meta form))]
+    (print "(" tag ") "))
   (case op
     if (emit-conditional form)
     (do (assert (and (symbol? op)
                      (not (special-symbol? op)))
                 (str "Unsupported form: " (pr-str form)))
-        (when-let [tag (:tag (meta form))]
-          (print "(" tag ") "))
         (emit-application form))))
 
 (defn- emit-expression-statement [[op :as form]]
