@@ -173,9 +173,9 @@
 (defn- macroexpand-let [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
     (with-meta
-      (cons (concat (list 'lambda (map first bindings))
-                    body)
-            (map second bindings))
+      `((~'lambda ~(mapv first bindings)
+         ~@body)
+        ~@(map second bindings))
       (meta form))))
 
 (defmethod foil-macroexpand :let [form]
