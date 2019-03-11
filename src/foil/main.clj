@@ -85,7 +85,7 @@
        (or (str/starts-with? (name f) ".")
            (str/starts-with? (name f) ".-"))))
 
-(defn- emit-array-access [[array indexes]]
+(defn- emit-array-access [[array & indexes]]
   (emit-expression array)
   (doseq [idx indexes]
     (print "[")
