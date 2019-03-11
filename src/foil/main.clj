@@ -113,14 +113,6 @@
             var
             (str (form->tag var default-tag) " " (munge var))))))
 
-(defn- emit-let [[_ bindings & body :as form]]
-  (let [bindings (partition 2 bindings)]
-    (emit-application (with-meta
-                        (cons (concat (list 'lambda (map first bindings))
-                                      body)
-                              (map second bindings))
-                        (meta form)))))
-
 (defn- emit-conditional [[_ condition then else :as form]]
   (emit-expression condition)
   (print " ? ")
@@ -154,6 +146,25 @@
   (emit-function-body "lambda" args body)
   (print (str *indent* "}"))  )
 
+(defmulti foil-macroexpand (fn [[op :as form]] (when (symbol? op)
+                                                 (keyword (name op)))))
+
+(defn- macroexpand-let [[_ bindings & body :as form]]
+  (let [bindings (partition 2 bindings)]
+    (with-meta
+      (cons (concat (list 'lambda (map first bindings))
+                    body)
+            (map second bindings))
+      (meta form))))
+
+(defmethod foil-macroexpand :let [form]
+  (macroexpand-let form))
+
+(defmethod foil-macroexpand :loop [form]
+  (macroexpand-let form))
+
+(defmethod foil-macroexpand :default [form])
+
 (defn- emit-expression [form]
   (when-let [tag (form->tag form nil)]
     (print "(" tag ") "))
@@ -162,11 +173,13 @@
       (case op
         if (emit-conditional form)
         (fn, lambda) (emit-lambda form)
-        (let, loop) (emit-let form)
         setq (emit-assignment form)
         (do (assert (not (special-symbol? op))
                     (str "Unsupported form: " (pr-str form)))
-            (emit-application form))))
+
+            (if-let [macro-expansion (foil-macroexpand form)]
+              (emit-expression macro-expansion)
+              (emit-application form)))))
     (if (symbol? form)
       (print (munge form))
       (pr form))))
