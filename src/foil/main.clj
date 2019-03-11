@@ -54,6 +54,7 @@
                            <= <=
                            > >
                            >= >=
+                           set! =
                            = ==
                            == ==
                            not= !=
@@ -84,6 +85,13 @@
        (or (str/starts-with? (name f) ".")
            (str/starts-with? (name f) ".-"))))
 
+(defn- emit-array-access [[array indexes]]
+  (emit-expression array)
+  (doseq [idx indexes]
+    (print "[")
+    (emit-expression idx)
+    (print "]")))
+
 (defn- emit-application [[f & args :as form]]
   (cond
     (contains? unary-op f)
@@ -98,6 +106,14 @@
     (do (emit-expression (first args))
         (print (str " " (get binary-op f)  " "))
         (emit-expression (second args)))
+
+    (= 'aget f)
+    (emit-array-access args)
+
+    (= 'aset f)
+    (do (emit-array-access (butlast args))
+        (print " = ")
+        (emit-expression (last args)))
 
     (field-access? f)
     (do (emit-expression (first args))
@@ -194,13 +210,9 @@
       (case op
         if (emit-conditional form)
         (fn, lambda) (emit-lambda form)
-        setq (emit-assignment form)
-        (do (assert (not (special-symbol? op))
-                    (str "Unsupported form: " (pr-str form)))
-
-            (if-let [macro-expansion (foil-macroexpand form)]
-              (emit-expression macro-expansion)
-              (emit-application form)))))
+        (if-let [macro-expansion (foil-macroexpand form)]
+          (emit-expression macro-expansion)
+          (emit-application form))))
     (if (symbol? form)
       (print (munge form))
       (pr form))))

@@ -11,7 +11,7 @@
     (printf "%d\n" (.x pt))
 
     (while (< x 10)
-      (setq x (+ x 1)))
+      (set! x (+ x 1)))
 
     (my-fun x)
 
