@@ -7,7 +7,7 @@ CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -O2
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE=$(TARGET)/foil
 
-.PHONY: all uberjar clean run check
+.PHONY: all uberjar clean run check native-image
 
 all: $(UBERJAR)
 
@@ -24,6 +24,8 @@ check: $(UBERJAR)
 
 $(NATIVE_IMAGE): $(UBERJAR)
 	$(GRAAL_HOME)/bin/native-image --no-server -H:+ReportExceptionStackTraces -jar $(UBERJAR) $(NATIVE_IMAGE)
+
+native-image: $(NATIVE_IMAGE)
 
 run: $(UBERJAR)
 	java -jar $(UBERJAR)
