@@ -20,7 +20,7 @@
    (form->tag form default-tag))
   ([form default]
    (cond-> (:tag (meta form) default)
-     (vector? form) (-> (name) (str/replace #"s$" "") (str "[]") (symbol)))))
+     (vector? form) (-> (name) (str/replace #"s$" "") (symbol)))))
 
 (defn- emit-include [[_ header]]
   (println (str "#include " (if (symbol? header)
@@ -204,7 +204,8 @@
 (defmethod foil-macroexpand :default [form])
 
 (defn- emit-expression [form]
-  (when-let [tag (form->tag form nil)]
+  (when-let [tag (and (not (vector? form))
+                      (form->tag form nil))]
     (print (str "(" tag ") ")))
   (if (seq? form)
     (let [op (first form)]
@@ -219,8 +220,9 @@
       (print (munge form))
 
       (vector? form)
-      (print (str "[" (str/join ", " (map #(with-out-str
-                                             (emit-expression %)) form)) "]"))
+      (print (str "std::array<" (form->tag form) "," (count form) ">"
+                  "{" (str/join ", " (map #(with-out-str
+                                             (emit-expression %)) form)) "}"))
 
       :else
       (pr form))))
@@ -322,8 +324,13 @@
   (println (str "} " name ";"))
   (println))
 
+(defn- emit-default-includes []
+  (doseq [header '[array]]
+    (emit-include (vector 'include header))))
+
 (defn- emit-source [in out]
   (binding [*out* out]
+    (emit-default-includes)
     (doseq [[top-level :as form] (read-source in)]
       (emit-line form)
       (case top-level
