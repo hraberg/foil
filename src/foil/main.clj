@@ -74,6 +74,16 @@
 
 (declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body)
 
+(defn- constructor? [f]
+  (and (symbol? f)
+       (or (str/ends-with? (name f) ".")
+           (str/starts-with? (name f) "->"))))
+
+(defn- field-access? [f]
+  (and (symbol? f)
+       (or (str/starts-with? (name f) ".")
+           (str/starts-with? (name f) ".-"))))
+
 (defn- emit-application [[f & args :as form]]
   (cond
     (contains? unary-op f)
@@ -89,6 +99,17 @@
         (print (str " " (get binary-op f)  " "))
         (emit-expression (second args)))
 
+    (field-access? f)
+    (do (emit-expression (first args))
+        (print ".")
+        (emit-expression (symbol (str/replace (name f) #"^\.-?" ""))))
+
+    (constructor? f)
+    (do (emit-expression (symbol (-> (name f)
+                                     (str/replace #"\.$" "")
+                                     (str/replace #"^->" ""))))
+        (print (str "{" (str/join ", " (map #(with-out-str
+                                               (emit-expression %)) args)) "}")))
     :else
     (do (emit-expression f)
         (print (str "(" (str/join ", " (map #(with-out-str
@@ -275,9 +296,10 @@
 
 (defn- emit-struct [[_ name fields :as form]]
   (println "typedef struct {")
-  (doseq [field fields]
-    (print (form->tag field) " " field ";"))
-  (println "} " name ";")
+  (binding [*indent* (str *indent* default-indent)]
+    (doseq [field fields]
+      (println (str *indent* (form->tag field) " " field ";"))))
+  (println (str "} " name ";"))
   (println))
 
 (defn- emit-source [in out]
