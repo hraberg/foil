@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as w])
+  (:import java.util.regex.Pattern)
   (:gen-class))
 
 (defn- read-source [in]
@@ -256,6 +257,9 @@
     (keyword? form)
     (print (str "std::string(" (pr-str (str form)) ")"))
 
+    (instance? Pattern form)
+    (print (str "std::regex(" (pr-str (str form)) ")"))
+
     (set? form)
     (print (str "std::set<" (form->tag form) ">"
                 "{" (str/join ", " (map #(with-out-str
@@ -386,7 +390,7 @@
   (println ";"))
 
 (defn- emit-default-includes []
-  (doseq [header '[string vector map set]]
+  (doseq [header '[string vector map set regex]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]
