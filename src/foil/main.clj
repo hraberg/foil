@@ -257,12 +257,12 @@
     (print (str "std::string(" (pr-str (str form)) ")"))
 
     (set? form)
-    (print (str "std::unordered_set<" (form->tag form) ">"
+    (print (str "std::set<" (form->tag form) ">"
                 "{" (str/join ", " (map #(with-out-str
                                            (emit-expression %)) form)) "}"))
 
     (map? form)
-    (print (str "std::unordered_map<std::string," (form->tag form) ">"
+    (print (str "std::map<std::string," (form->tag form) ">"
                 "{" (str/join ", " (map (fn [[k v]]
                                           (str "{"
                                                (with-out-str
@@ -386,7 +386,7 @@
   (println ";"))
 
 (defn- emit-default-includes []
-  (doseq [header '[string vector unordered_map unordered_set]]
+  (doseq [header '[string vector map set]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]
