@@ -260,6 +260,9 @@
     (instance? Pattern form)
     (print (str "std::regex(" (pr-str (str form)) ")"))
 
+    (inst? form)
+    (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
+
     (set? form)
     (print (str "std::set<" (form->tag form) ">"
                 "{" (str/join ", " (map #(with-out-str
@@ -390,7 +393,7 @@
   (println ";"))
 
 (defn- emit-default-includes []
-  (doseq [header '[string vector map set regex]]
+  (doseq [header '[string vector map set regex chrono]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]
