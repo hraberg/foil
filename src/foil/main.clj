@@ -396,7 +396,7 @@
   (println ";"))
 
 (defn- emit-default-includes []
-  (doseq [header '[string vector map set regex chrono]]
+  (doseq [header '[vector map set regex chrono]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]
