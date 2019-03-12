@@ -246,7 +246,7 @@
     (let [op (first form)]
       (case op
         if (emit-conditional form)
-        (fn, lambda) (emit-lambda form)
+        (fn, lambda, λ) (emit-lambda form)
         (if-let [macro-expansion (foil-macroexpand form)]
           (emit-expression macro-expansion)
           (emit-application form))))
