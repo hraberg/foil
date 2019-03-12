@@ -2,7 +2,7 @@ PROJECT = $(shell head project.clj -n1 | awk '{ print $$2 }' )
 VERSION = $(shell head project.clj -n1 | awk '{ print $$3 }' | sed s/\"//g )
 TARGET = ./target
 
-CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -O2
+CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -fsanitize=address -O2
 
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE=$(TARGET)/foil
