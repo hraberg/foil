@@ -77,6 +77,7 @@ https://github.com/tomprimozic/type-systems
 https://github.com/alehander42/Airtight/blob/master/airtight/hindley_milner_ast.py
 https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
 https://www.youtube.com/watch?v=Bp89aBm9tGU&feature=youtu.be
+https://github.com/olsner/templisp
 
 ## License
 
