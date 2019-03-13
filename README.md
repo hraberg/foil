@@ -79,6 +79,8 @@ https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
 https://www.youtube.com/watch?v=Bp89aBm9tGU&feature=youtu.be
 https://github.com/olsner/templisp
 https://internals.rust-lang.org/t/pre-rfc-first-class-support-for-compile-to-rust-languages/7610/4
+https://github.com/JunSuzukiJapan/macro-lisp
+https://github.com/durka/macrolisp
 
 ## License
 
