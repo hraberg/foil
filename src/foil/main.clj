@@ -14,7 +14,7 @@
            (take-while #(not= ::eof %))
            (vec)))))
 
-(def ^:private default-tag "auto")
+(def ^:private default-tag 'auto)
 
 (defn- collection-literal? [form]
   (or (vector? form)
@@ -46,6 +46,7 @@
 
 (def ^:dynamic ^:private *tail?* false)
 (def ^:dynamic ^:private *expr?* false)
+(def ^:dynamic ^:private *return-type* 'void)
 
 (def ^:private unary-op '{not !
                           ! !
@@ -244,7 +245,9 @@
                              (emit-var-declaration %)))
                      (str/join ", ")))
               ") {"))
-  (emit-function-body "lambda" args body)
+  (emit-function-body "lambda" (with-meta
+                                 args
+                                 {:tag (form->tag args 'auto)}) body)
   (print (str *indent* "}"))  )
 
 (defmulti foil-macroexpand (fn [[op :as form]] (when (symbol? op)
@@ -336,7 +339,7 @@
     recur (emit-goto form)
     doseq (emit-range-based-for form)
     dotimes (emit-classic-for form)
-    (if *tail?*
+    (if (and *tail?* (not= 'void *return-type*))
       (emit-return (list 'return form))
       (do (print *indent*)
           (emit-expression form)
@@ -387,7 +390,8 @@
 
 (defn- emit-function-body [f args body]
   (binding [*indent* (str *indent* default-indent)
-            *tail?* true]
+            *tail?* true
+            *return-type* (form->tag args 'void)]
     (if (needs-loop-target? body)
       (binding [*loop-state* {:label (gensym f)
                               :vars args}]
@@ -398,7 +402,7 @@
           (emit-body body)))))
 
 (defn- emit-function [[op f args & body :as form]]
-  (print (str (form->tag args "void")
+  (print (str (form->tag args 'void)
               " "
               f
               (str "("

@@ -5,6 +5,9 @@
 
 (def ^:const foo 3.14)
 
+(defn println [^"const char*" x]
+  (printf "%s" x))
+
 (defn main ^int []
   (let [x 0
         pt (Point. -1 2)
@@ -28,9 +31,9 @@
 
     (my-fun x)
 
-    (printf "%s" (if (= 10 x)
-                   "ten\n"
-                   "not ten\n"))
+    (println (if (= 10 x)
+               "ten\n"
+               "not ten\n"))
 
     (printf "%d\n" (loop [n 0]
                      (if (< n 3)
