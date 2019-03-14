@@ -438,7 +438,7 @@
       (case top-level
         ns (emit-headers form)
         (include, use) (emit-include form)
-        def (emit-global form)
+        (def, define) (emit-global form)
         (defn, defun) (emit-function form)
         (defrecord, defstruct) (emit-struct form)))))
 
