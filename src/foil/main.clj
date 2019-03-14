@@ -229,9 +229,10 @@
   (println ") {")
   (binding [*indent* (str *indent* default-indent)]
     (emit-expression-statement then))
-  (println (str *indent* "} else {"))
-  (binding [*indent* (str *indent* default-indent)]
-    (emit-expression-statement else))
+  (when else
+    (println (str *indent* "} else {"))
+    (binding [*indent* (str *indent* default-indent)]
+      (emit-expression-statement else)))
   (println (str *indent* "}")))
 
 (defn- emit-assignment [[_ var value :as from]]
@@ -366,7 +367,7 @@
           :constant)
     return (emit-return form)
     while (emit-while form)
-    if (emit-if form)
+    (if, when) (emit-if form)
     recur (emit-goto form)
     doseq (emit-range-based-for form)
     dotimes (emit-classic-for form)
