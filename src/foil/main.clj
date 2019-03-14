@@ -336,11 +336,11 @@
     recur (emit-goto form)
     doseq (emit-range-based-for form)
     dotimes (emit-classic-for form)
-    (do (print *indent*)
-        (if *tail?*
-          (emit-return (list 'return form))
-          (emit-expression form))
-        (println ";"))))
+    (if *tail?*
+      (emit-return (list 'return form))
+      (do (print *indent*)
+          (emit-expression form)
+          (println ";")))))
 
 (defn- constant? [form]
   (not (and (seq? form)
