@@ -41,6 +41,9 @@
 
     (println 42)
 
+    (let [s "foo"]
+      (println s))
+
     (println (loop [n 0]
                (if (< n 3)
                  (recur (inc n))

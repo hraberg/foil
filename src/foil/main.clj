@@ -87,7 +87,18 @@
                            unsigned-bit-shift-right >>>
                            >>> >>>})
 
-(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body)
+(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body emit-variable-definition)
+
+(defn- needs-loop-target? [body]
+  (let [recur-found? (atom false)]
+    (w/prewalk #(if (seq? %)
+                  (case (first %)
+                    recur (do (reset! recur-found? true)
+                              %)
+                    loop nil
+                    %)
+                  %) body)
+    @recur-found?))
 
 (defn- constructor? [f]
   (and (symbol? f)
@@ -110,7 +121,8 @@
     (print "]")))
 
 (defn- emit-application [[f & args :as form]]
-  (binding [*tail?* false]
+  (binding [*tail?* false
+            *expr?* true]
     (cond
       (contains? unary-op f)
       (do (print (get unary-op f))
@@ -258,18 +270,32 @@
                                                  (keyword (name op)))))
 
 (defn- macroexpand-let [[_ bindings & body :as form]]
-  (let [bindings (partition 2 bindings)]
-    (with-meta
-      `((~'lambda ~(mapv first bindings)
-         ~@body)
-        ~@(map second bindings))
-      (meta form))))
+  (let [bindings (partition 2 bindings)
+        loop? (needs-loop-target? body)]
+    (if (or *expr?* loop?)
+      (with-meta
+        `((~'lambda ~(mapv first bindings)
+           ~@body)
+          ~@(map second bindings))
+        (meta form))
+      (with-meta
+        `(~'do
+          ~@(for [[var binding] bindings]
+              `(~'def ~var ~binding))
+          ~@body)
+        (meta form)))))
 
 (defmethod foil-macroexpand :let [form]
   (macroexpand-let form))
 
 (defmethod foil-macroexpand :loop [form]
   (macroexpand-let form))
+
+(defmethod foil-macroexpand :do [[_ & body :as form]]
+  `((~'lambda [] ~@body)))
+
+(defmethod foil-macroexpand :begin [[_ & body :as form]]
+  `((~'lambda [] ~@body)))
 
 (defmethod foil-macroexpand :default [form])
 
@@ -283,9 +309,12 @@
       (case op
         if (emit-conditional form)
         (fn, lambda, λ) (emit-lambda form)
-        (if-let [macro-expansion (foil-macroexpand form)]
-          (emit-expression macro-expansion)
-          (emit-application form))))
+        (if (and (contains? '#{do begin} op)
+                 (not *expr?*))
+          (emit-block (rest form))
+          (if-let [macro-expansion (foil-macroexpand form)]
+            (emit-expression macro-expansion)
+            (emit-application form)))))
 
     (or (string? form)
         (keyword? form))
@@ -341,6 +370,7 @@
     recur (emit-goto form)
     doseq (emit-range-based-for form)
     dotimes (emit-classic-for form)
+    def (emit-variable-definition form)
     (if (and *tail?* (not= 'void *return-type*))
       (emit-return (list 'return form))
       (do (print *indent*)
@@ -378,17 +408,6 @@
    (binding [*indent* (str *indent* default-indent)]
      (emit-body body))
    (println (str *indent* "}"))))
-
-(defn- needs-loop-target? [body]
-  (let [recur-found? (atom false)]
-    (w/prewalk #(if (seq? %)
-                  (case (first %)
-                    recur (do (reset! recur-found? true)
-                              %)
-                    loop nil
-                    %)
-                  %) body)
-    @recur-found?))
 
 (defn- emit-function-body [f args body]
   (binding [*indent* (str *indent* default-indent)
@@ -446,7 +465,8 @@
   (println (str "} " name ";"))
   (println))
 
-(defn- emit-global [[_ name value :as form]]
+(defn- emit-variable-definition [[_ name value :as form]]
+  (print *indent*)
   (emit-var-declaration name)
   (print " = ")
   (emit-expression value)
@@ -464,7 +484,7 @@
       (case top-level
         ns (emit-headers form)
         (include, use) (emit-include form)
-        (def, define) (emit-global form)
+        (def, define) (emit-variable-definition form)
         (defn, defun) (emit-function form)
         (defrecord, defstruct) (emit-struct form)))))
 
