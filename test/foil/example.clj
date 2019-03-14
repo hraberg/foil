@@ -6,7 +6,10 @@
 (def ^:const foo 3.14)
 
 (defn println ^void [^"const char*" x]
-  (printf "%s" x))
+  (printf "%s\n" x))
+
+(defn println ^void [^int x]
+  (printf "%d\n" x))
 
 (defn main ^int []
   (let [x 0
@@ -32,8 +35,10 @@
     (my-fun x)
 
     (println (if (= 10 x)
-               "ten\n"
-               "not ten\n"))
+               "ten"
+               "not ten"))
+
+    (println 42)
 
     (printf "%d\n" (loop [n 0]
                      (if (< n 3)
