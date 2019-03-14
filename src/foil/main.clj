@@ -287,14 +287,12 @@
           (emit-expression macro-expansion)
           (emit-application form))))
 
-    (string? form)
+    (or (string? form)
+        (keyword? form))
     (print (str "std::string(u8" (pr-str (str form)) ")"))
 
     (symbol? form)
     (print (munge-name form))
-
-    (keyword? form)
-    (print (str "std::string(u8" (pr-str (str form)) ")"))
 
     (instance? Pattern form)
     (print (str "std::regex(" (pr-str (str form)) ")"))
