@@ -6,10 +6,10 @@
 
 (def ^:const foo 3.14)
 
-(defn println ^void [^std::string x]
-  (<< (<< std::cout x) std::endl))
+(defn println [^std::string x]
+  (<< (<< (<< std::cout x) " str") std::endl))
 
-(defn println ^void [^int x]
+(defn println [x]
   (<< (<< std::cout x) std::endl))
 
 (defn main ^int []

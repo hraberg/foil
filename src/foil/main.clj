@@ -403,18 +403,38 @@
           (emit-body body)))))
 
 (defn- emit-function [[op f args & body :as form]]
-  (binding [*return-type* (form->tag args)]
-    (print (str *return-type*
-                " "
-                f
-                (str "("
-                     (if (empty? args)
-                       "void"
-                       (->> args
-                            (map #(with-out-str
-                                    (emit-var-declaration %)))
-                            (str/join ", ")))
-                     ") {")))
+  (binding [*return-type* (form->tag args 'void)]
+    (let [main? (= 'main f)
+          return-template-name (if main?
+                                 *return-type*
+                                 (gensym "Return"))
+          arg-template-names (if main?
+                               (map form->tag args)
+                               (repeatedly (count args) #(gensym "Arg")))]
+      (when-not (= 'main f)
+        (println (str "template <"
+                      (str/join ", "
+                                (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
+                                                           [arg-tn (form->tag arg nil)]))
+                                                    [return-template-name *return-type*])]
+                                  (cond-> (str "typename " tn)
+                                    tt (str " = " tt))))
+                      ">")))
+      (print (str (if (= 'main f)
+                    *return-type*
+                    return-template-name)
+                  " "
+                  f
+                  (str "("
+                       (if (empty? args)
+                         "void"
+                         (->> (for [[arg-tn arg] (map vector arg-template-names args)]
+                                (with-out-str
+                                  (emit-var-declaration (if (form->tag arg nil)
+                                                          arg
+                                                          (vary-meta arg assoc :tag arg-tn)))))
+                              (str/join ", ")))
+                       ") {"))))
     (emit-function-body f args body)
     (println "}")))
 
