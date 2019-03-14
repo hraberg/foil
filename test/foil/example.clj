@@ -5,7 +5,7 @@
 
 (def ^:const foo 3.14)
 
-(defn println [^"const char*" x]
+(defn println ^void [^"const char*" x]
   (printf "%s" x))
 
 (defn main ^int []

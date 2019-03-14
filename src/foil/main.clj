@@ -46,7 +46,7 @@
 
 (def ^:dynamic ^:private *tail?* false)
 (def ^:dynamic ^:private *expr?* false)
-(def ^:dynamic ^:private *return-type* 'void)
+(def ^:dynamic ^:private *return-type* default-tag)
 
 (def ^:private unary-op '{not !
                           ! !
@@ -245,9 +245,8 @@
                              (emit-var-declaration %)))
                      (str/join ", ")))
               ") {"))
-  (emit-function-body "lambda" (with-meta
-                                 args
-                                 {:tag (form->tag args 'auto)}) body)
+  (binding [*return-type* 'auto]
+    (emit-function-body "lambda" args body))
   (print (str *indent* "}"))  )
 
 (defmulti foil-macroexpand (fn [[op :as form]] (when (symbol? op)
@@ -390,8 +389,7 @@
 
 (defn- emit-function-body [f args body]
   (binding [*indent* (str *indent* default-indent)
-            *tail?* true
-            *return-type* (form->tag args 'void)]
+            *tail?* true]
     (if (needs-loop-target? body)
       (binding [*loop-state* {:label (gensym f)
                               :vars args}]
@@ -402,19 +400,20 @@
           (emit-body body)))))
 
 (defn- emit-function [[op f args & body :as form]]
-  (print (str (form->tag args 'void)
-              " "
-              f
-              (str "("
-                   (if (empty? args)
-                     "void"
-                     (->> args
-                          (map #(with-out-str
-                                  (emit-var-declaration %)))
-                          (str/join ", ")))
-                   ") {")))
-  (emit-function-body f args body)
-  (println "}"))
+  (binding [*return-type* (form->tag args)]
+    (print (str *return-type*
+                " "
+                f
+                (str "("
+                     (if (empty? args)
+                       "void"
+                       (->> args
+                            (map #(with-out-str
+                                    (emit-var-declaration %)))
+                            (str/join ", ")))
+                     ") {")))
+    (emit-function-body f args body)
+    (println "}")))
 
 (defn- emit-struct [[_ name fields :as form]]
   (println "typedef struct {")
