@@ -44,6 +44,9 @@
 (def ^:private default-indent "  ")
 (def ^:dynamic ^:private *indent* "")
 
+(def ^:dynamic ^:private *tail?* false)
+(def ^:dynamic ^:private *expr?* false)
+
 (def ^:private unary-op '{not !
                           ! !
                           bit-not "~"})
@@ -103,57 +106,59 @@
     (print "]")))
 
 (defn- emit-application [[f & args :as form]]
-  (cond
-    (contains? unary-op f)
-    (do (print (get unary-op f))
-        (emit-expression (first args)))
+  (binding [*tail?* false]
+    (cond
+      (contains? unary-op f)
+      (do (print (get unary-op f))
+          (emit-expression (first args)))
 
-    (contains? unary-inc-dec-op f)
-    (do (emit-expression (first args))
-        (print (str " " (get unary-inc-dec-op f) " 1")))
+      (contains? unary-inc-dec-op f)
+      (do (emit-expression (first args))
+          (print (str " " (get unary-inc-dec-op f) " 1")))
 
-    (contains? binary-op f)
-    (do (emit-expression (first args))
-        (print (str " " (get binary-op f)  " "))
-        (emit-expression (second args)))
+      (contains? binary-op f)
+      (do (emit-expression (first args))
+          (print (str " " (get binary-op f)  " "))
+          (emit-expression (second args)))
 
-    (= 'aget f)
-    (emit-array-access args)
+      (= 'aget f)
+      (emit-array-access args)
 
-    (= 'aset f)
-    (do (emit-array-access (butlast args))
-        (print " = ")
-        (emit-expression (last args)))
+      (= 'aset f)
+      (do (emit-array-access (butlast args))
+          (print " = ")
+          (emit-expression (last args)))
 
-    (keyword? f)
-    (emit-array-access [(first args) f])
+      (keyword? f)
+      (emit-array-access [(first args) f])
 
-    (field-access? f)
-    (do (emit-expression (first args))
-        (print ".")
-        (emit-expression (symbol (str/replace (name f) #"^\.-" ""))))
+      (field-access? f)
+      (do (emit-expression (first args))
+          (print ".")
+          (emit-expression (symbol (str/replace (name f) #"^\.-" ""))))
 
-    (constructor? f)
-    (do (emit-expression (symbol (-> (name f)
-                                     (str/replace #"\.$" "")
-                                     (str/replace #"^->" ""))))
-        (print (str "{" (str/join ", " (map #(with-out-str
-                                               (emit-expression %)) args)) "}")))
+      (constructor? f)
+      (do (emit-expression (symbol (-> (name f)
+                                       (str/replace #"\.$" "")
+                                       (str/replace #"^->" ""))))
+          (print (str "{" (str/join ", " (map #(with-out-str
+                                                 (emit-expression %)) args)) "}")))
 
-    (method-call? f)
-    (do (emit-expression (first args))
-        (emit-expression f)
-        (print (str "(" (str/join ", " (map #(with-out-str
-                                               (emit-expression %)) (rest args))) ")")))
+      (method-call? f)
+      (do (emit-expression (first args))
+          (emit-expression f)
+          (print (str "(" (str/join ", " (map #(with-out-str
+                                                 (emit-expression %)) (rest args))) ")")))
 
-    :else
-    (do (emit-expression f)
-        (print (str "(" (str/join ", " (map #(with-out-str
-                                               (emit-expression %)) args)) ")")))))
+      :else
+      (do (emit-expression f)
+          (print (str "(" (str/join ", " (map #(with-out-str
+                                                 (emit-expression %)) args)) ")"))))))
 
 (defn- emit-return [[_ value :as from]]
   (print (str *indent* "return "))
-  (emit-expression value)
+  (binding [*expr?* true]
+    (emit-expression value))
   (println ";"))
 
 (defn- emit-var-declaration
@@ -167,18 +172,22 @@
             (str (form->tag var default-tag) " " (munge var))))))
 
 (defn- emit-while [[_ condition & body :as form]]
-  (print (str *indent* "while ("))
-  (emit-expression condition)
-  (print ")")
-  (emit-block body " "))
+  (binding [*tail?* false]
+    (print (str *indent* "while ("))
+    (emit-expression condition)
+    (print ")")
+    (emit-block body " ")))
 
 (defn- emit-range-based-for [[op bindings & body]]
-  (doseq [[var binding] (partition 2 bindings)]
-    (println (str *indent* "for (" (with-out-str
-                                     (emit-var-declaration var "auto&")) " : " (with-out-str
-                                     (emit-expression binding))
-                  ")")))
-  (emit-block body))
+  (binding [*tail?* false]
+    (doseq [[var binding] (partition 2 bindings)]
+      (println (str *indent* "for (" (with-out-str
+                                       (emit-var-declaration var "auto&")) " : "
+                    (binding [*expr?* true]
+                      (with-out-str
+                        (emit-expression binding)))
+                    ")")))
+    (emit-block body)))
 
 (defn- emit-classic-for [[op bindings & body]]
   (doseq [[var limit] (partition 2 bindings)]
@@ -186,23 +195,42 @@
   (emit-block body))
 
 (defn- emit-conditional [[_ condition then else :as form]]
-  (emit-expression condition)
-  (print " ? ")
-  (emit-expression-in-lambda then)
-  (print " : ")
-  (emit-expression-in-lambda else))
+  (binding [*tail?* false
+            *expr?* true]
+    (emit-expression condition)
+    (print " ? ")
+    (emit-expression-in-lambda then)
+    (print " : ")
+    (emit-expression-in-lambda else)))
+
+(defn- emit-if [[_ condition then else :as form]]
+  (print (str *indent* "if ("))
+  (binding [*tail?* false
+            *expr?* true]
+    (emit-expression condition))
+  (println ") {")
+  (binding [*indent* (str *indent* default-indent)]
+    (emit-expression-statement then))
+  (println (str *indent* "} else {"))
+  (binding [*indent* (str *indent* default-indent)]
+    (emit-expression-statement else))
+  (println (str *indent* "}")))
 
 (defn- emit-assignment [[_ var value :as from]]
   (print (str (munge var) " = "))
-  (emit-expression value))
+  (binding [*expr?* true
+            *tail?* false]
+    (emit-expression value)))
 
 (def ^:dynamic ^:private *loop-state*)
 
 (defn- emit-goto [[_ & expressions :as form]]
-  (assert *loop-state* "Not in a loop.")
+  (assert (and *tail?* *loop-state*) "Not in a loop.")
   (doseq [[var expression] (map vector (:vars *loop-state*) expressions)]
     (print (str *indent* (munge var) " = "))
-    (emit-expression expression)
+    (binding [*expr?* true
+              *tail?* false]
+      (emit-expression expression))
     (println ";"))
   (println (str *indent* "goto "(:label *loop-state*) ";")))
 
@@ -301,6 +329,7 @@
   (case op
     return (emit-return form)
     while (emit-while form)
+    if (emit-if form)
     recur (emit-goto form)
     doseq (emit-range-based-for form)
     dotimes (emit-classic-for form)
@@ -312,14 +341,19 @@
   (not (and (seq? form)
             (not= 'quote (first form)))))
 
+(defn- maybe-return [form]
+  (if (and (seq? form) (= 'return (first form)))
+    form
+    (with-meta
+      (list 'return form)
+      (meta form))))
+
 (defn- emit-expression-in-lambda [form]
-  (if (constant? form)
+  (if (or (constant? form) (not *expr?*))
     (emit-expression form)
     (do (println "[&] () {")
         (binding [*indent* (str *indent* default-indent)]
-          (emit-expression-statement (with-meta
-                                       (list 'return form)
-                                       (meta form))))
+          (emit-expression-statement (maybe-return form)))
         (print (str *indent* "}()")))))
 
 (defn- emit-body
@@ -328,11 +362,12 @@
   ([body return?]
    (loop [[x & xs] body]
      (when x
-       (emit-expression-statement (if (and (not xs) return?)
-                                    (with-meta
-                                      (list 'return x)
-                                      (meta x))
-                                    x))
+       (let [last? (and (not xs) return?)]
+         (binding [*expr?* false
+                   *tail?* (and *tail?* last?)]
+           (emit-expression-statement (if *tail?*
+                                        (maybe-return x)
+                                        x))))
        (recur xs)))))
 
 (defn- emit-block
@@ -356,7 +391,8 @@
     @recur-found?))
 
 (defn- emit-function-body [f args body]
-  (binding [*indent* (str *indent* default-indent)]
+  (binding [*indent* (str *indent* default-indent)
+            *tail?* true]
     (if (needs-loop-target? body)
       (binding [*loop-state* {:label (gensym f)
                               :vars args}]
