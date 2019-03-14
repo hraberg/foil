@@ -18,6 +18,7 @@
         a ^int [2 3]
         m ^std::string {:foo "bar"}
         s ^int #{1 2}
+        l ^int '(7 8)
         my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))]
 
     (aset a 0 4)
@@ -43,6 +44,8 @@
 
     (let [s "foo"]
       (println s))
+
+    (println (.front l))
 
     (println (loop [n 0]
                (if (< n 3)

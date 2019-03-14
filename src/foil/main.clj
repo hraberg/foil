@@ -19,7 +19,8 @@
 (defn- collection-literal? [form]
   (or (vector? form)
       (map? form)
-      (set? form)))
+      (set? form)
+      (seq? form)))
 
 (defn- munge-name [n]
   (str/replace (munge n) "_COLON_" ":"))
@@ -300,23 +301,13 @@
 
 (defmethod foil-macroexpand :default [form])
 
-(defn- emit-expression [form]
-  (when-let [tag (and (not (collection-literal? form))
-                      (form->tag form nil))]
-    (print (str "(" tag ") ")))
-  (cond
-    (seq? form)
-    (let [op (first form)]
-      (case op
-        if (emit-conditional form)
-        (fn, lambda, λ) (emit-lambda form)
-        (if (and (contains? '#{do begin} op)
-                 (not *expr?*))
-          (emit-block (rest form))
-          (if-let [macro-expansion (foil-macroexpand form)]
-            (emit-expression macro-expansion)
-            (emit-application form)))))
+(defn- literal? [form]
+  (not (seq? form)))
 
+(def ^:private ^:dynamic *quote?* false)
+
+(defn- emit-literal [form]
+  (cond
     (or (string? form)
         (keyword? form))
     (print (str "std::string(u8" (pr-str (str form)) ")"))
@@ -330,11 +321,6 @@
     (inst? form)
     (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
 
-    (set? form)
-    (print (str "std::set<" (form->tag form) ">"
-                "{" (str/join ", " (map #(with-out-str
-                                           (emit-expression %)) form)) "}"))
-
     (map? form)
     (print (str "std::map<std::string," (form->tag form) ">"
                 "{" (str/join ", " (map (fn [[k v]]
@@ -346,13 +332,40 @@
                                                  (emit-expression v))
                                                "}")) form)) "}"))
 
-    (vector? form)
-    (print (str "std::vector<" (form->tag form) ">"
+    (or (seq? form)
+        (set? form)
+        (vector? form))
+    (print (str "std::" (cond
+                          (seq? form) "forward_list"
+                          (set? form) "set"
+                          (vector? form) "vector") "<"
+                (form->tag form) ">"
                 "{" (str/join ", " (map #(with-out-str
                                            (emit-expression %)) form)) "}"))
 
     :else
     (pr form)))
+
+(defn- emit-expression [form]
+  (when-let [tag (and (not (collection-literal? form))
+                      (form->tag form nil))]
+    (print (str "(" tag ") ")))
+  (if (or (literal? form) *quote?*)
+    (emit-literal form)
+    (let [op (first form)]
+      (case op
+        quote (binding [*quote?* true]
+                (emit-literal (with-meta
+                                (second form)
+                                (meta form))))
+        if (emit-conditional form)
+        (fn, lambda, λ) (emit-lambda form)
+        (if (and (contains? '#{do begin} op)
+                 (not *expr?*))
+          (emit-block (rest form))
+          (if-let [macro-expansion (foil-macroexpand form)]
+            (emit-expression macro-expansion)
+            (emit-application form)))))))
 
 (def ^:dynamic ^:private *file-name* nil)
 
@@ -364,7 +377,7 @@
   (emit-line form)
   (case (if (seq? form)
           (first form)
-          :constant)
+          :literal)
     return (emit-return form)
     while (emit-while form)
     (if, when) (emit-if form)
@@ -378,12 +391,8 @@
           (emit-expression form)
           (println ";")))))
 
-(defn- constant? [form]
-  (not (and (seq? form)
-            (not= 'quote (first form)))))
-
 (defn- emit-expression-in-lambda [form]
-  (if (or (constant? form) (not *expr?*))
+  (if (or (literal? form) (not *expr?*))
     (emit-expression form)
     (do (println "[&] () {")
         (binding [*indent* (str *indent* default-indent)
@@ -474,7 +483,7 @@
   (println ";"))
 
 (defn- emit-default-includes []
-  (doseq [header '[vector map set regex chrono]]
+  (doseq [header '[vector map set regex chrono forward_list]]
     (emit-include (vector 'include header))))
 
 (defn- emit-source [in out]
