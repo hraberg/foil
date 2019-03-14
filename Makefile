@@ -26,7 +26,7 @@ $(TARGET)/%.s: $(TARGET)/%.cc
 $(TARGET)/%: $(TARGET)/%.cc
 	$(CXX) $< $(CXXFLAGS) -o $@
 
-check: $(TARGET)/example $(TARGET)/example.s
+check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cc
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
