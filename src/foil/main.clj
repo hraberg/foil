@@ -195,9 +195,9 @@
   (emit-block body))
 
 (defn- emit-conditional [[_ condition then else :as form]]
-  (binding [*tail?* false
-            *expr?* true]
-    (emit-expression condition)
+  (binding [*expr?* true]
+    (binding [*tail?* false]
+      (emit-expression condition))
     (print " ? ")
     (emit-expression-in-lambda then)
     (print " : ")
@@ -225,7 +225,8 @@
 (def ^:dynamic ^:private *loop-state*)
 
 (defn- emit-goto [[_ & expressions :as form]]
-  (assert (and *tail?* *loop-state*) "Not in a loop.")
+  (assert *loop-state* "Not in a loop.")
+  (assert *tail?* "Can only recur from tail position.")
   (doseq [[var expression] (map vector (:vars *loop-state*) expressions)]
     (print (str *indent* (munge var) " = "))
     (binding [*expr?* true
@@ -324,9 +325,11 @@
   (when-let [line (:line (meta form))]
     (println "#line" line (or (some-> *file-name* (pr-str)) ""))))
 
-(defn- emit-expression-statement [[op :as form]]
+(defn- emit-expression-statement [form]
   (emit-line form)
-  (case op
+  (case (if (seq? form)
+          (first form)
+          :constant)
     return (emit-return form)
     while (emit-while form)
     if (emit-if form)
@@ -334,41 +337,33 @@
     doseq (emit-range-based-for form)
     dotimes (emit-classic-for form)
     (do (print *indent*)
-        (emit-expression form)
+        (if *tail?*
+          (emit-return (list 'return form))
+          (emit-expression form))
         (println ";"))))
 
 (defn- constant? [form]
   (not (and (seq? form)
             (not= 'quote (first form)))))
 
-(defn- maybe-return [form]
-  (if (and (seq? form) (= 'return (first form)))
-    form
-    (with-meta
-      (list 'return form)
-      (meta form))))
-
 (defn- emit-expression-in-lambda [form]
   (if (or (constant? form) (not *expr?*))
     (emit-expression form)
     (do (println "[&] () {")
-        (binding [*indent* (str *indent* default-indent)]
-          (emit-expression-statement (maybe-return form)))
+        (binding [*indent* (str *indent* default-indent)
+                  *expr?* false
+                  *tail?* true]
+          (emit-expression-statement form))
         (print (str *indent* "}()")))))
 
-(defn- emit-body
-  ([body]
-   (emit-body body false))
-  ([body return?]
-   (loop [[x & xs] body]
-     (when x
-       (let [last? (and (not xs) return?)]
-         (binding [*expr?* false
-                   *tail?* (and *tail?* last?)]
-           (emit-expression-statement (if *tail?*
-                                        (maybe-return x)
-                                        x))))
-       (recur xs)))))
+(defn- emit-body [body]
+  (loop [[x & xs] body]
+    (when x
+      (let [last? (not xs)]
+        (binding [*expr?* false
+                  *tail?* (and *tail?* last?)]
+          (emit-expression-statement x)))
+      (recur xs))))
 
 (defn- emit-block
   ([body]
@@ -400,7 +395,7 @@
         (println (str (:label *loop-state*) ":"))
         (emit-block body))
       (do (println)
-          (emit-body body true)))))
+          (emit-body body)))))
 
 (defn- emit-function [[op f args & body :as form]]
   (print (str (form->tag args "void")

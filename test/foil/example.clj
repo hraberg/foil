@@ -32,4 +32,9 @@
                    "ten\n"
                    "not ten\n"))
 
+    (loop [n 0]
+      (if (< n 3)
+        (recur (inc n))
+        (printf "%d\n" n)))
+
     0))
