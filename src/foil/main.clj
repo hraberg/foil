@@ -43,7 +43,8 @@
     (case ref-type
       :use
       (emit-include ['include lib])))
-  (println))
+  (println)
+  (println (str "namespace " name  " {")))
 
 (def ^:private default-indent "  ")
 (def ^:dynamic ^:private *indent* "")
@@ -433,15 +434,16 @@
 
 (defn- emit-function [[op f args & body :as form]]
   (binding [*return-type* (form->tag args 'void)]
-    (let [main? (= 'main f)
+    (let [main? (= '-main f)
           return-template-name (if main?
                                  *return-type*
                                  (gensym "Return"))
           arg-template-names (if main?
                                (map form->tag args)
                                (repeatedly (count args) #(gensym "Arg")))]
-      (when-not (= 'main f)
-        (println (str "template <"
+      (when-not main?
+        (println (str *indent*
+                      "template <"
                       (str/join ", "
                                 (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
                                                            [arg-tn (form->tag arg nil)]))
@@ -449,11 +451,12 @@
                                   (cond-> (str "typename " tn)
                                     tt (str " = " tt))))
                       ">")))
-      (print (str (if (= 'main f)
+      (print (str *indent*
+                  (if main?
                     *return-type*
                     return-template-name)
                   " "
-                  f
+                  (munge f)
                   (str "("
                        (if (empty? args)
                          "void"
@@ -465,14 +468,15 @@
                               (str/join ", ")))
                        ") {"))))
     (emit-function-body f args body)
-    (println "}")))
+    (println (str *indent* "}"))))
 
 (defn- emit-struct [[_ name fields :as form]]
+  (print *indent*)
   (println "typedef struct {")
   (binding [*indent* (str *indent* default-indent)]
     (doseq [field fields]
       (println (str *indent* (form->tag field) " " field ";"))))
-  (println (str "} " name ";"))
+  (println (str *indent* "} " name ";"))
   (println))
 
 (defn- emit-variable-definition [[_ name value :as form]]
@@ -489,14 +493,30 @@
 (defn- emit-source [in out]
   (binding [*out* out]
     (emit-default-includes)
-    (doseq [[top-level :as form] (read-source in)]
-      (emit-line form)
-      (case top-level
-        ns (emit-headers form)
-        (include, use) (emit-include form)
-        (def, define) (emit-variable-definition form)
-        (defn, defun) (emit-function form)
-        (defrecord, defstruct) (emit-struct form)))))
+    (let [ns (atom nil)
+          main (atom false)]
+      (doseq [[top-level :as form] (read-source in)]
+        (emit-line form)
+        (binding [*indent* (if @ns
+                             default-indent
+                             "")]
+          (case top-level
+            ns (do (assert (nil? @ns) "Only one namespace supported.")
+                   (reset! ns (second form))
+                   (emit-headers form))
+            (include, use) (emit-include form)
+            (def, define) (do (print *indent*)
+                              (emit-variable-definition form))
+            (defn, defun) (do (when (= '-main (second form))
+                                (reset! main form))
+                              (emit-function form))
+            (defrecord, defstruct) (emit-struct form))))
+      (when @ns
+        (println "}"))
+      (when @main
+        (println "int main() {")
+        (println (str default-indent (format "return %s_main();" (some-> @ns (str "::")))))
+        (println "}")))))
 
 (defn -main [& args]
   (emit-source *in* *out*))

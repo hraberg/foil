@@ -12,7 +12,7 @@
 (defn println [x]
   (<< (<< std::cout x) std::endl))
 
-(defn main ^int []
+(defn -main ^int []
   (let [x 0
         pt (Point. -1 2)
         a ^int [2 3]
