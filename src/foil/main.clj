@@ -514,8 +514,15 @@
       (when @ns
         (println "}"))
       (when @main
-        (println "int main() {")
-        (println (str default-indent (format "return %s_main();" (some-> @ns (str "::")))))
+        (println "int main(int argc, char** argv) {")
+        (let [main-args? (empty? (nth @main 2))]
+          (when main-args?
+            (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
+          (println (str default-indent (format "return %s_main(%s);"
+                                               (some-> @ns (str "::"))
+                                               (if main-args?
+                                                 ""
+                                                 "args")))))
         (println "}")))))
 
 (defn -main [& args]
