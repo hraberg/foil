@@ -84,6 +84,7 @@ https://internals.rust-lang.org/t/pre-rfc-first-class-support-for-compile-to-rus
 https://github.com/JunSuzukiJapan/macro-lisp
 https://github.com/durka/macrolisp
 https://github.com/joncatanio/cannoli
+https://godbolt.org/ (Compiler Explorer)
 
 ## License
 
