@@ -21,6 +21,9 @@
       (map? form)
       (set? form)))
 
+(defn- munge-name [n]
+  (str/replace (munge n) "_COLON_" ":"))
+
 (defn- form->tag
   ([form]
    (form->tag form default-tag))
@@ -118,9 +121,11 @@
           (print (str " " (get unary-inc-dec-op f) " 1")))
 
       (contains? binary-op f)
-      (do (emit-expression (first args))
+      (do (print "(")
+          (emit-expression (first args))
           (print (str " " (get binary-op f)  " "))
-          (emit-expression (second args)))
+          (emit-expression (second args))
+          (print ")"))
 
       (= 'aget f)
       (emit-array-access args)
@@ -170,7 +175,7 @@
      (print "const "))
    (print (if (string? var)
             var
-            (str (form->tag var default-tag) " " (munge var))))))
+            (str (form->tag var default-tag) " " (munge-name var))))))
 
 (defn- emit-while [[_ condition & body :as form]]
   (binding [*tail?* false]
@@ -218,7 +223,7 @@
   (println (str *indent* "}")))
 
 (defn- emit-assignment [[_ var value :as from]]
-  (print (str (munge var) " = "))
+  (print (str (munge-name var) " = "))
   (binding [*expr?* true
             *tail?* false]
     (emit-expression value)))
@@ -229,7 +234,7 @@
   (assert *loop-state* "Not in a loop.")
   (assert *tail?* "Can only recur from tail position.")
   (doseq [[var expression] (map vector (:vars *loop-state*) expressions)]
-    (print (str *indent* (munge var) " = "))
+    (print (str *indent* (munge-name var) " = "))
     (binding [*expr?* true
               *tail?* false]
       (emit-expression expression))
@@ -283,10 +288,10 @@
           (emit-application form))))
 
     (string? form)
-    (print (str "u8" (pr-str form)))
+    (print (str "std::string(u8" (pr-str (str form)) ")"))
 
     (symbol? form)
-    (print (munge form))
+    (print (munge-name form))
 
     (keyword? form)
     (print (str "std::string(u8" (pr-str (str form)) ")"))
