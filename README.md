@@ -85,6 +85,7 @@ https://github.com/JunSuzukiJapan/macro-lisp
 https://github.com/durka/macrolisp
 https://github.com/joncatanio/cannoli
 https://godbolt.org/ (Compiler Explorer)
+https://ferret-lang.org/
 
 ## License
 
