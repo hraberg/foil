@@ -86,6 +86,7 @@ https://github.com/durka/macrolisp
 https://github.com/joncatanio/cannoli
 https://godbolt.org/ (Compiler Explorer)
 https://ferret-lang.org/
+https://github.com/Dobiasd/FunctionalPlus
 
 ## License
 
