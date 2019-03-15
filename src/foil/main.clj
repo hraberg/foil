@@ -456,16 +456,14 @@
                     *return-type*
                     return-template-name)
                   " "
-                  (munge f)
+                  (munge-name f)
                   (str "("
-                       (if (empty? args)
-                         "void"
-                         (->> (for [[arg-tn arg] (map vector arg-template-names args)]
-                                (with-out-str
-                                  (emit-var-declaration (if (form->tag arg nil)
-                                                          arg
-                                                          (vary-meta arg assoc :tag arg-tn)))))
-                              (str/join ", ")))
+                       (->> (for [[arg-tn arg] (map vector arg-template-names args)]
+                              (with-out-str
+                                (emit-var-declaration (if (form->tag arg nil)
+                                                        arg
+                                                        (vary-meta arg assoc :tag arg-tn)))))
+                            (str/join ", "))
                        ") {"))))
     (emit-function-body f args body)
     (println (str *indent* "}"))))
