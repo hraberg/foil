@@ -89,6 +89,7 @@ https://ferret-lang.org/
 https://github.com/Dobiasd/FunctionalPlus
 http://www.stroustrup.com/resource-model.pdf
 https://www.youtube.com/watch?v=zt0OQb1DBko
+https://stackoverflow.com/questions/2067988/recursive-lambda-functions-in-c11
 
 ## License
 
