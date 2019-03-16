@@ -353,6 +353,7 @@
     (emit-literal form)
     (let [op (first form)]
       (case op
+        $code (print (second form))
         quote (binding [*quote?* true]
                 (emit-literal (with-meta
                                 (second form)
@@ -385,7 +386,7 @@
     dotimes (emit-classic-for form)
     def (emit-variable-definition form)
     (if (and *tail?* (not= 'void *return-type*))
-      (emit-return (list 'return form))
+      (emit-return `(~'return ~form))
       (do (print *indent*)
           (emit-expression form)
           (println ";")))))
