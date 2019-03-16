@@ -191,38 +191,6 @@
             var
             (str (form->tag var default-tag) " " (munge-name var))))))
 
-(defn- emit-while [[_ condition & body :as form]]
-  (binding [*tail?* false]
-    (print (str *indent* "while ("))
-    (emit-expression condition)
-    (print ")")
-    (emit-block body " ")))
-
-(defn- emit-range-based-for [[op bindings & body]]
-  (binding [*tail?* false]
-    (doseq [[var binding] (partition 2 bindings)]
-      (println (str *indent* "for (" (with-out-str
-                                       (emit-var-declaration var "auto&")) " : "
-                    (binding [*expr?* true]
-                      (with-out-str
-                        (emit-expression binding)))
-                    ")")))
-    (emit-block body)))
-
-(defn- emit-classic-for [[op bindings & body]]
-  (doseq [[var limit] (partition 2 bindings)]
-    (println (str *indent* "for (int " var " = 0; " var " < " limit "; " var "++)")))
-  (emit-block body))
-
-(defn- emit-conditional [[_ condition then else :as form]]
-  (binding [*expr?* true]
-    (binding [*tail?* false]
-      (emit-expression condition))
-    (print " ? ")
-    (emit-expression then)
-    (print " : ")
-    (emit-expression else)))
-
 (defn- emit-if [[_ condition then else :as form]]
   (print (str *indent* "if ("))
   (binding [*tail?* false
@@ -256,26 +224,42 @@
     (println ";"))
   (println (str *indent* "goto "(:label *loop-state*) ";")))
 
-(defn- emit-lambda [[op args & body :as form]]
-  (print (str "[&] ("
-              (->> args
-                   (map #(with-out-str
-                           (emit-var-declaration %)))
-                   (str/join ", "))
-              ") {"))
-  (binding [*return-type* 'auto]
-    (emit-function-body "lambda" args body))
-  (print (str *indent* "}"))  )
+(defn- $code [f]
+  `(~'$code
+    ~(with-out-str
+       (f))))
 
 (defmulti foil-macroexpand (fn [[op :as form]] (when (symbol? op)
                                                  (keyword (name op)))))
+
+(defn- macroexpand-lambda [[_ args & body :as form]]
+  ($code
+   (fn []
+     (print (str "[&] ("
+                 (->> args
+                      (map #(with-out-str
+                              (emit-var-declaration %)))
+                      (str/join ", "))
+                 ") {"))
+     (binding [*return-type* 'auto]
+       (emit-function-body "lambda" args body))
+     (print (str *indent* "}"))))  )
+
+(defmethod foil-macroexpand :fn [form]
+  (macroexpand-lambda form))
+
+(defmethod foil-macroexpand :lambda [form]
+  (macroexpand-lambda form))
+
+(defmethod foil-macroexpand :λ [form]
+  (macroexpand-lambda form))
 
 (defn- macroexpand-let [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)
         loop? (needs-loop-target? body)]
     (if (or *expr?* loop?)
       (with-meta
-        `((~'lambda ~(mapv first bindings)
+        `((~'fn ~(mapv first bindings)
            ~@body)
           ~@(map second bindings))
         (meta form))
@@ -293,12 +277,63 @@
   (macroexpand-let form))
 
 (defmethod foil-macroexpand :do [[_ & body :as form]]
-  `((~'lambda [] ~@body)))
+  `((~'fn [] ~@body)))
 
 (defmethod foil-macroexpand :begin [[_ & body :as form]]
-  `((~'lambda [] ~@body)))
+  `((~'fn [] ~@body)))
 
-(defmethod foil-macroexpand :default [form])
+(defmethod foil-macroexpand :if [[_ condition then else :as form]]
+  ($code
+   #(binding [*expr?* true]
+      (binding [*tail?* false]
+        (emit-expression condition))
+      (print " ? ")
+      (emit-expression then)
+      (print " : ")
+      (emit-expression else))))
+
+(defmethod foil-macroexpand :while [[_ condition & body :as form]]
+  (if *expr?*
+    `((~'fn [] ~form false))
+    ($code
+     #(binding [*tail?* false
+                *expr?* false]
+        (print (str *indent* "while ("))
+        (binding [*expr?* true]
+          (emit-expression condition))
+        (print ")")
+        (emit-block body " ")))))
+
+(defmethod foil-macroexpand :dotimes [[_ bindings & body :as form]]
+  (if *expr?*
+    `((~'fn [] ~form false))
+    ($code
+     #(binding [*tail?* false
+                *expr?* false]
+        (doseq [[var limit] (partition 2 bindings)]
+          (println (str *indent* "for (int " var " = 0; " var " < "
+                        (binding [*expr?* true]
+                          (with-out-str
+                            (emit-expression limit))) "; " var "++)")))
+        (emit-block body)))))
+
+(defmethod foil-macroexpand :doseq [[_ bindings & body :as form]]
+  (if *expr?*
+    `((~'fn [] ~form false))
+    ($code
+     #(binding [*tail?* false
+                *expr?* false]
+        (doseq [[var binding] (partition 2 bindings)]
+          (println (str *indent* "for (" (with-out-str
+                                           (emit-var-declaration var "auto&")) " : "
+                        (binding [*expr?* true]
+                          (with-out-str
+                            (emit-expression binding)))
+                        ")")))
+        (emit-block body)))))
+
+(defmethod foil-macroexpand :default [form]
+  ::application)
 
 (defn- literal? [form]
   (not (seq? form)))
@@ -345,27 +380,38 @@
     :else
     (pr form)))
 
-(defn- emit-expression [form]
+(defn- maybe-emit-cast [form]
   (when-let [tag (and (not (collection-literal? form))
                       (form->tag form nil))]
-    (print (str "(" tag ") ")))
+    (print (str "(" tag ") "))))
+
+(defn- emit-expression [form]
+  (maybe-emit-cast form)
   (if (or (literal? form) *quote?*)
     (emit-literal form)
     (let [op (first form)]
-      (case op
-        $code (print (second form))
-        quote (binding [*quote?* true]
-                (emit-literal (with-meta
-                                (second form)
-                                (meta form))))
-        if (emit-conditional form)
-        (fn, lambda, λ) (emit-lambda form)
-        (if (and (contains? '#{do begin} op)
-                 (not *expr?*))
-          (emit-block (rest form))
-          (if-let [macro-expansion (foil-macroexpand form)]
-            (emit-expression macro-expansion)
-            (emit-application form)))))))
+      (cond
+        (= '$code op)
+        (print (second form))
+
+        (= 'quote op)
+        (binding [*quote?* true]
+          (emit-literal (with-meta
+                          (second form)
+                          (meta form))))
+
+        (and (contains? '#{do begin} op)
+             (not *expr?*))
+        (emit-block (rest form))
+
+        :else
+        (let [macro-expansion (foil-macroexpand form)]
+          (cond
+            (= ::application macro-expansion)
+            (emit-application form)
+
+            (not (nil? macro-expansion))
+            (emit-expression macro-expansion)))))))
 
 (def ^:dynamic ^:private *file-name* nil)
 
@@ -377,14 +423,11 @@
   (emit-line form)
   (case (if (seq? form)
           (first form)
-          :literal)
+          ::literal)
     return (emit-return form)
     recur (emit-goto form)
-    (if, when) (emit-if form)
+    (if when) (emit-if form)
     def (emit-variable-definition form)
-    while (emit-while form)
-    doseq (emit-range-based-for form)
-    dotimes (emit-classic-for form)
     (if (and *tail?* (not= 'void *return-type*))
       (emit-return `(~'return ~form))
       (do (print *indent*)
