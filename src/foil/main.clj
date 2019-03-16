@@ -219,9 +219,9 @@
     (binding [*tail?* false]
       (emit-expression condition))
     (print " ? ")
-    (emit-expression-in-lambda then)
+    (emit-expression then)
     (print " : ")
-    (emit-expression-in-lambda else)))
+    (emit-expression else)))
 
 (defn- emit-if [[_ condition then else :as form]]
   (print (str *indent* "if ("))
@@ -258,12 +258,10 @@
 
 (defn- emit-lambda [[op args & body :as form]]
   (print (str "[&] ("
-              (if (empty? args)
-                "void"
-                (->> args
-                     (map #(with-out-str
-                             (emit-var-declaration %)))
-                     (str/join ", ")))
+              (->> args
+                   (map #(with-out-str
+                           (emit-var-declaration %)))
+                   (str/join ", "))
               ") {"))
   (binding [*return-type* 'auto]
     (emit-function-body "lambda" args body))
@@ -391,16 +389,6 @@
       (do (print *indent*)
           (emit-expression form)
           (println ";")))))
-
-(defn- emit-expression-in-lambda [form]
-  (if (or (literal? form) (not *expr?*))
-    (emit-expression form)
-    (do (println "[&] () {")
-        (binding [*indent* (str *indent* default-indent)
-                  *expr?* false
-                  *tail?* true]
-          (emit-expression-statement form))
-        (print (str *indent* "}()")))))
 
 (defn- emit-body [body]
   (loop [[x & xs] body]
