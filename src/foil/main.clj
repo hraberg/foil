@@ -502,11 +502,11 @@
 
 (defn- emit-struct [[_ name fields :as form]]
   (print *indent*)
-  (println "typedef struct {")
+  (println (str "struct " (munge-name name)) " {")
   (binding [*indent* (str *indent* default-indent)]
     (doseq [field fields]
       (println (str *indent* (form->tag field) " " (munge-name field) ";"))))
-  (println (str *indent* "} " (munge-name name) ";"))
+  (println (str *indent* "};"))
   (println))
 
 (defn- emit-variable-definition [[_ name value :as form]]
