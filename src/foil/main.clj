@@ -211,18 +211,17 @@
             *tail?* false]
     (emit-expression value)))
 
-(def ^:dynamic ^:private *loop-state*)
+(def ^:dynamic ^:private *loop-vars*)
 
 (defn- emit-goto [[_ & expressions :as form]]
-  (assert *loop-state* "Not in a loop.")
+  (assert *loop-vars* "Not in a loop.")
   (assert *tail?* "Can only recur from tail position.")
-  (doseq [[var expression] (map vector (:vars *loop-state*) expressions)]
+  (doseq [[var expression] (map vector *loop-vars* expressions)]
     (print (str *indent* (munge-name var) " = "))
     (binding [*expr?* true
               *tail?* false]
       (emit-expression expression))
-    (println ";"))
-  (println (str *indent* "goto "(:label *loop-state*) ";")))
+    (println ";")))
 
 (defn- $code [f]
   `(~'$code
@@ -254,10 +253,9 @@
 (defmethod foil-macroexpand :λ [form]
   (macroexpand-lambda form))
 
-(defn- macroexpand-let [[_ bindings & body :as form]]
-  (let [bindings (partition 2 bindings)
-        loop? (needs-loop-target? body)]
-    (if (or *expr?* loop?)
+(defn- macroexpand-let [[op bindings & body :as form]]
+  (let [bindings (partition 2 bindings)]
+    (if (or *expr?* (= 'loop op))
       (with-meta
         `((~'fn ~(mapv first bindings)
            ~@body)
@@ -483,11 +481,12 @@
   (binding [*indent* (str *indent* default-indent)
             *tail?* true]
     (if (needs-loop-target? body)
-      (binding [*loop-state* {:label (gensym f)
-                              :vars args}]
+      (binding [*loop-vars* args]
         (println)
-        (println (str (:label *loop-state*) ":"))
-        (emit-block body))
+        (println (str *indent* "while (true) {"))
+        (binding [*indent* (str *indent* default-indent)]
+          (emit-body body))
+        (println (str *indent* "}")))
       (do (println)
           (emit-body body)))))
 
