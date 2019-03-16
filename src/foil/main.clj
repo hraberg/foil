@@ -213,7 +213,7 @@
 
 (def ^:dynamic ^:private *loop-vars*)
 
-(defn- emit-goto [[_ & expressions :as form]]
+(defn- emit-recur [[_ & expressions :as form]]
   (assert *loop-vars* "Not in a loop.")
   (assert *tail?* "Can only recur from tail position.")
   (doseq [[var expression] (map vector *loop-vars* expressions)]
@@ -345,9 +345,9 @@
     ($code
      #(binding [*tail?* false
                 *expr?* false]
-        (doseq [[var binding] (partition 2 bindings)]
-          (println (str "for (" (with-out-str
-                                  (emit-var-declaration var "auto&")) " : "
+        (doseq [[[var binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
+          (println (str indent "for (" (with-out-str
+                                         (emit-var-declaration var "auto&")) " : "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression binding)))
@@ -450,7 +450,7 @@
           (first form)
           ::literal)
     return (emit-return form)
-    recur (emit-goto form)
+    recur (emit-recur form)
     (if when) (emit-if form)
     def (emit-variable-definition form)
     (if (and *tail?* (not= 'void *return-type*))
