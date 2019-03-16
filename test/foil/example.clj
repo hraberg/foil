@@ -1,6 +1,6 @@
 (ns example
-  (:use [cstdio]
-        [iostream]))
+  (:require [cstdio]
+            [iostream]))
 
 (defrecord Point [^int x ^int y])
 

@@ -41,7 +41,7 @@
   (doseq [[ref-type & lib-specs] references
           [lib :as lib-spec] lib-specs]
     (case ref-type
-      :use
+      (:require :include)
       (emit-include ['include lib])))
   (println)
   (println (str "namespace " (munge-name name)  " {")))
@@ -596,7 +596,7 @@
             ns (do (assert (nil? @ns) "Only one namespace supported.")
                    (reset! ns (second form))
                    (emit-headers form))
-            (include, use) (emit-include form)
+            (include, require) (emit-include form)
             (def, define) (emit-variable-definition form)
             (defn, defun) (do (when (= '-main (second form))
                                 (reset! main form))

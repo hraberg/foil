@@ -1,5 +1,5 @@
 (ns hello-world
-  (:use [iostream]))
+  (:require [iostream]))
 
 (defn -main []
   (<< std::cout "Hello World\n"))
