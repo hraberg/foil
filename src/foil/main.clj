@@ -281,11 +281,16 @@
     `(~'let [~var ~binding]
       `(~'let* ~(vec bindings) ~@body))))
 
-(defmethod foil-macroexpand :do [[_ & body :as form]]
-  `((~'fn [] ~@body)))
+(defn- macroexpand-do [[_ & body :as form]]
+  (if (= 1 (count body))
+    (first body)
+    `((~'fn [] ~@body))))
 
-(defmethod foil-macroexpand :begin [[_ & body :as form]]
-  `((~'fn [] ~@body)))
+(defmethod foil-macroexpand :do [form]
+  (macroexpand-do form))
+
+(defmethod foil-macroexpand :begin [form]
+  (macroexpand-do form))
 
 (defmethod foil-macroexpand :if [[_ condition then else :as form]]
   ($code
@@ -297,11 +302,11 @@
       (print " : ")
       (emit-expression (or else 'nullptr)))))
 
-(defmethod foil-macroexpand :when [[_ condition then]]
-  `(~'if ~condition ~then))
+(defmethod foil-macroexpand :when [[_ condition & then]]
+  `(~'if ~condition (~'do ~@then)))
 
-(defmethod foil-macroexpand :unless [[_ condition then]]
-  `(~'if (~'not ~condition) ~then))
+(defmethod foil-macroexpand :unless [[_ condition & then]]
+  `(~'if (~'not ~condition) (~'do ~@then)))
 
 (defmethod foil-macroexpand :cond [[_ condition then & rest :as form]]
   (if then
