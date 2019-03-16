@@ -564,6 +564,25 @@
   (doseq [header (concat '[vector forward_list] (collect-extra-headers forms))]
     (emit-include (vector 'include header))))
 
+(defn- emit-main [ns main]
+  (when main
+    (println)
+    (print "int main(")
+    (let [[_ _ main-args] main]
+      (when (seq main-args)
+        "int argc, char** argv")
+      (println ") {")
+      (when (seq main-args)
+        (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
+      (println (str default-indent (str (when (not= 'void (form->tag main-args 'void))
+                                          "return ")
+                                        (some-> (munge-name ns))
+                                        "::_main("
+                                        (when (seq main-args)
+                                          "args")
+                                        ");"))))
+    (println "}")))
+
 ;; (literal, variable, call, lambda, if, and set!)
 
 (defn- emit-source [in out]
@@ -589,23 +608,7 @@
             (defrecord, defstruct) (emit-struct form))))
       (when @ns
         (println "}"))
-      (when @main
-        (println)
-        (print "int main(")
-        (let [[_ _ main-args] @main]
-          (when (seq main-args)
-            "int argc, char** argv")
-          (println ") {")
-          (when (seq main-args)
-            (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
-          (println (str default-indent (str (when (not= 'void (form->tag main-args 'void))
-                                              "return ")
-                                            (some-> (munge-name @ns))
-                                            "::_main("
-                                            (when (seq main-args)
-                                              "args")
-                                            ");"))))
-        (println "}")))))
+      (emit-main @ns @main))))
 
 (defn -main [& args]
   (emit-source *in* *out*))
