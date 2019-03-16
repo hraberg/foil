@@ -30,7 +30,7 @@ check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cc
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
-	$(GRAAL_HOME)/bin/native-image --no-server -H:+ReportExceptionStackTraces -jar $(UBERJAR) $(NATIVE_IMAGE)
+	$(GRAAL_HOME)/bin/native-image --no-server -H:+ReportExceptionStackTraces --report-unsupported-elements-at-runtime -jar $(UBERJAR) $(NATIVE_IMAGE)
 
 native-image: $(NATIVE_IMAGE)
 
