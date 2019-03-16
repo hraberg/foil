@@ -1,5 +1,8 @@
 (ns hello-world
   (:require [iostream]))
 
+(defn println [s]
+  (<< (<< std::cout s) std::endl))
+
 (defn -main []
-  (<< std::cout "Hello World\n"))
+  (println "Hello World"))
