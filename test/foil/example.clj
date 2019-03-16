@@ -5,6 +5,7 @@
 (defrecord Point [^int x ^int y])
 
 (def ^:const foo 3.14)
+(def ^:dynamic *pi* 3.14)
 
 (defn println [^std::string x]
   (<< (<< (<< std::cout x) " str") std::endl))
@@ -35,6 +36,11 @@
       (println n))
 
     (my-fun x)
+
+    (println *pi*)
+    (binding [*pi* -1]
+      (println *pi*))
+    (println *pi*)
 
     (println (if (= 10 x)
                "ten"

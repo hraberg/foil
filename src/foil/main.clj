@@ -187,6 +187,8 @@
   ([var default-tag]
    (when (:const (meta var))
      (print "const "))
+   (when (:dynamic (meta var))
+     (print "thread_local "))
    (print (if (string? var)
             var
             (str (form->tag var default-tag) " " (if (vector? var)
@@ -275,6 +277,25 @@
 
 (defmethod foil-macroexpand :loop [form]
   (macroexpand-let form))
+
+(defmethod foil-macroexpand :binding [[op bindings & body :as form]]
+  (if *expr?*
+    `((~'fn [] ~form ~'nullptr))
+    (with-meta
+      `(~'do
+        ~@(for [[var binding] (partition 2 bindings)
+                :let [old-binding (gensym "old_binding")]]
+            ($code
+             #(do (emit-variable-definition ['def old-binding var] "")
+                  (println
+                   (str *indent*
+                        (format "auto %s = std::unique_ptr<int, std::function<void(int*)>>(new int, [&](auto ptr) { delete ptr; %s = %s; });"
+                                (gensym "binding_guard")
+                                (munge-name var)
+                                old-binding)))
+                  (emit-assignment ['set! var binding]))))
+        ~@body)
+      (meta form))))
 
 (defmethod foil-macroexpand :let* [[_ bindings body :as form]]
   (let [[[var binding] & bindings] (split-at 2 bindings)]
@@ -534,12 +555,15 @@
   (println (str *indent* "};"))
   (println))
 
-(defn- emit-variable-definition [[_ name value :as form]]
-  (print *indent*)
-  (emit-var-declaration name)
-  (print " = ")
-  (emit-expression value)
-  (println ";"))
+(defn- emit-variable-definition
+  ([form]
+   (emit-variable-definition form *indent*))
+  ([[_ name value :as form] initial-indent]
+   (print initial-indent)
+   (emit-var-declaration name)
+   (print " = ")
+   (emit-expression value)
+   (println ";")))
 
 (defn- collect-extra-headers [body]
   (let [extra-headers (atom #{})]
@@ -554,7 +578,10 @@
                        (swap! extra-headers conj 'regex)
 
                        (inst? %)
-                       (swap! extra-headers conj 'chrono))
+                       (swap! extra-headers conj 'chrono)
+
+                       (and (seq? %) (= 'binding (first %)))
+                       (swap! extra-headers conj 'memory))
                      %) body)
     @extra-headers))
 
