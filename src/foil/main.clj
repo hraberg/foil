@@ -465,6 +465,9 @@
 
 (defn- emit-line [form]
   (when-let [line (:line (meta form))]
+    (println "/**")
+    (prn form)
+    (println "*/")
     (println "#line" line (or (some-> *file-name* (pr-str)) ""))))
 
 (defn- emit-expression-statement [form]
