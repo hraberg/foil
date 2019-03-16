@@ -55,7 +55,9 @@
 
 (def ^:private unary-op '{not !
                           ! !
-                          bit-not "~"})
+                          bit-not "~"
+                          & &
+                          * *})
 
 (def ^:private unary-inc-dec-op '{inc +
                                   dec -})
@@ -126,15 +128,18 @@
   (binding [*tail?* false
             *expr?* true]
     (cond
-      (contains? unary-op f)
+      (and (contains? unary-op f)
+           (= 1 (count args)))
       (do (print (get unary-op f))
           (emit-expression (first args)))
 
-      (contains? unary-inc-dec-op f)
+      (and (contains? unary-inc-dec-op f)
+           (= 1 (count args)))
       (do (emit-expression (first args))
           (print (str " " (get unary-inc-dec-op f) " 1")))
 
-      (contains? binary-op f)
+      (and (contains? binary-op f)
+           (= 2 (count args)))
       (do (print "(")
           (emit-expression (first args))
           (print (str " " (get binary-op f)  " "))
@@ -149,10 +154,12 @@
           (print " = ")
           (emit-expression (last args)))
 
-      (keyword? f)
+      (and (keyword? f)
+           (= 1 (count args)))
       (emit-array-access [(first args) f])
 
-      (field-access? f)
+      (and (field-access? f)
+           (= 1 (count args)))
       (do (emit-expression (first args))
           (print ".")
           (emit-expression (symbol (str/replace (name f) #"^\.-" ""))))
