@@ -276,6 +276,11 @@
 (defmethod foil-macroexpand :loop [form]
   (macroexpand-let form))
 
+(defmethod foil-macroexpand :let* [[_ bindings body :as form]]
+  (let [[[var binding] & bindings] (split-at 2 bindings)]
+    `(~'let [~var ~binding]
+      `(~'let* ~(vec bindings) ~@body))))
+
 (defmethod foil-macroexpand :do [[_ & body :as form]]
   `((~'fn [] ~@body)))
 
@@ -290,7 +295,13 @@
       (print " ? ")
       (emit-expression then)
       (print " : ")
-      (emit-expression else))))
+      (emit-expression (or else 'nullptr)))))
+
+(defmethod foil-macroexpand :when [[_ condition then]]
+  `(~'if ~condition ~then))
+
+(defmethod foil-macroexpand :unless [[_ condition then]]
+  `(~'if (~'not ~condition) ~then))
 
 (defmethod foil-macroexpand :cond [[_ condition then & rest :as form]]
   (if then
@@ -302,7 +313,7 @@
 
 (defmethod foil-macroexpand :while [[_ condition & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form false))
+    `((~'fn [] ~form ~'nullptr))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
@@ -314,7 +325,7 @@
 
 (defmethod foil-macroexpand :dotimes [[_ bindings & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form false))
+    `((~'fn [] ~form ~'nullptr))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
@@ -327,7 +338,7 @@
 
 (defmethod foil-macroexpand :doseq [[_ bindings & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form false))
+    `((~'fn [] ~form ~'nullptr))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
@@ -527,6 +538,8 @@
 (defn- emit-default-includes []
   (doseq [header '[vector map set regex chrono forward_list]]
     (emit-include (vector 'include header))))
+
+;; (literal, variable, call, lambda, if, and set!)
 
 (defn- emit-source [in out]
   (binding [*out* out]
