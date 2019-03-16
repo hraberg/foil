@@ -364,6 +364,9 @@
 
 (def ^:private ^:dynamic *quote?* false)
 
+(defn- re? [x]
+  (instance? Pattern x))
+
 (defn- emit-literal [form]
   (cond
     (or (string? form)
@@ -373,7 +376,7 @@
     (symbol? form)
     (print (munge-name form))
 
-    (instance? Pattern form)
+    (re? Pattern)
     (print (str "std::regex(" (pr-str (str form)) ")"))
 
     (inst? form)
@@ -540,18 +543,36 @@
   (emit-expression value)
   (println ";"))
 
-(defn- emit-default-includes []
-  (doseq [header '[vector map set regex chrono forward_list]]
+(defn- collect-extra-headers [body]
+  (let [extra-headers (atom #{})]
+    (w/postwalk #(do (cond
+                       (set? %)
+                       (swap! extra-headers conj 'set)
+
+                       (map? %)
+                       (swap! extra-headers conj 'map)
+
+                       (re? %)
+                       (swap! extra-headers conj 'regex)
+
+                       (inst? %)
+                       (swap! extra-headers conj 'chrono))
+                     %) body)
+    @extra-headers))
+
+(defn- emit-default-includes [forms]
+  (doseq [header (concat '[vector forward_list] (collect-extra-headers forms))]
     (emit-include (vector 'include header))))
 
 ;; (literal, variable, call, lambda, if, and set!)
 
 (defn- emit-source [in out]
   (binding [*out* out]
-    (emit-default-includes)
     (let [ns (atom nil)
-          main (atom false)]
-      (doseq [[top-level :as form] (read-source in)]
+          main (atom nil)
+          forms (vec (read-source in))]
+      (emit-default-includes forms)
+      (doseq [[top-level :as form] forms]
         (emit-line form)
         (binding [*indent* (if @ns
                              default-indent
