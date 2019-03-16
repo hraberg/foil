@@ -56,6 +56,7 @@
 (def ^:private unary-op '{not !
                           ! !
                           bit-not "~"
+                          - -
                           & &
                           * *})
 
@@ -138,12 +139,13 @@
       (do (emit-expression (first args))
           (print (str " " (get unary-inc-dec-op f) " 1")))
 
-      (and (contains? binary-op f)
-           (= 2 (count args)))
-      (do (print "(")
-          (emit-expression (first args))
-          (print (str " " (get binary-op f)  " "))
-          (emit-expression (second args))
+      (contains? binary-op f)
+      (do (assert (>= (count args) 2) "Requires minimum two operands.")
+          (print "(")
+          (print (str/join (str " " (get binary-op f)  " ")
+                           (for [arg args]
+                             (with-out-str
+                               (emit-expression arg)))))
           (print ")"))
 
       (= 'aget f)
