@@ -483,10 +483,7 @@
     (if (needs-loop-target? body)
       (binding [*loop-vars* args]
         (println)
-        (println (str *indent* "while (true) {"))
-        (binding [*indent* (str *indent* default-indent)]
-          (emit-body body))
-        (println (str *indent* "}")))
+        (emit-block body (str *indent* "while (true) ")))
       (do (println)
           (emit-body body)))))
 
