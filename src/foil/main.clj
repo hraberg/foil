@@ -544,6 +544,7 @@
       (when @ns
         (println "}"))
       (when @main
+        (println)
         (println "int main(int argc, char** argv) {")
         (let [main-args? (empty? (nth @main 2))]
           (when main-args?
