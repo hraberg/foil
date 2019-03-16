@@ -44,7 +44,7 @@
       :use
       (emit-include ['include lib])))
   (println)
-  (println (str "namespace " name  " {")))
+  (println (str "namespace " (munge-name name)  " {")))
 
 (def ^:private default-indent "  ")
 (def ^:dynamic ^:private *indent* "")
@@ -591,15 +591,20 @@
         (println "}"))
       (when @main
         (println)
-        (println "int main(int argc, char** argv) {")
-        (let [main-args? (empty? (nth @main 2))]
-          (when main-args?
+        (print "int main(")
+        (let [[_ _ main-args] @main]
+          (when (seq main-args)
+            "int argc, char** argv")
+          (println ") {")
+          (when (seq main-args)
             (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
-          (println (str default-indent (format "return %s_main(%s);"
-                                               (some-> @ns (str "::"))
-                                               (if main-args?
-                                                 ""
-                                                 "args")))))
+          (println (str default-indent (str (when (not= 'void (form->tag main-args 'void))
+                                              "return ")
+                                            (some-> (munge-name @ns))
+                                            "::_main("
+                                            (when (seq main-args)
+                                              "args")
+                                            ");"))))
         (println "}")))))
 
 (defn -main [& args]
