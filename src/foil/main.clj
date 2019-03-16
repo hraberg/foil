@@ -189,7 +189,9 @@
      (print "const "))
    (print (if (string? var)
             var
-            (str (form->tag var default-tag) " " (munge-name var))))))
+            (str (form->tag var default-tag) " " (if (vector? var)
+                                                   (str "[" (str/join ", " (mapv munge-name var)) "]")
+                                                   (munge-name var)))))))
 
 (defn- emit-if [[_ condition then else :as form]]
   (print (str *indent* "if ("))
