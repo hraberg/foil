@@ -594,19 +594,22 @@
   (when main
     (println)
     (print "int main(")
-    (let [[_ _ main-args] main]
+    (let [[_ _ main-args] main
+          tag (form->tag main-args 'void)]
       (when (seq main-args)
         "int argc, char** argv")
       (println ") {")
       (when (seq main-args)
         (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
-      (println (str default-indent (str (when (not= 'void (form->tag main-args 'void))
+      (println (str default-indent (str (when (= 'int tag)
                                           "return ")
                                         (some-> (munge-name ns))
                                         "::_main("
                                         (when (seq main-args)
                                           "args")
-                                        ");"))))
+                                        ");")))
+      (when (not= 'int tag)
+        (println (str default-indent "return 0;"))))
     (println "}")))
 
 ;; (literal, variable, call, lambda, if, and set!)
