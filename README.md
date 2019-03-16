@@ -88,6 +88,7 @@ https://godbolt.org/ (Compiler Explorer)
 https://ferret-lang.org/
 https://github.com/Dobiasd/FunctionalPlus
 http://www.stroustrup.com/resource-model.pdf
+https://www.youtube.com/watch?v=zt0OQb1DBko
 
 ## License
 
