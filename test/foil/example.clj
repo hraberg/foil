@@ -40,6 +40,13 @@
                "ten"
                "not ten"))
 
+    (println (cond
+               (= 10 x)
+               "ten"
+
+               (= 20 x)
+               "not ten"))
+
     (println 42)
 
     (let [s "foo"]

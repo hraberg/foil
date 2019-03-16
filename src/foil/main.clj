@@ -292,13 +292,21 @@
       (print " : ")
       (emit-expression else))))
 
+(defmethod foil-macroexpand :cond [[_ condition then & rest :as form]]
+  (if then
+    `(~'if ~condition
+      ~then
+      (~'cond
+       ~@rest))
+    'nullptr))
+
 (defmethod foil-macroexpand :while [[_ condition & body :as form]]
   (if *expr?*
     `((~'fn [] ~form false))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
-        (print (str *indent* "while ("))
+        (print "while (")
         (binding [*expr?* true]
           (emit-expression condition))
         (print ")")
@@ -311,7 +319,7 @@
      #(binding [*tail?* false
                 *expr?* false]
         (doseq [[var limit] (partition 2 bindings)]
-          (println (str *indent* "for (int " var " = 0; " var " < "
+          (println (str "for (int " var " = 0; " var " < "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression limit))) "; " var "++)")))
@@ -324,8 +332,8 @@
      #(binding [*tail?* false
                 *expr?* false]
         (doseq [[var binding] (partition 2 bindings)]
-          (println (str *indent* "for (" (with-out-str
-                                           (emit-var-declaration var "auto&")) " : "
+          (println (str "for (" (with-out-str
+                                  (emit-var-declaration var "auto&")) " : "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression binding)))
@@ -535,8 +543,7 @@
                    (reset! ns (second form))
                    (emit-headers form))
             (include, use) (emit-include form)
-            (def, define) (do (print *indent*)
-                              (emit-variable-definition form))
+            (def, define) (emit-variable-definition form)
             (defn, defun) (do (when (= '-main (second form))
                                 (reset! main form))
                               (emit-function form))
