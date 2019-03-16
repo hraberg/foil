@@ -23,6 +23,9 @@ $(TARGET)/%.cc: test/foil/%.clj $(UBERJAR)
 $(TARGET)/%.s: $(TARGET)/%.cc
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
 
+$(TARGET)/%.lst: $(TARGET)/%.cc
+	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
+
 $(TARGET)/%: $(TARGET)/%.cc
 	$(CXX) $< $(CXXFLAGS) -o $@
 
