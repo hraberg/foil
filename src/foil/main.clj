@@ -429,7 +429,7 @@
 
         (and (contains? '#{do begin} op)
              (not *expr?*))
-        (emit-block (rest form))
+        (emit-block (rest form) "")
 
         :else
         (let [macro-expansion (foil-macroexpand form)]
