@@ -17,19 +17,19 @@ $(UBERJAR): src/*
 clean:
 	rm -rf $(TARGET)
 
-$(TARGET)/%.cc: test/foil/%.clj $(UBERJAR)
+$(TARGET)/%.cpp: test/foil/%.clj $(UBERJAR)
 	cat $< | java -jar $(UBERJAR) > $@
 
-$(TARGET)/%.s: $(TARGET)/%.cc
+$(TARGET)/%.s: $(TARGET)/%.cpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
 
-$(TARGET)/%.lst: $(TARGET)/%.cc
+$(TARGET)/%.lst: $(TARGET)/%.cpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
-$(TARGET)/%: $(TARGET)/%.cc
+$(TARGET)/%: $(TARGET)/%.cpp
 	$(CXX) $< $(CXXFLAGS) -o $@
 
-check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cc
+check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cpp
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
