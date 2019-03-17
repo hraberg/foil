@@ -296,12 +296,14 @@
                 :let [old-binding (gensym "old_binding")]]
             ($code
              #(do (emit-variable-definition ['def old-binding var] "")
-                  (println
-                   (str *indent*
-                        (format "auto %s = std::unique_ptr<int, std::function<void(int*)>>(new int, [&](auto ptr) { delete ptr; %s = %s; });"
-                                (gensym "binding_guard")
-                                (munge-name var)
-                                old-binding)))
+                  (print *indent*)
+                  (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
+                                   (gensym "binding_guard")
+                                   old-binding
+                                   old-binding
+                                   old-binding
+                                   (munge-name var)))
+                  (print *indent*)
                   (emit-assignment ['set! var binding]))))
         ~@body)
       (meta form))))
