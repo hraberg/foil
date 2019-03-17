@@ -88,9 +88,7 @@
                            bit-shift-left <<
                            << <<
                            bit-shift-right >>
-                           >> >>
-                           unsigned-bit-shift-right >>>
-                           >>> >>>})
+                           >> >>})
 
 (declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body emit-variable-definition)
 
