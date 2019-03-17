@@ -289,7 +289,7 @@
 
 (defmethod foil-macroexpand :binding [[op bindings & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form ~'nullptr))
+    `((~'fn ^:no-loop [] ~form))
     (with-meta
       `(~'do
         ~@(for [[var binding] (partition 2 bindings)
@@ -314,7 +314,7 @@
 (defn- macroexpand-do [[_ & body :as form]]
   (if (= 1 (count body))
     (first body)
-    `((~'fn [] ~@body))))
+    `((~'fn ^:no-loop [] ~@body))))
 
 (defmethod foil-macroexpand :do [form]
   (macroexpand-do form))
@@ -348,7 +348,7 @@
 
 (defmethod foil-macroexpand :while [[_ condition & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form ~'nullptr))
+    `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
@@ -360,7 +360,7 @@
 
 (defmethod foil-macroexpand :dotimes [[_ bindings & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form ~'nullptr))
+    `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
@@ -373,7 +373,7 @@
 
 (defmethod foil-macroexpand :doseq [[_ bindings & body :as form]]
   (if *expr?*
-    `((~'fn [] ~form ~'nullptr))
+    `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
      #(binding [*tail?* false
                 *expr?* false]
@@ -513,7 +513,8 @@
 (defn- emit-function-body [f args body]
   (binding [*indent* (str *indent* default-indent)
             *tail?* true]
-    (if (needs-loop-target? body)
+    (if (and (not (:no-loop (meta args)))
+             (needs-loop-target? body))
       (binding [*loop-vars* args]
         (println)
         (emit-block body (str *indent* "while (true) ")))
