@@ -1,5 +1,6 @@
 (ns foil.example
   (:require [cstdio]
+            [cmath]
             [iostream]))
 
 (defrecord Point [^int x ^int y])
@@ -59,6 +60,8 @@
       (println s))
 
     (println (.front l))
+
+    (println (sin *pi*))
 
     (println (loop [n 0]
                (if (< n 3)
