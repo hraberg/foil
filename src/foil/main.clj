@@ -263,6 +263,9 @@
 (defmethod foil-macroexpand :fn [form]
   (macroexpand-lambda form))
 
+(defmethod foil-macroexpand :fn* [form]
+  (macroexpand-lambda form))
+
 (defmethod foil-macroexpand :lambda [form]
   (macroexpand-lambda form))
 
