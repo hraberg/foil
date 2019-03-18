@@ -1,4 +1,4 @@
-(ns example
+(ns foil.example
   (:require [cstdio]
             [iostream]))
 

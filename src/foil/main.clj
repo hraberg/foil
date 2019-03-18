@@ -25,6 +25,9 @@
 (defn- munge-name [n]
   (str/replace (munge n) "_COLON_" ":"))
 
+(defn- munge-ns [n]
+  (munge-name (str/replace n "." "::")))
+
 (defn- form->tag
   ([form]
    (form->tag form default-tag))
@@ -44,7 +47,9 @@
       (:require :include)
       (emit-include ['include lib])))
   (println)
-  (println (str "namespace " (munge-name name)  " {")))
+  (println (str/join " "
+                     (for [part (str/split (str name) #"\.")]
+                       (str "namespace " (munge-ns part)  " {")))))
 
 (def ^:private default-indent "  ")
 (def ^:dynamic ^:private *indent* "")
@@ -613,7 +618,7 @@
         (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
       (println (str default-indent (str (when (= 'int tag)
                                           "return ")
-                                        (some-> (munge-name ns))
+                                        (some-> (munge-ns ns))
                                         "::_main("
                                         (when (seq main-args)
                                           "args")
@@ -645,8 +650,8 @@
                                 (reset! main form))
                               (emit-function form))
             (defrecord, defstruct) (emit-struct form))))
-      (when @ns
-        (println "}"))
+      (when-let [ns @ns]
+        (println (str/join " " (repeat (count (str/split (str ns) #"\.")) "}"))))
       (emit-main @ns @main))))
 
 (defn -main [& args]

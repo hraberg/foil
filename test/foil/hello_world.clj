@@ -1,4 +1,4 @@
-(ns hello-world
+(ns foil.hello-world
   (:require [iostream]))
 
 (defn println [s]
