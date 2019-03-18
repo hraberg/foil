@@ -69,19 +69,29 @@
                  (recur (inc n))
                  n)))
 
-    (let [x ^int []]
+    (let [x ^int []
+          z ^int []]
+
       (std::transform (.begin a)
                       (.end a)
                       (std::back_inserter x)
-                      (fn [x] (inc x)))
+                      #(inc %))
 
       (std::for_each (.begin x)
                      (.end x)
-                     (fn [x] (println x)))
+                     #(println %))
 
       (println (std::accumulate (.begin x)
                                 (.end x)
                                 0
-                                (fn [x y] (+ x y)))))
+                                (fn [x y] (+ x y))))
+
+      (let [zz ^int []]
+        (std::copy_if (.begin x)
+                      (.end x)
+                      (std::back_inserter zz)
+                      #(= (mod % 2) 0))
+        (doseq [x zz]
+          (println x))))
 
     0))

@@ -314,15 +314,18 @@
         ~@body)
       (meta form))))
 
-(defmethod foil-macroexpand :let* [[_ bindings body :as form]]
+(defmethod foil-macroexpand :let* [[_ bindings & body :as form]]
   (let [[[var binding] & bindings] (split-at 2 bindings)]
-    `(~'let [~var ~binding]
-      `(~'let* ~(vec bindings) ~@body))))
+    (if var
+      `(~'let [~var ~binding]
+        (~'let* ~(vec bindings) ~@body))
+      `(~'do ~@body))))
 
 (defn- macroexpand-do [[_ & body :as form]]
-  (if (= 1 (count body))
-    (first body)
-    `((~'fn ^:no-loop [] ~@body))))
+  (when (seq body)
+    (if (= 1 (count body))
+      (first body)
+      `((~'fn ^:no-loop [] ~@body)))))
 
 (defmethod foil-macroexpand :do [form]
   (macroexpand-do form))
@@ -385,12 +388,12 @@
     ($code
      #(binding [*tail?* false
                 *expr?* false]
-        (doseq [[[var binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
+        (doseq [[[var v-binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
           (println (str indent "for (" (with-out-str
                                          (emit-var-declaration var "auto&")) " : "
                         (binding [*expr?* true]
                           (with-out-str
-                            (emit-expression binding)))
+                            (emit-expression v-binding)))
                         ")")))
         (emit-block body)))))
 
@@ -467,7 +470,7 @@
 
         (and (contains? '#{do begin} op)
              (not *expr?*))
-        (emit-block (rest form) "")
+        (emit-block (next form) "")
 
         :else
         (let [macro-expansion (foil-macroexpand form)]
@@ -513,10 +516,11 @@
   ([body]
    (emit-block body  *indent*))
   ([body initial-indent]
-   (println (str initial-indent "{"))
-   (binding [*indent* (str *indent* default-indent)]
-     (emit-body body))
-   (println (str *indent* "}"))))
+   (when body
+     (println (str initial-indent "{"))
+     (binding [*indent* (str *indent* default-indent)]
+       (emit-body body))
+     (println (str *indent* "}")))))
 
 (defn- emit-function-body [f args body]
   (binding [*indent* (str *indent* default-indent)
