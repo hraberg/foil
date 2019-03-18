@@ -528,19 +528,20 @@
 
 (defn- emit-function [[op f args & body :as form]]
   (binding [*return-type* (form->tag args 'void)]
-    (let [return-template-name (gensym "Return")
-          arg-template-names (repeatedly (count args) #(gensym "Arg"))]
-      (println (str *indent*
-                    "template <"
-                    (str/join ", "
-                              (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
-                                                         [arg-tn (form->tag arg nil)]))
-                                                  [return-template-name *return-type*])]
-                                (cond-> (str "typename " tn)
-                                  tt (str " = " tt))))
-                    ">"))
+    (let [arg-template-names (repeatedly (count args) #(gensym "Arg"))
+          arg-template-parameters (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
+                                                             [arg-tn (form->tag arg nil)])))
+                                        :when (not tt)]
+                                    tn)]
+      (when (seq arg-template-parameters)
+        (println (str *indent*
+                      "template <"
+                      (str/join ", "
+                                (for [tt arg-template-parameters]
+                                  (str "typename " tt)))
+                      ">")))
       (print (str *indent*
-                  return-template-name
+                  *return-type*
                   " "
                   (munge-name f)
                   (str "("
