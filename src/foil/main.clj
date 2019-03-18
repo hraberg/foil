@@ -273,10 +273,11 @@
   (macroexpand-lambda form))
 
 (defn- macroexpand-let [[op bindings & body :as form]]
-  (let [bindings (partition 2 bindings)]
-    (if (or *expr?* (= 'loop op))
+  (let [bindings (partition 2 bindings)
+        loop? (= 'loop op)]
+    (if (or *expr?* loop?)
       (with-meta
-        `((~'fn ~(mapv first bindings)
+        `((~'fn ~(with-meta (mapv first bindings) {:no-loop (not loop?)})
            ~@body)
           ~@(map second bindings))
         (meta form))
@@ -316,9 +317,17 @@
 
 (defmethod foil-macroexpand :let* [[_ bindings & body :as form]]
   (let [[[var binding] & bindings] (split-at 2 bindings)]
-    (if var
+    (cond
+      (seq bindings)
       `(~'let [~var ~binding]
-        (~'let* ~(vec bindings) ~@body))
+        (~'let* ~(vec bindings)
+         ~@body))
+
+      var
+      `(~'let [~var ~binding]
+        ~@body)
+
+      (seq body)
       `(~'do ~@body))))
 
 (defn- macroexpand-do [[_ & body :as form]]
@@ -516,7 +525,7 @@
   ([body]
    (emit-block body  *indent*))
   ([body initial-indent]
-   (when body
+   (when (seq body)
      (println (str initial-indent "{"))
      (binding [*indent* (str *indent* default-indent)]
        (emit-body body))
