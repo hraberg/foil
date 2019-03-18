@@ -1,6 +1,7 @@
 (ns foil.example
   (:require [cstdio]
             [cmath]
+            [algorithm]
             [iostream]))
 
 (defrecord Point [^int x ^int y])
@@ -67,5 +68,20 @@
                (if (< n 3)
                  (recur (inc n))
                  n)))
+
+    (let [x ^int []]
+      (std::transform (.begin a)
+                      (.end a)
+                      (std::back_inserter x)
+                      (fn [x] (inc x)))
+
+      (std::for_each (.begin x)
+                     (.end x)
+                     (fn [x] (println x)))
+
+      (println (std::accumulate (.begin x)
+                                (.end x)
+                                0
+                                (fn [x y] (+ x y)))))
 
     0))
