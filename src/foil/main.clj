@@ -605,7 +605,7 @@
     (let [[_ _ main-args] main
           tag (form->tag main-args)]
       (when (seq main-args)
-        "int argc, char** argv")
+        (print "int argc, char** argv"))
       (println ") {")
       (when (seq main-args)
         (println (str default-indent "std::vector<std::string> args(argv + 1, argv + argc);")))
@@ -616,7 +616,7 @@
                                         (when (seq main-args)
                                           "args")
                                         ");")))
-      (when (= 'void tag)
+      (when (not= 'int tag)
         (println (str default-indent "return 0;"))))
     (println "}")))
 

@@ -4,5 +4,7 @@
 (defn println ^void [s]
   (<< (<< std::cout s) std::endl))
 
-(defn -main []
-  (println "Hello World"))
+(defn -main [args]
+  (println "Hello World")
+  (doseq [x args]
+    (println x)))
