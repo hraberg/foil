@@ -245,7 +245,7 @@
 (defn- macroexpand-lambda [[_ args & body :as form]]
   ($code
    (fn []
-     (print (str "[&] ("
+     (print (str "[=] ("
                  (->> args
                       (map #(with-out-str
                               (emit-var-declaration %)))

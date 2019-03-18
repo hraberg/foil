@@ -107,7 +107,7 @@ via postfix `.`. Currently all structs are created on the stack (no
 `new` keyword), and needs to be explicitly moved to the heap.
 
 Namespaces compiles to C++ namespaces. This area is quite basic at the
-moment. `:require`/:include` is supported and are compiled to
+moment. `:require/:include` is supported and are compiled to
 `#include` directives.
 
 There is no runtime or GC by design. Currently there's also no memory
