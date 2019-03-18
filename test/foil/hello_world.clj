@@ -1,7 +1,7 @@
 (ns foil.hello-world
   (:require [iostream]))
 
-(defn println [s]
+(defn println ^void [s]
   (<< (<< std::cout s) std::endl))
 
 (defn -main []
