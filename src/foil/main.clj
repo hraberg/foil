@@ -527,7 +527,7 @@
           (emit-body body)))))
 
 (defn- emit-function [[op f args & body :as form]]
-  (binding [*return-type* (form->tag args 'void)]
+  (binding [*return-type* (form->tag args)]
     (let [arg-template-names (repeatedly (count args) #(gensym "Arg"))
           arg-template-parameters (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
                                                              [arg-tn (form->tag arg nil)])))
@@ -603,7 +603,7 @@
     (println)
     (print "int main(")
     (let [[_ _ main-args] main
-          tag (form->tag main-args 'void)]
+          tag (form->tag main-args)]
       (when (seq main-args)
         "int argc, char** argv")
       (println ") {")
@@ -616,7 +616,7 @@
                                         (when (seq main-args)
                                           "args")
                                         ");")))
-      (when (not= 'int tag)
+      (when (= 'void tag)
         (println (str default-indent "return 0;"))))
     (println "}")))
 

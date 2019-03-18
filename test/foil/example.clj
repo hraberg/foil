@@ -7,13 +7,13 @@
 (def ^:const foo 3.14)
 (def ^:dynamic *pi* 3.14)
 
-(defn println [^std::string x]
+(defn println ^void [^std::string x]
   (<< (<< (<< std::cout x) " str") std::endl))
 
-(defn println [x]
+(defn println ^void [x]
   (<< (<< std::cout x) std::endl))
 
-(defn -main ^int []
+(defn -main []
   (let [x 0
         pt (Point. -1 2)
         a ^int [2 3]
