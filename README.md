@@ -60,6 +60,105 @@ In rough order:
 * Shen
 * Carp
 
+## Reflections After First Week
+
+Foil now compiles to C++17 after a few days of initially compiling to
+C11. C is simpler and compiles faster, but requires much more initial
+development to add features. Compiling to modern C++ instead gives us:
+
+* Local type deduction via the `auto` keyword.
+* Lambdas, including closures.
+* Mix of static and on-demand typing by refinement via templates. This
+  makes it possible to omit specifying many non-local types as well.
+* Smart pointers for managing memory via RIAA.
+* Mutable containers (collections) via STL.
+
+The compiler is written in Clojure, and the language is read using
+tools.reader, which implies its source compatible with
+Clojure. Statements are wrapped into lambdas when necessary to become
+expressions. The compiler is single pass and there's no IR yet, in
+directly generates C++ as it walks the s-expression tree.
+
+Macros are implemented via a multi-method. There are a few special
+forms, and special handling of top-level and to allow statements
+within blocks without being wrapped. It supports `def`, `defn`,
+`defstruct`, `fn`, `loop/recur`, `binding` and `let`. The compiler
+also supports a special form `$code`, which emits a verbatim string
+into the generated source.
+
+The compiler generates STL containers for literal vectors, list, maps
+and sets. It also supports regex and date literals.
+
+Types are specified using normal Clojure tags, `^int x`. If there's no
+type it defaults to `auto`. A type can also be a string, in which case
+it's used verbatim in the generated C++, to simplify usage of more
+complex signatures. Modifiers `:const` and `:dynamic` compiles to
+`const` and `thread_local` in C++.
+
+Namespaces compiles to C++ namespaces. This area is quite basic at the
+moment. `:require`/:include` is supported and are compiled to
+`#include` directives.
+
+All generated functions are normal C++ template functions (or lambdas)
+so interop is the default. Member functions and fields can be called /
+accessd using the normal `.` prefix syntax. Structs can be created via
+postfix `.`. Currently all structs are created on the stack, and needs
+to be explicitly moved to the heap.
+
+Raw arrays are not yet supported, but can be indirectly constructed as
+vector literals.
+
+There is no runtime or GC. Currently there's also no memory safety,
+and even using smart pointers cannot alone guarantee it. How to solve
+this is open for debate. Exactly how much of the underlying machinery
+to expose is also an open question. I expect that there will be a core
+library that will use interop extensively, but that user code will
+mainly depend on this and not usually see any C++ except for the when
+using libraries within the sub-domain they operate in.
+
+Currently all code is read from standard in and C++ is written to
+standard out. For ease of use, this currently adds a main function if
+necessary, but I expect this to change soon, and generate header only
+code which will require other (generated) headers, apart from a main
+stub needed to make the executable. This will require the compiler to
+become more complex and have the ability to read and generate more
+than file at once. As an interim step one can generate individual
+`.hpp` files and a `.cpp` file for the file with the main
+method.
+
+We could support https://github.com/arximboldi/immer which is a C++
+library for persistent data structures. In practice this would involve
+a wrapper and some ability to decide what type literals
+generate. Forcing a dependency on it goes against the layered
+approach.
+
+My idea is to evolve this for a bit until it can do things without
+worrying about portability. At a later point there could be time to
+split the compiler up and add a second backend, so the direct
+dependency on C++ is minimised.
+
+The compiler is currently written in Clojure, and no attempt has been
+made to make this easily portable - Clojure compatibility isn't a
+goal. That said, the aim is to eventually migrate the compiler to a
+commonly supported subset of Foil and Clojure so it can become
+self-hosting. This will be done in part by adding features to Foil so
+it can compile itself, and in part to simplify the Clojure used to
+make it easier to port. Having said this, self-hosting isn't a
+short-term goal.
+
+As mentioned above, Foil macros are implemented via a multi-method,
+but this will likely be rewritten to use a more basic subset of
+Clojure, but the idea is to also extend it with support for
+Scheme-style `syntax-rules`. This way macros can be defined in a
+declarative way in Foil itself, without the need for new code to be
+executed at compile time. But some low-level macros will still be
+implemented in the compiler, just not in an extensible way.
+
+This common subset of Clojure and Foil should eventually be strictly
+defined. This doesn't necessarily mean support for reader conditionals
+or `.cljc` in Foil, just defining a set that should work on both so
+one can consciously choose to target this set for certain use cases.
+
 ## References
 
 http://www.ulisp.com/show?3L
@@ -90,6 +189,7 @@ https://github.com/Dobiasd/FunctionalPlus
 http://www.stroustrup.com/resource-model.pdf
 https://www.youtube.com/watch?v=zt0OQb1DBko
 https://stackoverflow.com/questions/2067988/recursive-lambda-functions-in-c11
+https://github.com/arximboldi/immer
 
 ## License
 
