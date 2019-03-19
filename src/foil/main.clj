@@ -294,13 +294,13 @@
   (with-meta
     `(~'do
       ~@(for [[var v-binding] (partition 2 bindings)
-              :let [old-binding (gensym "old_binding")]]
+              :let [old-binding (gensym "__old_binding")]]
           ($code
            #(do (emit-variable-definition ['def old-binding var] "")
                 (binding [*indent* (str *indent* default-indent)]
                   (print *indent*)
                   (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
-                                   (gensym "binding_guard")
+                                   (gensym "__binding_guard")
                                    old-binding
                                    old-binding
                                    old-binding
@@ -533,7 +533,8 @@
 
 (defn- emit-function [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
-    (let [arg-template-names (repeatedly (count args) #(gensym "Arg"))
+    (let [arg-template-names (for [arg args]
+                               (str "__T_" arg))
           arg-template-parameters (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
                                                              [arg-tn (form->tag arg nil)])))
                                         :when (not tt)]
