@@ -379,7 +379,7 @@
                 *expr?* false]
         (doseq [[[var v-binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
           (println (str indent "for (" (with-out-str
-                                         (emit-var-declaration var "auto&")) " : "
+                                         (emit-var-declaration var 'auto&)) " : "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression v-binding)))
