@@ -32,8 +32,7 @@
   ([form]
    (form->tag form default-tag))
   ([form default]
-   (cond-> (:tag (meta form) default)
-     (collection-literal? form) (-> (name) (str/replace #"s$" "") (symbol)))))
+   (:tag (meta form) default)))
 
 (defn- emit-include [[_ header]]
   (println (str "#include " (if (symbol? header)
