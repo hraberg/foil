@@ -18,7 +18,8 @@
 (defn -main []
   (let [x 0
         pt (Point. -1 2)
-        a ^int [2 3]
+        t 3
+        a ^int [2 t]
         m ^std::string {:foo "bar"}
         s ^int #{1 2}
         l ^int '(7 8)
@@ -69,8 +70,8 @@
                  (recur (inc n))
                  n)))
 
-    (let [x ^int []
-          z ^int []]
+    (let* [x ^int []
+           z ^int []]
 
       (std::transform (.begin a)
                       (.end a)
