@@ -255,7 +255,7 @@
                       (map #(with-out-str
                               (emit-var-declaration %)))
                       (str/join ", "))
-                 ") mutable {"))
+                 ") {"))
      (binding [*return-type* 'auto]
        (emit-function-body "lambda" args body))
      (print (str *indent* "}"))))  )
