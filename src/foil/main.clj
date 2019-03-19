@@ -272,27 +272,22 @@
 (defmethod foil-macroexpand :λ [form]
   (macroexpand-lambda form))
 
-(defn- macroexpand-let* [[op bindings & body :as form]]
-  (let [bindings (partition 2 bindings)
-        loop? (= 'loop op)]
-    (if (or *expr?* loop?)
-      (with-meta
-        `((~'fn ~(with-meta (mapv first bindings) {:no-loop (not loop?)})
-           ~@body)
-          ~@(map second bindings))
-        (meta form))
-      (with-meta
-        `(~'do
-          ~@(for [[var binding] bindings]
-              `(~'def ~var ~binding))
-          ~@body)
-        (meta form)))))
+(defmethod foil-macroexpand :let* [[_ bindings & body :as form]]
+  (let [bindings (partition 2 bindings)]
+    (with-meta
+      `(~'do
+        ~@(for [[var binding] bindings]
+            `(~'def ~var ~binding))
+        ~@body)
+      (meta form))))
 
-(defmethod foil-macroexpand :let* [form]
-  (macroexpand-let* form))
-
-(defmethod foil-macroexpand :loop [form]
-  (macroexpand-let* form))
+(defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
+  (let [bindings (partition 2 bindings)]
+    (with-meta
+      `((~'fn ~(mapv first bindings)
+         ~@body)
+        ~@(map second bindings))
+      (meta form))))
 
 (defmethod foil-macroexpand :binding [[op bindings & body :as form]]
   (if *expr?*
@@ -318,9 +313,12 @@
 (defmethod foil-macroexpand :let [[_ bindings & body :as form]]
   (let [[[var binding] bindings] (split-at 2 bindings)]
     (if var
-      `(~'let* [~var ~binding]
-        (~'let ~(vec bindings)
-         ~@body))
+      (if (seq bindings)
+        `(~'let* [~var ~binding]
+          (~'let ~(vec bindings)
+           ~@body))
+        `(~'let* [~var ~binding]
+          ~@body))
       `(~'do ~@body))))
 
 (defn- macroexpand-do [[_ & body :as form]]
