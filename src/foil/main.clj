@@ -39,16 +39,26 @@
                               (str "<" header ">")
                               (pr-str header)))))
 
-(defn- emit-headers [[_ name & references :as form]]
+(defn- ns->ns-parts [ns]
+  (str/split (str ns) #"\."))
+
+(defn- ns->header-define [ns]
+  (str (str/upper-case (munge-ns (str/join "_" (ns->ns-parts ns))))))
+
+(defn- emit-headers [[_ ns-name & references :as form]]
   (doseq [[ref-type & lib-specs] references
           [lib :as lib-spec] lib-specs]
     (case ref-type
       (:require :include)
       (emit-include ['include lib])))
   (println)
-  (println (str/join " "
-                     (for [part (str/split (str name) #"\.")]
-                       (str "namespace " (munge-ns part)  " {")))))
+  (let [ns-parts (ns->ns-parts ns-name)
+        ns-header-define (ns->header-define ns-name)]
+    (println (str "#ifndef " ns-header-define))
+    (println (str "#define " ns-header-define))
+    (println (str/join " "
+                       (for [part ns-parts]
+                         (str "namespace " (munge-ns part)  " {"))))))
 
 (def ^:private default-indent "    ")
 (def ^:dynamic ^:private *indent* "")
@@ -656,7 +666,8 @@
                           (println)
                           (println)))))
       (when-let [ns @ns]
-        (println (str/join " " (repeat (count (str/split (str ns) #"\.")) "}"))))
+        (println (str/join " " (repeat (count (ns->ns-parts ns)) "}")))
+        (println "#endif"))
       (emit-main @ns @main))))
 
 (defn -main [& args]
