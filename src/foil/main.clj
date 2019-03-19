@@ -206,16 +206,19 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (when (or (:const (meta var))
-             (not (some (or (meta var) {}) [:mut :dynamic])))
-     (print "const "))
-   (when (:dynamic (meta var))
-     (print "thread_local "))
-   (print (if (string? var)
-            var
-            (str (form->tag var default-tag) " " (if (vector? var)
-                                                   (str "[" (str/join ", " (mapv munge-name var)) "]")
-                                                   (munge-name var)))))))
+   (let [{:keys [const dynamic ref & mut]} (meta var)]
+     (when (or const (not (or mut dynamic)))
+       (print "const "))
+     (when dynamic
+       (print "thread_local "))
+     (print (if (string? var)
+              var
+              (str (form->tag var default-tag)
+                   (when (or ref &)
+                     "&")
+                   " " (if (vector? var)
+                         (str "[" (str/join ", " (mapv munge-name var)) "]")
+                         (munge-name var))))))))
 
 (defn- emit-if [[_ condition then else :as form]]
   (print (str *indent* "if ("))
@@ -295,7 +298,8 @@
   (let [bindings (partition 2 bindings)]
     (with-meta
       `((~'fn ~(vec (for [[var] bindings]
-                      (vary-meta var assoc :mut true)))
+                      (cond-> var
+                        (not (string? var)) (vary-meta assoc :mut true))))
          ~@body)
         ~@(map second bindings))
       (meta form))))
@@ -389,7 +393,9 @@
                 *expr?* false]
         (doseq [[[var v-binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
           (println (str indent "for (" (with-out-str
-                                         (emit-var-declaration var 'auto&)) " : "
+                                         (emit-var-declaration (if (string? var)
+                                                                 var
+                                                                 (vary-meta var assoc :ref true)) 'auto)) " : "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression v-binding)))
@@ -566,8 +572,14 @@
                   (str "("
                        (->> (for [[arg-tn arg] (map vector arg-template-names args)]
                               (with-out-str
-                                (emit-var-declaration (if (form->tag arg nil)
+                                (emit-var-declaration (cond
+                                                        (form->tag arg nil)
                                                         arg
+
+                                                        (string? arg)
+                                                        arg
+
+                                                        :else
                                                         (vary-meta arg assoc :tag arg-tn)))))
                             (str/join ", "))
                        ") {"))))
