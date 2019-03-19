@@ -413,15 +413,19 @@
     (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
 
     (map? form)
-    (print (str "std::map<std::string," (form->tag form) ">"
-                "{" (str/join ", " (map (fn [[k v]]
-                                          (str "{"
-                                               (with-out-str
-                                                 (emit-expression k))
-                                               ", "
-                                               (with-out-str
-                                                 (emit-expression v))
-                                               "}")) form)) "}"))
+    (let [tag (form->tag form)
+          tag (if (vector? tag)
+                (str/join "," tag)
+                (str "std::string," tag))]
+      (print (str "std::map<" tag ">"
+                  "{" (str/join ", " (map (fn [[k v]]
+                                            (str "{"
+                                                 (with-out-str
+                                                   (emit-expression k))
+                                                 ", "
+                                                 (with-out-str
+                                                   (emit-expression v))
+                                                 "}")) form)) "}")))
 
     (or (seq? form)
         (set? form)
@@ -429,8 +433,8 @@
     (print (str "std::" (cond
                           (seq? form) "forward_list"
                           (set? form) "set"
-                          (vector? form) "vector") "<"
-                (form->tag form) ">"
+                          (vector? form) "vector")
+                "<" (form->tag form) ">"
                 "{" (str/join ", " (map #(with-out-str
                                            (emit-expression %)) form)) "}"))
 
