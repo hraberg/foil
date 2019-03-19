@@ -197,7 +197,8 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (when (:const (meta var))
+   (when (or (:const (meta var))
+             (not (some (or (meta var) {}) [:mut :dynamic])))
      (print "const "))
    (when (:dynamic (meta var))
      (print "thread_local "))
@@ -284,7 +285,8 @@
 (defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
     (with-meta
-      `((~'fn ~(mapv first bindings)
+      `((~'fn ~(vec (for [[var] bindings]
+                      (vary-meta var assoc :mut true)))
          ~@body)
         ~@(map second bindings))
       (meta form))))
