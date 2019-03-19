@@ -9,6 +9,38 @@
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)
 
+($code "
+    template <typename T, typename... TRest, template <typename...>class Coll, typename Fn>
+    auto map(const Fn& f, const Coll<T, TRest...>& coll) {
+        Coll<decltype(f(std::declval<T>()))> acc;
+        for (const auto& x : coll) {
+            acc.push_back(f(x));
+        }
+        return acc;
+    }")
+
+($code "
+    template <typename T, typename... TRest, template <typename...>class Coll, typename Pred>
+    auto filter(const Pred& pred, const Coll<T, TRest...>& coll) {
+        Coll<T> acc;
+        for (const auto& x : coll) {
+            if (pred(x)) {
+                acc.push_back(x);
+            }
+        }
+        return acc;
+    }")
+
+($code "
+    template <typename T, typename... TRest, template <typename...>class Coll, typename Init, typename Fn>
+    auto reduce(const Fn& f, const Init& init, const Coll<T, TRest...>& coll) {
+        Init acc = init;
+        for (const auto& x : coll) {
+            acc = f(acc, x);
+        }
+        return acc;
+    }")
+
 (defn println ^void [^std::string x]
   (<< (<< (<< std::cout x) " str") std::endl))
 
@@ -78,6 +110,7 @@
                       (std::back_inserter x)
                       #(inc %))
 
+
       (std::for_each (.begin x)
                      (.end x)
                      #(println %))
@@ -95,4 +128,14 @@
         (doseq [x zz]
           (println x))))
 
-    0))
+    (let [xs (map #(inc %) a)]
+      (doseq [x xs]
+        (println x))
+
+      (println (reduce (fn [x y] (+ x y)) 0 xs))
+
+      (doseq [x (filter #(= (mod % 2) 0)
+                        (map #(inc %) a))]
+        (println x)))
+    0)
+  )

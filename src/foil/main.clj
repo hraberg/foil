@@ -452,6 +452,9 @@
                       (form->tag form nil))]
     (print (str "(" tag ") "))))
 
+(defn- emit-code [[op & body]]
+  (print (str/join body)))
+
 (defn- emit-expression [form]
   (maybe-emit-cast form)
   (if (or (literal? form) *quote?*)
@@ -459,7 +462,7 @@
     (let [op (first form)]
       (cond
         (contains? '#{$code $} op)
-        (print (str/join (rest form)))
+        (emit-code form)
 
         (= 'quote op)
         (binding [*quote?* true]
@@ -643,12 +646,15 @@
             ns (do (assert (nil? @ns) "Only one namespace supported.")
                    (reset! ns (second form))
                    (emit-headers form))
-            (include, require) (emit-include form)
-            (def, define) (emit-variable-definition form)
-            (defn, defun) (do (when (= '-main (second form))
+            (include require) (emit-include form)
+            (def define) (emit-variable-definition form)
+            (defn defun) (do (when (= '-main (second form))
                                 (reset! main form))
                               (emit-function form))
-            (defrecord, defstruct) (emit-struct form))))
+            (defrecord defstruct) (emit-struct form)
+            ($code $) (do (emit-code form)
+                          (println)
+                          (println)))))
       (when-let [ns @ns]
         (println (str/join " " (repeat (count (str/split (str ns) #"\.")) "}"))))
       (emit-main @ns @main))))
