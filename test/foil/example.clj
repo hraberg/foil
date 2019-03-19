@@ -10,7 +10,7 @@
 (def ^:dynamic *pi* 3.14)
 
 ($code "
-    template <typename T, typename... TRest, template <typename...>class Coll, typename Fn>
+    template <typename T, typename... TRest, template <typename...>typename Coll, typename Fn>
     auto map(const Fn& f, const Coll<T, TRest...>& coll) {
         Coll<decltype(f(std::declval<T>()))> acc;
         for (const auto& x : coll) {
@@ -20,7 +20,7 @@
     }")
 
 ($code "
-    template <typename T, typename... TRest, template <typename...>class Coll, typename Pred>
+    template <typename T, typename... TRest, template <typename...>typename Coll, typename Pred>
     auto filter(const Pred& pred, const Coll<T, TRest...>& coll) {
         Coll<T> acc;
         for (const auto& x : coll) {
@@ -32,7 +32,7 @@
     }")
 
 ($code "
-    template <typename T, typename... TRest, template <typename...>class Coll, typename Val, typename Fn>
+    template <typename T, typename... TRest, template <typename...>typename Coll, typename Val, typename Fn>
     auto reduce(const Fn& f, const Val& val, const Coll<T, TRest...>& coll) {
         Val acc = val;
         for (const auto& x : coll) {
