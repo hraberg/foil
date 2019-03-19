@@ -447,8 +447,8 @@
     (emit-literal form)
     (let [op (first form)]
       (cond
-        (= '$code op)
-        (print (second form))
+        (contains? '#{$code $} op)
+        (print (str/join (rest form)))
 
         (= 'quote op)
         (binding [*quote?* true]
