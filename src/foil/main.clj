@@ -414,8 +414,14 @@
 
     (map? form)
     (let [tag (form->tag form)
-          tag (if (vector? tag)
+          tag (cond
+                (string? tag)
+                tag
+
+                (vector? tag)
                 (str/join "," tag)
+
+                :else
                 (str "std::string," tag))]
       (print (str "std::map<" tag ">"
                   "{" (str/join ", " (map (fn [[k v]]
