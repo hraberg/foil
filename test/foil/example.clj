@@ -42,7 +42,7 @@
     }")
 
 ($code "
-    template <typename T, typename... TRest, template <typename...>class Coll, typename Fn>
+    template <typename T, typename... TRest, template <typename...>typename Coll, typename Fn>
     auto reduce(const Fn& f, const Coll<T, TRest...>& coll) {
         T acc = coll.front();
         auto first = true;
