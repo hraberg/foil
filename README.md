@@ -160,6 +160,16 @@ or `.cljc` in Foil, just defining a set that should work on both so
 one can consciously choose to target writing code in this set for
 certain use cases.
 
+## Name
+
+Unknown to me, turns out there are (at least) a few things called
+foil, a couple of old programming languages from the 60-70s,
+https://en.wikipedia.org/wiki/FOIL_(programming_language) but also a
+pre-Clojure project by Hickey: http://foil.sourceforge.net/ (!)
+
+So the name should be seen as a project name only, not the eventual
+name of any eventual language.
+
 ## References
 
 http://www.ulisp.com/show?3L
