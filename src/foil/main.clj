@@ -272,7 +272,7 @@
 (defmethod foil-macroexpand :λ [form]
   (macroexpand-lambda form))
 
-(defmethod foil-macroexpand :let* [[_ bindings & body :as form]]
+(defmethod foil-macroexpand :let [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
     (with-meta
       `(~'do
@@ -290,36 +290,23 @@
       (meta form))))
 
 (defmethod foil-macroexpand :binding [[op bindings & body :as form]]
-  (if *expr?*
-    `((~'fn ^:no-loop [] ~form))
-    (with-meta
-      `(~'do
-        ~@(for [[var binding] (partition 2 bindings)
-                :let [old-binding (gensym "old_binding")]]
-            ($code
-             #(do (emit-variable-definition ['def old-binding var] "")
-                  (print *indent*)
-                  (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
-                                   (gensym "binding_guard")
-                                   old-binding
-                                   old-binding
-                                   old-binding
-                                   (munge-name var)))
-                  (print *indent*)
-                  (emit-assignment ['set! var binding]))))
-        ~@body)
-      (meta form))))
-
-(defmethod foil-macroexpand :let [[_ bindings & body :as form]]
-  (let [[[var binding] bindings] (split-at 2 bindings)]
-    (if var
-      (if (seq bindings)
-        `(~'let* [~var ~binding]
-          (~'let ~(vec bindings)
-           ~@body))
-        `(~'let* [~var ~binding]
-          ~@body))
-      `(~'do ~@body))))
+  (with-meta
+    `(~'do
+      ~@(for [[var binding] (partition 2 bindings)
+              :let [old-binding (gensym "old_binding")]]
+          ($code
+           #(do (emit-variable-definition ['def old-binding var] "")
+                (print *indent*)
+                (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
+                                 (gensym "binding_guard")
+                                 old-binding
+                                 old-binding
+                                 old-binding
+                                 (munge-name var)))
+                (print *indent*)
+                (emit-assignment ['set! var binding]))))
+      ~@body)
+    (meta form)))
 
 (defn- macroexpand-do [[_ & body :as form]]
   (when (seq body)

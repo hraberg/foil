@@ -70,8 +70,8 @@
                  (recur (inc n))
                  n)))
 
-    (let* [x ^int []
-           z ^int []]
+    (let [x ^int []
+          z ^int []]
 
       (std::transform (.begin a)
                       (.end a)
