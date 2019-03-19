@@ -51,7 +51,7 @@
                      (for [part (str/split (str name) #"\.")]
                        (str "namespace " (munge-ns part)  " {")))))
 
-(def ^:private default-indent "  ")
+(def ^:private default-indent "    ")
 (def ^:dynamic ^:private *indent* "")
 
 (def ^:dynamic ^:private *tail?* false)
@@ -292,19 +292,20 @@
 (defmethod foil-macroexpand :binding [[op bindings & body :as form]]
   (with-meta
     `(~'do
-      ~@(for [[var binding] (partition 2 bindings)
+      ~@(for [[var v-binding] (partition 2 bindings)
               :let [old-binding (gensym "old_binding")]]
           ($code
            #(do (emit-variable-definition ['def old-binding var] "")
-                (print *indent*)
-                (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
-                                 (gensym "binding_guard")
-                                 old-binding
-                                 old-binding
-                                 old-binding
-                                 (munge-name var)))
-                (print *indent*)
-                (emit-assignment ['set! var binding]))))
+                (binding [*indent* (str *indent* default-indent)]
+                  (print *indent*)
+                  (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
+                                   (gensym "binding_guard")
+                                   old-binding
+                                   old-binding
+                                   old-binding
+                                   (munge-name var)))
+                  (print *indent*)
+                  (emit-assignment ['set! var v-binding])))))
       ~@body)
     (meta form)))
 
