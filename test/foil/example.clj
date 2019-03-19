@@ -2,12 +2,32 @@
   (:require [cstdio]
             [cmath]
             [algorithm]
+            [functional]
             [iostream]))
 
 (defrecord Point [^int x ^int y])
 
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)
+
+($code "#define _PLUS_ std::plus<>{}")
+($code "#define _MINUS_ std::minus<>{}")
+($code "#define _STAR_ std::multiplies<>{}")
+($code "#define _SLASH_ std::divides<>{}")
+($code "#define _PERCENT_ std::modulus<>{}")
+($code "#define _EQ_ std::equal_to<>{}")
+($code "#define _BANG__EQ_ std::not_equal_to<>{}")
+($code "#define _GT_ std::greater<>{}")
+($code "#define _LT_ std::less<>{}")
+($code "#define _GT__EQ_ std::greater_equal<>{}")
+($code "#define _LT_EQ_ std::less_equal<>{}")
+($code "#define _AMPERSAND__AMPERSAND_ std::logical_and<>{}")
+($code "#define _BAR__BAR_ std::logical_or<>{}")
+($code "#define _BANG_ std::logical_not<>{}")
+($code "#define _AMPERSAND__ std::bit_and<>{}")
+($code "#define _BAR_ std::bit_or<>{}")
+($code "#define _CARET_ std::bit_xor<>{}")
+($code "#define _TILDE_ std::not_fn<>{}")
 
 ($code "
     template <typename Fn, typename T, typename... TRest, template <typename...>typename Coll>
@@ -133,7 +153,7 @@
       (println (std::accumulate (.begin x)
                                 (.end x)
                                 0
-                                (fn [x y] (+ x y))))
+                                +))
 
       (let [^:mut zz ^int []]
         (std::copy_if (.begin x)
@@ -147,7 +167,7 @@
       (doseq [x xs]
         (println x))
 
-      (println (reduce (fn [x y] (+ x y)) xs))
+      (println (reduce + xs))
 
       (doseq [x (filter #(= (mod % 2) 0)
                         (map #(inc %) a))]
