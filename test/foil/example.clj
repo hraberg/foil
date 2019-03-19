@@ -32,10 +32,25 @@
     }")
 
 ($code "
-    template <typename T, typename... TRest, template <typename...>class Coll, typename Init, typename Fn>
-    auto reduce(const Fn& f, const Init& init, const Coll<T, TRest...>& coll) {
-        Init acc = init;
+    template <typename T, typename... TRest, template <typename...>class Coll, typename Val, typename Fn>
+    auto reduce(const Fn& f, const Val& val, const Coll<T, TRest...>& coll) {
+        Val acc = val;
         for (const auto& x : coll) {
+            acc = f(acc, x);
+        }
+        return acc;
+    }")
+
+($code "
+    template <typename T, typename... TRest, template <typename...>class Coll, typename Fn>
+    auto reduce(const Fn& f, const Coll<T, TRest...>& coll) {
+        T acc = coll.front();
+        auto first = true;
+        for (const auto& x : coll) {
+            if (first) {
+                first = false;
+                continue;
+            }
             acc = f(acc, x);
         }
         return acc;
@@ -132,7 +147,7 @@
       (doseq [x xs]
         (println x))
 
-      (println (reduce (fn [x y] (+ x y)) 0 xs))
+      (println (reduce (fn [x y] (+ x y)) xs))
 
       (doseq [x (filter #(= (mod % 2) 0)
                         (map #(inc %) a))]
