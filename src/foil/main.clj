@@ -534,7 +534,7 @@
 (defn- emit-function [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
-                               (str "__T_" arg))
+                               (munge-name (str "__T_" arg)))
           arg-template-parameters (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
                                                              [arg-tn (form->tag arg nil)])))
                                         :when (not tt)]
