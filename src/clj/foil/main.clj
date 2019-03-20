@@ -227,8 +227,8 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (let [{:keys [const dynamic ref & mut]} (meta var)]
-     (when (or const (not (or mut dynamic)))
+   (let [{:keys [const dynamic ref & mut !]} (meta var)]
+     (when (or const (not (or mut ! dynamic)))
        (print "const "))
      (when dynamic
        (print "thread_local "))
