@@ -33,7 +33,7 @@
 ($code "const std::bit_not<> _TILDE_;")
 
 ($code "template <typename Fn, typename T, typename... TRest, template <typename...>typename Coll>
-    auto map(const Fn& f, const Coll<T, TRest...>& coll) {
+    decltype(auto) map(const Fn& f, const Coll<T, TRest...>& coll) {
         Coll<decltype(f(std::declval<T>()))> acc;
         for (const auto& x : coll) {
             acc.push_back(f(x));
@@ -42,7 +42,7 @@
     }")
 
 ($code "template <typename Pred, typename Coll>
-    auto filter(const Pred& pred, const Coll& coll) {
+    decltype(auto) filter(const Pred& pred, const Coll& coll) {
         Coll acc;
         for (const auto& x : coll) {
             if (pred(x)) {
@@ -53,7 +53,7 @@
     }")
 
 ($code "template <typename Fn, typename Coll, typename Val>
-    auto reduce(const Fn& f, const Val& val, const Coll& coll) {
+    decltype(auto) reduce(const Fn& f, const Val& val, const Coll& coll) {
         Val acc = val;
         for (const auto& x : coll) {
             acc = f(acc, x);
@@ -62,7 +62,7 @@
     }")
 
 ($code "template <typename Fn, typename Coll>
-    auto reduce(const Fn& f, const Coll& coll) {
+    decltype(auto) reduce(const Fn& f, const Coll& coll) {
         typename Coll::value_type acc = coll.front();
         auto first = true;
         for (const auto& x : coll) {
@@ -75,11 +75,11 @@
         return acc;
     }")
 
-(defn println ^void [^std::string x]
-  (<< (<< (<< std::cout x) " str") std::endl))
-
-(defn println ^void [x]
-  (<< (<< std::cout x) std::endl))
+(defn println
+  (^void [^std::string x]
+   (<< (<< (<< std::cout x) " str") std::endl))
+  (^void [x]
+   (<< (<< std::cout x) std::endl)))
 
 (defn -main []
   (let [^:mut x 0
@@ -147,7 +147,7 @@
 
       (std::for_each (.begin x)
                      (.end x)
-                     #(println %))
+                     println)
 
       (println (std::accumulate (.begin x)
                                 (.end x)
