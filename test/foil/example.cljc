@@ -5,7 +5,7 @@
             [functional]
             [iostream]))
 
-(defrecord Point [^int x ^int y])
+(defrecord Point [x ^int y])
 
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)
@@ -18,7 +18,7 @@
 
 (defn -main []
   (let [^:mut x 0
-        pt (Point. -1 2)
+        pt ^int (Point. -1 2)
         t 3
         ^:mut a ^int [2 t]
         m ^std::string {:foo "bar"}

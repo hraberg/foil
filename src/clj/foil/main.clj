@@ -141,6 +141,12 @@
     (emit-expression idx)
     (print "]")))
 
+(defn- maybe-template-params [form]
+  (let [tag (form->tag form nil)]
+    (if (vector? tag)
+      (str/join "," tag)
+      tag)))
+
 (defn- emit-application [[f & args :as form]]
   (binding [*tail?* false
             *expr?* true]
@@ -186,17 +192,23 @@
       (do (emit-expression (symbol (-> (name f)
                                        (str/replace #"\.$" "")
                                        (str/replace #"^->" ""))))
+          (when-let [tag (maybe-template-params form)]
+            (print (str "<" tag ">")))
           (print (str "{" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) args)) "}")))
 
       (method-call? f)
       (do (emit-expression (first args))
           (emit-expression f)
+          (when-let [tag (maybe-template-params form)]
+            (print (str "<" tag ">")))
           (print (str "(" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) (rest args))) ")")))
 
       :else
       (do (emit-expression f)
+          (when-let [tag (maybe-template-params form)]
+            (print (str "<" tag ">")))
           (print (str "(" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) args)) ")"))))))
 
@@ -559,22 +571,30 @@
       (do (println)
           (emit-body body)))))
 
+(defn- emit-template [parameters template-names]
+  (let [template-parameters (for [[tn tt] (conj (vec (for [[tn p] (map vector template-names parameters)]
+                                                       [tn (form->tag p nil)])))
+                                  :when (not tt)]
+                              tn)]
+    (when (seq template-parameters)
+      (println (str *indent*
+                    "template <"
+                    (str/join ", "
+                              (for [tt template-parameters]
+                                (str "typename " tt)))
+                    ">")))))
+
+(defn- maybe-add-template-name [p tn]
+  (if (string? p)
+    p
+    (vary-meta p assoc :tag (form->tag p tn))))
+
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
                                (munge-name (str "__T_" arg)))
-          arg-template-parameters (for [[tn tt] (conj (vec (for [[arg-tn arg] (map vector arg-template-names args)]
-                                                             [arg-tn (form->tag arg nil)])))
-                                        :when (not tt)]
-                                    tn)
           fn-name (str "__" (munge-name f))]
-      (when (seq arg-template-parameters)
-        (println (str *indent*
-                      "template <"
-                      (str/join ", "
-                                (for [tt arg-template-parameters]
-                                  (str "typename " tt)))
-                      ">")))
+      (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
                     "decltype(auto)"
@@ -582,17 +602,9 @@
                   " "
                   "operator()"
                   (str "("
-                       (->> (for [[arg-tn arg] (map vector arg-template-names args)]
+                       (->> (for [[tn arg] (map vector arg-template-names args)]
                               (with-out-str
-                                (emit-var-declaration (cond
-                                                        (form->tag arg nil)
-                                                        arg
-
-                                                        (string? arg)
-                                                        arg
-
-                                                        :else
-                                                        (vary-meta arg assoc :tag arg-tn)))))
+                                (emit-var-declaration (maybe-add-template-name arg tn))))
                             (str/join ", "))
                        ") const {")))
       (emit-function-body f args body)
@@ -612,15 +624,18 @@
     (println (str *indent* "const " fn-type " " (munge f) ";"))))
 
 (defn- emit-struct [[_ name fields :as form]]
-  (print *indent*)
-  (println (str "struct " (munge-name name)) " {")
-  (binding [*indent* (str *indent* default-indent)]
-    (doseq [field fields]
-      (print *indent*)
-      (emit-var-declaration field)
-      (println ";")))
-  (println (str *indent* "};"))
-  (println))
+  (let [field-template-names (for [field fields]
+                               (munge-name (str "__T_" field)))]
+    (emit-template fields field-template-names)
+    (print *indent*)
+    (println (str "struct " (munge-name name)) " {")
+    (binding [*indent* (str *indent* default-indent)]
+      (doseq [[tn field] (map vector field-template-names fields)]
+        (print *indent*)
+        (emit-var-declaration (maybe-add-template-name field tn))
+        (println ";")))
+    (println (str *indent* "};"))
+    (println)))
 
 (defn- emit-variable-definition
   ([form]
