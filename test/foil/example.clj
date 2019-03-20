@@ -10,27 +10,29 @@
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)
 
-($code "#define _PLUS_ std::plus<>{}")
-($code "#define _MINUS_ std::minus<>{}")
-($code "#define _STAR_ std::multiplies<>{}")
-($code "#define _SLASH_ std::divides<>{}")
-($code "#define _PERCENT_ std::modulus<>{}")
-($code "#define _EQ_ std::equal_to<>{}")
-($code "#define _BANG__EQ_ std::not_equal_to<>{}")
-($code "#define _GT_ std::greater<>{}")
-($code "#define _LT_ std::less<>{}")
-($code "#define _GT__EQ_ std::greater_equal<>{}")
-($code "#define _LT_EQ_ std::less_equal<>{}")
-($code "#define _AMPERSAND__AMPERSAND_ std::logical_and<>{}")
-($code "#define _BAR__BAR_ std::logical_or<>{}")
-($code "#define _BANG_ std::logical_not<>{}")
-($code "#define _AMPERSAND__ std::bit_and<>{}")
-($code "#define _BAR_ std::bit_or<>{}")
-($code "#define _CARET_ std::bit_xor<>{}")
-($code "#define _TILDE_ std::not_fn<>{}")
+(def ^"std::plus<>" +)
+(def ^"std::minus<>" -)
+(def ^"std::multiplies<>" *)
+(def ^"std::divides<>" /)
+(def ^"std::modulus<>" %)
 
-($code "
-    template <typename Fn, typename T, typename... TRest, template <typename...>typename Coll>
+(def ^"std::equal_to<>" =)
+(def ^"std::not_equal_to<>" !=)
+(def ^"std::greater<>" >)
+(def ^"std::less<>" <)
+(def ^"std::greater_equal<>" >=)
+(def ^"std::less_equal<>" <=)
+
+(def ^"std::logical_and<>" &&)
+(def ^"std::logical_or<>" ||)
+(def ^"std::logical_not<>" !)
+
+(def ^"std::bit_and<>" &)
+(def ^"std::bit_or<>" |)
+($code "const std::bit_or<> _CARET_;")
+($code "const std::bit_not<> _TILDE_;")
+
+($code "template <typename Fn, typename T, typename... TRest, template <typename...>typename Coll>
     auto map(const Fn& f, const Coll<T, TRest...>& coll) {
         Coll<decltype(f(std::declval<T>()))> acc;
         for (const auto& x : coll) {
@@ -39,8 +41,7 @@
         return acc;
     }")
 
-($code "
-    template <typename Pred, typename Coll>
+($code "template <typename Pred, typename Coll>
     auto filter(const Pred& pred, const Coll& coll) {
         Coll acc;
         for (const auto& x : coll) {
@@ -51,8 +52,7 @@
         return acc;
     }")
 
-($code "
-    template <typename Fn, typename Coll, typename Val>
+($code "template <typename Fn, typename Coll, typename Val>
     auto reduce(const Fn& f, const Val& val, const Coll& coll) {
         Val acc = val;
         for (const auto& x : coll) {
@@ -61,8 +61,7 @@
         return acc;
     }")
 
-($code "
-    template <typename Fn, typename Coll>
+($code "template <typename Fn, typename Coll>
     auto reduce(const Fn& f, const Coll& coll) {
         typename Coll::value_type acc = coll.front();
         auto first = true;

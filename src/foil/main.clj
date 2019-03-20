@@ -601,8 +601,9 @@
   ([[_ name value :as form] initial-indent]
    (print initial-indent)
    (emit-var-declaration name)
-   (print " = ")
-   (emit-expression value)
+   (when value
+     (print " = ")
+     (emit-expression value))
    (println ";")))
 
 (defn- collect-extra-headers [body]
@@ -674,7 +675,8 @@
                                 (reset! main form))
                               (emit-function form))
             (defrecord defstruct) (emit-struct form)
-            ($code $) (do (emit-code form)
+            ($code $) (do (print *indent*)
+                          (emit-code form)
                           (println)
                           (println)))))
       (when-let [ns @ns]
