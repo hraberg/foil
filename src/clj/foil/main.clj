@@ -34,28 +34,32 @@
   ([form default]
    (:tag (meta form) default)))
 
-(defn- emit-include [[_ header]]
-  (println (str "#include " (if (symbol? header)
-                              (str "<" header ">")
-                              (pr-str header)))))
-
 (defn- ns->ns-parts [ns]
   (str/split (str ns) #"\."))
 
 (defn- ns->header-define [ns]
   (str (str/upper-case (munge-ns (str/join "_" (ns->ns-parts ns))))))
 
+(defn- emit-include [[_ header]]
+  (println (str "#include " (if (symbol? header)
+                              (str "<" header ">")
+                              (pr-str header)))))
+
+(defn- emit-using [[_ ns]]
+  (emit-include ['include (str (str/join "/" (ns->ns-parts ns)) ".hpp")])
+  (println (str "using namespace " (munge-ns ns) ";")))
+
 (defn- emit-headers [[_ ns-name & references :as form]]
   (doseq [[ref-type & lib-specs] references
           [lib :as lib-spec] lib-specs]
     (case ref-type
       (:require :include)
-      (emit-include ['include lib])))
+      (emit-include ['include lib])
+      (:use :using)
+      (emit-using ['using lib])))
   (println)
   (let [ns-parts (ns->ns-parts ns-name)
         ns-header-define (ns->header-define ns-name)]
-    (println (str "#ifndef " ns-header-define))
-    (println (str "#define " ns-header-define))
     (println (str/join " "
                        (for [part ns-parts]
                          (str "namespace " (munge-ns part)  " {"))))))
@@ -690,7 +694,10 @@
   (binding [*out* out]
     (let [ns (atom nil)
           main (atom nil)
-          forms (vec (read-source in))]
+          forms (vec (read-source in))
+          file-guard (str "FOIL_" (System/currentTimeMillis))]
+      (println (str "#ifndef " file-guard))
+      (println (str "#define " file-guard))
       (emit-default-includes forms)
       (doseq [[top-level :as form] forms]
         (emit-line form)
@@ -700,6 +707,8 @@
           (case top-level
             ns (do (assert (nil? @ns) "Only one namespace supported.")
                    (reset! ns (second form))
+                   (when-not (= 'foil.core @ns)
+                     (emit-using ['use 'foil.core]))
                    (emit-headers form))
             (include require) (emit-include form)
             (def define) (emit-variable-definition form)
@@ -712,9 +721,9 @@
                           (println)
                           (println)))))
       (when-let [ns @ns]
-        (println (str/join " " (repeat (count (ns->ns-parts ns)) "}")))
-        (println "#endif"))
-      (emit-main @ns @main))))
+        (println (str/join " " (repeat (count (ns->ns-parts ns)) "}"))))
+      (emit-main @ns @main)
+      (println "#endif"))))
 
 (defn -main [& args]
   (emit-source *in* *out*))

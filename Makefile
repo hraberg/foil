@@ -2,7 +2,7 @@ PROJECT = $(shell head project.clj -n1 | awk '{ print $$2 }' )
 VERSION = $(shell head project.clj -n1 | awk '{ print $$3 }' | sed s/\"//g )
 TARGET = ./target
 
-CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2
+CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2 -I$(TARGET)
 
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE=$(TARGET)/foil
@@ -11,7 +11,7 @@ NATIVE_IMAGE=$(TARGET)/foil
 
 all: $(UBERJAR)
 
-$(UBERJAR): src/*
+$(UBERJAR): src/clj/*
 	lein uberjar
 
 clean:
@@ -20,16 +20,20 @@ clean:
 $(TARGET)/%.cpp: test/foil/%.clj $(UBERJAR)
 	cat $< | java -jar $(UBERJAR) > $@
 
-$(TARGET)/%.s: $(TARGET)/%.cpp
+$(TARGET)/foil/%.hpp: src/foil/foil/%.clj $(UBERJAR)
+	mkdir `dirname $@`
+	cat $< | java -jar $(UBERJAR) > $@
+
+$(TARGET)/%.s: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
 
-$(TARGET)/%.lst: $(TARGET)/%.cpp
+$(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
-$(TARGET)/%: $(TARGET)/%.cpp
+$(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -o $@
 
-check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cpp
+check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cpp $(TARGET)/foil/core.hpp
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
