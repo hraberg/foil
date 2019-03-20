@@ -665,12 +665,6 @@
 (defn- collect-extra-headers [body]
   (let [extra-headers (atom #{})]
     (w/postwalk #(do (cond
-                       (set? %)
-                       (swap! extra-headers conj 'set)
-
-                       (map? %)
-                       (swap! extra-headers conj 'map)
-
                        (re? %)
                        (swap! extra-headers conj 'regex)
 

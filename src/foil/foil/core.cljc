@@ -1,7 +1,8 @@
 (ns foil.core
   (:require [forward_list]
-            [vector]
-            [set]))
+            [map]
+            [set]
+            [vector]))
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
@@ -25,6 +26,11 @@
 ;; ($code "const std::bit_xor<> _CARET_;")
 ;; ($code "const std::bit_not<> _TILDE_;")
 
+(defn assoc!
+  (^{:tmpl [K V]} [^:mut ^"std::map<K,V>" map ^K key ^V val]
+   (.insert_or_assign map key val)
+   map))
+
 (defn conj!
   (^{:tmpl [T]} [^:mut ^std::vector<T> coll ^T x]
    (.push_back coll x)
@@ -35,6 +41,16 @@
   (^{:tmpl [T]} [^:mut ^std::set<T> coll ^T x]
    (.insert coll x)
    coll))
+
+(defn disj!
+  (^{:tmpl [T]} [^:mut ^std::set<T> set ^T x]
+   (.erase set x)
+   set))
+
+(defn dissoc!
+  (^{:tmpl [K V]} [^:mut ^"std::map<K,V>" map ^K key]
+   (.erase map key)
+   map))
 
 (defn contains? [coll x]
   (.contains coll x))
@@ -48,8 +64,8 @@
 (defn first [coll]
   (.front coll))
 
-(defn get [coll]
-  (.at coll))
+(defn get [map key]
+  (.at map key))
 
 (defn last [coll]
   (.back coll))
