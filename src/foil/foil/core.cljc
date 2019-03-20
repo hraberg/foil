@@ -82,13 +82,34 @@
 (defn dec [n]
   (- n 1))
 
+(defn constantly [x]
+  (fn [] x))
+
+(defn hash-set ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
+  ^Arg (std::set. arg args...))
+
+(defn list ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
+  ^Arg (std::forward_list. arg args...))
+
+(defn vector ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
+  ^Arg (std::vector. arg args...))
+
 (defn partial ^{:tmpl [F ...Args]} [^F f ^Args&&... args]
   (std::bind f ($ "std::forward<Args>(args)...")))
+
+(defn apply ^{:tmpl [F ...Args]} [^F f ^Args&&... args]
+  (f ($ "std::forward<Args>(args)...")))
+
+(defn even? [n]
+  (= (mod n 2) 0))
+
+(defn odd? [n]
+  (not (even? n)))
 
 (defn print
   ([arg]
    (<< *out* arg))
-  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&&... args]
+  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (<< *out* arg)
    (print args...)))
 
@@ -97,7 +118,7 @@
    (<< *out* std::endl))
   ([arg]
    (<< *out* arg std::endl))
-  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&&... args]
+  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (<< *out* arg)
    (println args...)))
 
