@@ -27,9 +27,13 @@
 (defn first [^:ref coll]
   (.front coll))
 
-(defn conj! [^:mut ^:ref coll ^:ref x]
-  (.push_back coll x)
-  coll)
+(defn conj!
+  (^{:tmpl [T]} [^:mut ^:ref ^std::vector<T> coll ^:ref ^T x]
+   (.push_back coll x)
+   coll)
+  (^{:tmpl [T]} [^:mut ^:ref ^std::forward_list<T> coll ^:ref ^T x]
+   (.push_front coll x)
+   coll))
 
 (defn map [^:ref f ^:ref coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename __T_coll::value_type>()))" []]

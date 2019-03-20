@@ -622,6 +622,7 @@
 (defn- emit-function [[op f args? :as form]]
   (let [fn-name (str "__" (munge-name f))
         fn-type (str "__T_"(munge-name f))]
+    (println)
     (println (str *indent* "struct " fn-type " {"))
     (binding [*indent* (str default-indent *indent*)]
       (if (vector? args?)
@@ -629,12 +630,12 @@
         (doseq [arity (drop 2 form)]
           (emit-function-arity (concat [op f] arity)))))
     (println (str *indent* "};"))
-    (println)
     (println (str *indent* "const " fn-type " " (munge f) ";"))))
 
 (defn- emit-struct [[_ name fields :as form]]
   (let [field-template-names (for [field fields]
                                (munge-name (str "__T_" field)))]
+    (println)
     (emit-template fields field-template-names)
     (print *indent*)
     (println (str "struct " (munge-name name)) " {")
@@ -643,8 +644,7 @@
         (print *indent*)
         (emit-var-declaration (maybe-add-template-name field tn))
         (println ";")))
-    (println (str *indent* "};"))
-    (println)))
+    (println (str *indent* "};"))))
 
 (defn- emit-variable-definition
   ([form]
