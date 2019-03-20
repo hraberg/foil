@@ -82,13 +82,13 @@
 (defn dec [n]
   (- n 1))
 
-(defn partial ^{:tmpl [F ...Args]} [^F f ^"Args&&..." args]
+(defn partial ^{:tmpl [F ...Args]} [^F f ^Args&&... args]
   (std::bind f ($ "std::forward<Args>(args)...")))
 
 (defn print
   ([arg]
    (<< *out* arg))
-  (^{:tmpl [Arg ...Args]} [^Arg arg ^"Args&&..." args]
+  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&&... args]
    (<< *out* arg)
    (print args...)))
 
@@ -97,7 +97,7 @@
    (<< *out* std::endl))
   ([arg]
    (<< *out* arg std::endl))
-  (^{:tmpl [Arg ...Args]} [^Arg arg ^"Args&&..." args]
+  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&&... args]
    (<< *out* arg)
    (println args...)))
 

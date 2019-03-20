@@ -236,7 +236,10 @@
      (print (if (string? var)
               var
               (str tag
-                   (when (and (or ref &) (not val) (not (string? tag)))
+                   (when (and (or ref &)
+                              (not val)
+                              (not (string? tag))
+                              (not (re-find #"\&" (str tag))))
                      "&")
                    " " (if (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
