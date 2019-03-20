@@ -28,11 +28,11 @@
   (.front coll))
 
 (defn conj!
-  (^{:tmpl [T]} [^:mut ^:ref ^std::vector<T> coll
+  (^{:tmpl [T]} [^:ref ^:mut ^std::vector<T> coll
                  ^:ref ^T x]
    (.push_back coll x)
    coll)
-  (^{:tmpl [T]} [^:mut ^:ref ^std::forward_list<T> coll
+  (^{:tmpl [T]} [^:ref ^:mut ^std::forward_list<T> coll
                  ^:ref ^T x]
    (.push_front coll x)
    coll))
