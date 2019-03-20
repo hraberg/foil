@@ -1,6 +1,7 @@
 (ns foil.core
   (:require [forward_list]
-            [vector]))
+            [vector]
+            [set]))
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
@@ -24,6 +25,12 @@
 ;; ($code "const std::bit_xor<> _CARET_;")
 ;; ($code "const std::bit_not<> _TILDE_;")
 
+(defn count [^:ref coll]
+  (.count coll))
+
+(defn empty? [^:ref coll]
+  (.empty coll))
+
 (defn first [^:ref coll]
   (.front coll))
 
@@ -35,6 +42,10 @@
   (^{:tmpl [T]} [^:ref ^:mut ^std::forward_list<T> coll
                  ^:ref ^T x]
    (.push_front coll x)
+   coll)
+  (^{:tmpl [T]} [^:ref ^:mut ^std::set<T> coll
+                 ^:ref ^T x]
+   (.insert coll x)
    coll))
 
 (defn map ^{:tmpl [TF TC]} [^:ref ^TF f
