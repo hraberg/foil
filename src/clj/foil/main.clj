@@ -226,8 +226,8 @@
 
 (defn- emit-if [[_ condition then else :as form]]
   (print (str *indent* "if ("))
-  (binding [*tail?* false
-            *expr?* true]
+  (binding [*expr?* true
+            *tail?* false]
     (emit-expression condition))
   (println ") {")
   (binding [*indent* (str *indent* default-indent)]
@@ -368,8 +368,8 @@
   (if *expr?*
     `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
-     #(binding [*tail?* false
-                *expr?* false]
+     #(binding [*expr?* false
+                *tail?* false]
         (print "while (")
         (binding [*expr?* true]
           (emit-expression condition))
@@ -380,8 +380,8 @@
   (if *expr?*
     `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
-     #(binding [*tail?* false
-                *expr?* false]
+     #(binding [*expr?* false
+                *tail?* false]
         (doseq [[var limit] (partition 2 bindings)]
           (println (str "for (int " var " = 0; " var " < "
                         (binding [*expr?* true]
@@ -393,8 +393,8 @@
   (if *expr?*
     `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
-     #(binding [*tail?* false
-                *expr?* false]
+     #(binding [*expr?* false
+                *tail?* false]
         (doseq [[[var v-binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
           (println (str indent "for (" (with-out-str
                                          (emit-var-declaration (if (string? var)
