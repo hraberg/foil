@@ -5,7 +5,7 @@ TARGET = ./target
 CXXFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2 -I$(TARGET)
 
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
-NATIVE_IMAGE=$(TARGET)/foil
+NATIVE_IMAGE=$(TARGET)/foilc
 
 .PHONY: all uberjar clean run check native-image
 
