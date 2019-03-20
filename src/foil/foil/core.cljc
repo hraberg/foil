@@ -28,20 +28,24 @@
   (.front coll))
 
 (defn conj!
-  (^{:tmpl [T]} [^:mut ^:ref ^std::vector<T> coll ^:ref ^T x]
+  (^{:tmpl [T]} [^:mut ^:ref ^std::vector<T> coll
+                 ^:ref ^T x]
    (.push_back coll x)
    coll)
-  (^{:tmpl [T]} [^:mut ^:ref ^std::forward_list<T> coll ^:ref ^T x]
+  (^{:tmpl [T]} [^:mut ^:ref ^std::forward_list<T> coll
+                 ^:ref ^T x]
    (.push_front coll x)
    coll))
 
-(defn map ^{:tmpl [TF TC]} [^:ref ^TF f ^:ref ^TC coll]
+(defn map ^{:tmpl [TF TC]} [^:ref ^TF f
+                            ^:ref ^TC coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
     (doseq [x coll]
       (conj! acc (f x)))
     acc))
 
-(defn filter ^{:tmpl [TP TC]} [^:ref ^TP pred ^:ref ^TC coll]
+(defn filter ^{:tmpl [TP TC]} [^:ref ^TP pred
+                               ^:ref ^TC coll]
   (let [^:mut acc ^"typename TC::value_type" []]
     (doseq [x coll]
       (when (pred x)
