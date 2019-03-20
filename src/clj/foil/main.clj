@@ -227,7 +227,7 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (let [{:keys [const dynamic ref & mut !]} (meta var)]
+   (let [{:keys [const dynamic val ref & mut !]} (meta var)]
      (when (or const (not (or mut ! dynamic)))
        (print "const "))
      (when dynamic
@@ -235,7 +235,7 @@
      (print (if (string? var)
               var
               (str (form->tag var default-tag)
-                   (when (or ref &)
+                   (when (and (or ref &) (not val))
                      "&")
                    " " (if (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
@@ -598,6 +598,11 @@
     p
     (vary-meta p assoc :tag (form->tag p tn))))
 
+(defn- maybe-make-ref [p]
+  (if (string? p)
+    p
+    (vary-meta p assoc :ref (not (:val (meta p))))))
+
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
@@ -613,7 +618,7 @@
                   (str "("
                        (->> (for [[tn arg] (map vector arg-template-names args)]
                               (with-out-str
-                                (emit-var-declaration (maybe-add-template-name arg tn))))
+                                (emit-var-declaration (maybe-make-ref (maybe-add-template-name arg tn)))))
                             (str/join ", "))
                        ") const {")))
       (emit-function-body f args body)
