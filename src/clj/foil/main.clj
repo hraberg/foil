@@ -572,17 +572,19 @@
           (emit-body body)))))
 
 (defn- emit-template [parameters template-names]
-  (let [template-parameters (for [[tn tt] (conj (vec (for [[tn p] (map vector template-names parameters)]
-                                                       [tn (form->tag p nil)])))
-                                  :when (not tt)]
-                              tn)]
-    (when (seq template-parameters)
-      (println (str *indent*
-                    "template <"
-                    (str/join ", "
-                              (for [tt template-parameters]
-                                (str "typename " tt)))
-                    ">")))))
+  (if-let [template (:tmpl (meta parameters))]
+    (println (str *indent* "template " template))
+    (let [template-parameters (for [[tn tt] (conj (vec (for [[tn p] (map vector template-names parameters)]
+                                                         [tn (form->tag p nil)])))
+                                    :when (not tt)]
+                                tn)]
+      (when (seq template-parameters)
+        (println (str *indent*
+                      "template <"
+                      (str/join ", "
+                                (for [tt template-parameters]
+                                  (str "typename " tt)))
+                      ">"))))))
 
 (defn- maybe-add-template-name [p tn]
   (if (string? p)

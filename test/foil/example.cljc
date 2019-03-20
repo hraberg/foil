@@ -5,7 +5,7 @@
             [functional]
             [iostream]))
 
-(defrecord Point [x ^int y])
+(defrecord Point ^{:tmpl "<typename __T_x = int"} [x ^int y])
 
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)
