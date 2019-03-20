@@ -156,5 +156,4 @@
       (doseq [x (filter #(= (mod % 2) 0)
                         (map #(inc %) a))]
         (println x)))
-    0)
-  )
+    0))
