@@ -550,6 +550,28 @@
       (do (println)
           (emit-body body)))))
 
+;; struct __Foo {
+;;   template <typename __T_x>
+;;   void operator()(const __T_x x) const {
+;;     ((std::cout << x) << std::endl);
+;;   }
+;;   template <typename __T_x, typename __T_y>
+;;   void operator()(const __T_x x, const __T_y y) const {
+;;     ((std::cout << x) << y << std::endl);
+;;   }
+;; };
+
+;; const __Foo Foo;
+
+;; struct __Foo {
+;;   template <typename... Args>
+;;   auto operator()(Args&&... args) const {
+;;     return println(std::forward<Args>(args)...);
+;;   }
+;; };
+
+;; const __Foo Foo;
+
 (defn- emit-function [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
