@@ -21,7 +21,7 @@
 
 (def ^"std::bit_and<>" &)
 (def ^"std::bit_or<>" |)
-($code "const std::bit_or<> _CARET_;")
+($code "const std::bit_xor<> _CARET_;")
 ($code "const std::bit_not<> _TILDE_;")
 
 (defn map [^:ref f ^:ref coll]
