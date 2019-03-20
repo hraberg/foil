@@ -227,15 +227,16 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (let [{:keys [const dynamic val ref & mut !]} (meta var)]
+   (let [{:keys [const dynamic val ref & mut !]} (meta var)
+         tag (form->tag var default-tag)]
      (when (or const (not (or mut ! dynamic)))
        (print "const "))
      (when dynamic
        (print "thread_local "))
      (print (if (string? var)
               var
-              (str (form->tag var default-tag)
-                   (when (and (or ref &) (not val))
+              (str tag
+                   (when (and (or ref &) (not val) (not (string? tag)))
                      "&")
                    " " (if (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
@@ -484,16 +485,10 @@
     :else
     (pr form)))
 
-(defn- maybe-emit-cast [form]
-  (when-let [tag (and (not (collection-literal? form))
-                      (form->tag form nil))]
-    (print (str "(" tag ") "))))
-
 (defn- emit-code [[op & body]]
   (print (str/join body)))
 
 (defn- emit-expression [form]
-  (maybe-emit-cast form)
   (if (or (literal? form) *quote?*)
     (emit-literal form)
     (let [op (first form)]

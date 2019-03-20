@@ -1,5 +1,6 @@
 (ns foil.core
   (:require [forward_list]
+            [functional]
             [iostream]
             [map]
             [set]
@@ -80,6 +81,9 @@
 
 (defn dec [n]
   (- n 1))
+
+(defn partial ^{:tmpl "<typename F, typename... Args>"} [^F f ^"Args&&..." args]
+  (std::bind f ($ "std::forward<Args>(args)...")))
 
 (defn print [x]
   (<< *out* x))
