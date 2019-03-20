@@ -550,28 +550,6 @@
       (do (println)
           (emit-body body)))))
 
-;; struct __Foo {
-;;   template <typename __T_x>
-;;   void operator()(const __T_x x) const {
-;;     ((std::cout << x) << std::endl);
-;;   }
-;;   template <typename __T_x, typename __T_y>
-;;   void operator()(const __T_x x, const __T_y y) const {
-;;     ((std::cout << x) << y << std::endl);
-;;   }
-;; };
-
-;; const __Foo Foo;
-
-;; struct __Foo {
-;;   template <typename... Args>
-;;   auto operator()(Args&&... args) const {
-;;     return println(std::forward<Args>(args)...);
-;;   }
-;; };
-
-;; const __Foo Foo;
-
 (defn- emit-function-struct [f]
   (let [fn-name (str "__" (munge-name f))
         fn-type (str "__T_"(munge-name f))]
@@ -584,7 +562,8 @@
       (println (str *indent* "}")))
     (println (str *indent* "};"))
     (println)
-    (println (str *indent* "const " fn-type " " (munge f) ";"))))
+    (println (str *indent* "const " fn-type " " (munge f) ";"))
+    (println)))
 
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
@@ -603,9 +582,11 @@
                                   (str "typename " tt)))
                       ">")))
       (print (str *indent*
-                  *return-type*
+                  (if (= 'auto *return-type*)
+                    "decltype(auto)"
+                    *return-type*)
                   " "
-                  fn-name
+                  "operator()"
                   (str "("
                        (->> (for [[arg-tn arg] (map vector arg-template-names args)]
                               (with-out-str
@@ -619,17 +600,23 @@
                                                         :else
                                                         (vary-meta arg assoc :tag arg-tn)))))
                             (str/join ", "))
-                       ") {")))
+                       ") const {")))
       (emit-function-body f args body)
       (println (str *indent* "}"))
       (println))))
 
 (defn- emit-function [[op f args? :as form]]
-  (if (vector? args?)
-    (emit-function-arity form)
-    (doseq [arity (drop 2 form)]
-      (emit-function-arity (concat [op f] arity))))
-  (emit-function-struct f))
+  (let [fn-name (str "__" (munge-name f))
+        fn-type (str "__T_"(munge-name f))]
+    (println (str *indent* "struct " fn-type " {"))
+    (binding [*indent* (str default-indent *indent*)]
+      (if (vector? args?)
+        (emit-function-arity form)
+        (doseq [arity (drop 2 form)]
+          (emit-function-arity (concat [op f] arity)))))
+    (println (str *indent* "};"))
+    (println)
+    (println (str *indent* "const " fn-type " " (munge f) ";"))))
 
 (defn- emit-struct [[_ name fields :as form]]
   (print *indent*)
