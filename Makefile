@@ -17,10 +17,10 @@ $(UBERJAR): src/clj/*
 clean:
 	rm -rf $(TARGET)
 
-$(TARGET)/%.cpp: test/foil/%.clj $(UBERJAR)
+$(TARGET)/%.cpp: test/foil/%.cljc $(UBERJAR)
 	cat $< | java -jar $(UBERJAR) > $@
 
-$(TARGET)/foil/%.hpp: src/foil/foil/%.clj $(UBERJAR)
+$(TARGET)/foil/%.hpp: src/foil/foil/%.cljc $(UBERJAR)
 	mkdir `dirname $@`
 	cat $< | java -jar $(UBERJAR) > $@
 
