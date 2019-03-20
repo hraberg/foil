@@ -554,21 +554,6 @@
       (do (println)
           (emit-body body)))))
 
-(defn- emit-function-struct [f]
-  (let [fn-name (str "__" (munge-name f))
-        fn-type (str "__T_"(munge-name f))]
-    (println (str *indent* "struct " fn-type " {"))
-    (binding [*indent* (str default-indent *indent*)]
-      (println (str *indent* "template <typename... Args>"))
-      (println (str *indent* "decltype(auto) operator()(Args&&... args) const {"))
-      (binding [*indent* (str default-indent *indent*)]
-        (println (str *indent* "return " fn-name "(std::forward<Args>(args)...);")))
-      (println (str *indent* "}")))
-    (println (str *indent* "};"))
-    (println)
-    (println (str *indent* "const " fn-type " " (munge f) ";"))
-    (println)))
-
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
@@ -606,8 +591,7 @@
                             (str/join ", "))
                        ") const {")))
       (emit-function-body f args body)
-      (println (str *indent* "}"))
-      (println))))
+      (println (str *indent* "}")))))
 
 (defn- emit-function [[op f args? :as form]]
   (let [fn-name (str "__" (munge-name f))
