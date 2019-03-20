@@ -35,14 +35,14 @@
    (.push_front coll x)
    coll))
 
-(defn map [^:ref f ^:ref coll]
-  (let [^:mut acc ^"decltype(f(std::declval<typename __T_coll::value_type>()))" []]
+(defn map ^{:tmpl [TF TC]} [^:ref ^TF f ^:ref ^TC coll]
+  (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
     (doseq [x coll]
       (conj! acc (f x)))
     acc))
 
-(defn filter [^:ref pred ^:ref coll]
-  (let [^:mut acc ^"typename __T_coll::value_type" []]
+(defn filter ^{:tmpl [TP TC]} [^:ref ^TP pred ^:ref ^TC coll]
+  (let [^:mut acc ^"typename TC::value_type" []]
     (doseq [x coll]
       (when (pred x)
         (conj! acc x)))
