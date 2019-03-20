@@ -32,24 +32,21 @@
 ($code "const std::bit_or<> _CARET_;")
 ($code "const std::bit_not<> _TILDE_;")
 
-($code "template <typename Fn, typename T, typename... TRest, template <typename...>typename Coll>
-    decltype(auto) map(const Fn& f, const Coll<T, TRest...>& coll) {
-        Coll<decltype(f(std::declval<T>()))> acc;
-        for (const auto& x : coll) {
-            acc.push_back(f(x));
-        }
-        return acc;
-    }")
+(defn map [^:ref f ^:ref coll]
+  (let [^:mut acc ^"decltype(f(std::declval<typename __T_coll::value_type>()))" []]
+    (doseq [x coll]
+      (.push_back acc (f x)))
+    acc))
 
-(defn filter [pred coll]
-  (let [^:mut acc (__T_coll.)]
+(defn filter [^:ref pred ^:ref coll]
+  (let [^:mut acc ^"typename __T_coll::value_type" []]
     (doseq [x coll]
       (when (pred x)
         (.push_back acc x)))
     acc))
 
 (defn reduce
-  ([f coll]
+  ([^:ref f ^:ref coll]
    (let [^:mut acc (.front coll)
          ^:mut first true]
      (doseq [x coll]
@@ -57,7 +54,7 @@
          (set! first false)
          (set! acc (f acc x))))
      acc))
-  ([f val coll]
+  ([^:ref f ^:ref val ^:ref coll]
    (let [^:mut acc val]
      (doseq [x coll]
        (set! acc (f acc x)))
