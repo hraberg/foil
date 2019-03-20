@@ -108,7 +108,7 @@
                            bit-shift-right >>
                            >> >>})
 
-(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body emit-variable-definition)
+(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body emit-variable-definition foil-macroexpand)
 
 (defn- needs-loop-target? [body]
   (let [recur-found? (atom false)]
@@ -201,10 +201,15 @@
                                                  (emit-expression %)) args)) ")"))))))
 
 (defn- emit-return [[_ value :as from]]
-  (print (str *indent* "return "))
-  (binding [*expr?* true]
-    (emit-expression value))
-  (println ";"))
+  (let [maybe-expanded (when (and (seq? value)
+                                  (not *expr?*))
+                         (foil-macroexpand value))]
+    (if (= 'do (first maybe-expanded))
+      (emit-expression maybe-expanded)
+      (do (print (str *indent* "return "))
+          (binding [*expr?* true]
+            (emit-expression value))
+          (println ";")))))
 
 (defn- emit-var-declaration
   ([var]
@@ -337,8 +342,8 @@
 (defmethod foil-macroexpand :do [form]
   (macroexpand-do form))
 
-(defmethod foil-macroexpand :begin [form]
-  (macroexpand-do form))
+(defmethod foil-macroexpand :begin [[_ & body :as form]]
+  `(do ~@body))
 
 (defmethod foil-macroexpand :if [[_ condition then else :as form]]
   ($code
@@ -407,7 +412,7 @@
         (emit-block body)))))
 
 (defmethod foil-macroexpand :default [form]
-  ::application)
+  form)
 
 (defn- literal? [form]
   (not (seq? form)))
@@ -490,14 +495,14 @@
                           (second form)
                           (meta form))))
 
-        (and (contains? '#{do begin} op)
+        (and (= 'do op)
              (not *expr?*))
-        (emit-block (next form) "")
+        (emit-block (next form))
 
         :else
         (let [macro-expansion (foil-macroexpand form)]
           (cond
-            (= ::application macro-expansion)
+            (= form macro-expansion)
             (emit-application form)
 
             (not (nil? macro-expansion))
@@ -697,8 +702,8 @@
             (include require) (emit-include form)
             (def define) (emit-variable-definition form)
             (defn defun) (do (when (= '-main (second form))
-                                (reset! main form))
-                              (emit-function form))
+                               (reset! main form))
+                             (emit-function form))
             (defrecord defstruct) (emit-struct form)
             ($code $) (do (print *indent*)
                           (emit-code form)
