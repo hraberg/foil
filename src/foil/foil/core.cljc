@@ -1,4 +1,6 @@
-(ns foil.core)
+(ns foil.core
+  (:require [forward_list]
+            [vector]))
 
 (def ^"std::plus<>" +)
 (def ^"std::minus<>" -)

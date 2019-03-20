@@ -662,8 +662,8 @@
                      %) body)
     @extra-headers))
 
-(defn- emit-default-includes [forms]
-  (doseq [header (concat '[vector forward_list] (collect-extra-headers forms))]
+(defn- emit-implicit-includes [forms]
+  (doseq [header (collect-extra-headers forms)]
     (emit-include (vector 'include header))))
 
 (defn- emit-main [ns main]
@@ -698,7 +698,7 @@
           file-guard (str "FOIL_" (System/currentTimeMillis))]
       (println (str "#ifndef " file-guard))
       (println (str "#define " file-guard))
-      (emit-default-includes forms)
+      (emit-implicit-includes forms)
       (doseq [[top-level :as form] forms]
         (emit-line form)
         (binding [*indent* (if @ns
