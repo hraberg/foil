@@ -82,14 +82,24 @@
 (defn dec [n]
   (- n 1))
 
-(defn partial ^{:tmpl "<typename F, typename... Args>"} [^F f ^"Args&&..." args]
+(defn partial ^{:tmpl [F ...Args]} [^F f ^"Args&&..." args]
   (std::bind f ($ "std::forward<Args>(args)...")))
 
-(defn print [x]
-  (<< *out* x))
+(defn print
+  ([arg]
+   (<< *out* arg))
+  (^{:tmpl [Arg ...Args]} [^Arg arg ^"Args&&..." args]
+   (<< *out* arg)
+   (print args...)))
 
-(defn println [x]
-  (<< *out* x std::endl))
+(defn println
+  ([]
+   (<< *out* std::endl))
+  ([arg]
+   (<< *out* arg std::endl))
+  (^{:tmpl [Arg ...Args]} [^Arg arg ^"Args&&..." args]
+   (<< *out* arg)
+   (println args...)))
 
 (defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
