@@ -40,10 +40,10 @@
 (defn reduce
   ([^:ref f ^:ref coll]
    (let [^:mut acc (.front coll)
-         ^:mut first true]
+         ^:mut first? true]
      (doseq [x coll]
-       (if first
-         (set! first false)
+       (if first?
+         (set! first? false)
          (set! acc (f acc x))))
      acc))
   ([^:ref f ^:ref val ^:ref coll]
