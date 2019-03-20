@@ -616,7 +616,9 @@
   (println (str "struct " (munge-name name)) " {")
   (binding [*indent* (str *indent* default-indent)]
     (doseq [field fields]
-      (println (str *indent* (form->tag field) " " (munge-name field) ";"))))
+      (print *indent*)
+      (emit-var-declaration field)
+      (println ";")))
   (println (str *indent* "};"))
   (println))
 
