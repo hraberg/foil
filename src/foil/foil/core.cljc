@@ -21,8 +21,8 @@
 
 (def ^"std::bit_and<>" &)
 (def ^"std::bit_or<>" |)
-($code "const std::bit_xor<> _CARET_;")
-($code "const std::bit_not<> _TILDE_;")
+;; ($code "const std::bit_xor<> _CARET_;")
+;; ($code "const std::bit_not<> _TILDE_;")
 
 (defn map [^:ref f ^:ref coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename __T_coll::value_type>()))" []]
