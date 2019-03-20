@@ -573,7 +573,14 @@
 
 (defn- emit-template [parameters template-names]
   (if-let [template (:tmpl (meta parameters))]
-    (println (str *indent* "template " template))
+    (let [template (if (vector? template)
+                     (str "<" (->> (for [tn template]
+                                     (str "typename " tn (when-let [tag (:tag (meta tn))]
+                                                           (str " = " tag))))
+                                   (str/join  ", "))
+                          ">")
+                     template)]
+      (println (str *indent* "template " template)))
     (let [template-parameters (for [[tn tt] (conj (vec (for [[tn p] (map vector template-names parameters)]
                                                          [tn (form->tag p nil)])))
                                     :when (not tt)]
