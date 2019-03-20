@@ -10,11 +10,11 @@
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)
 
-(defn println
+(defn test-println
   (^void [^std::string x]
-   (<< (<< (<< std::cout x) " str") std::endl))
+   (<< std::cout x " str" std::endl))
   (^void [x]
-   (<< (<< std::cout x) std::endl)))
+   (println x)))
 
 (defn -main []
   (let [^:mut x 0
@@ -37,36 +37,36 @@
       (printf (.c_str "%d %d\n") x y))
 
     (dotimes [n 3]
-      (println n))
+      (test-println n))
 
     (my-fun x)
 
-    (println *pi*)
+    (test-println *pi*)
     (binding [*pi* -1]
-      (println *pi*))
-    (println *pi*)
+      (test-println *pi*))
+    (test-println *pi*)
 
-    (println (if (= 10 x)
+    (test-println (if (= 10 x)
                "ten"
                "not ten"))
 
-    (println (cond
+    (test-println (cond
                (= 10 x)
                "ten"
 
                (= 20 x)
                "not ten"))
 
-    (println 42)
+    (test-println 42)
 
     (let [s "foo"]
-      (println s))
+      (test-println s))
 
-    (println (.front l))
+    (test-println (.front l))
 
-    (println (sin *pi*))
+    (test-println (sin *pi*))
 
-    (println (loop [n 0]
+    (test-println (loop [n 0]
                (if (< n 3)
                  (recur (inc n))
                  n)))
@@ -77,14 +77,14 @@
       (std::transform (.begin a)
                       (.end a)
                       (std::back_inserter x)
-                      #(inc %))
+                      inc)
 
 
       (std::for_each (.begin x)
                      (.end x)
-                     println)
+                     test-println)
 
-      (println (std::accumulate (.begin x)
+      (test-println (std::accumulate (.begin x)
                                 (.end x)
                                 0
                                 +))
@@ -95,15 +95,15 @@
                       (std::back_inserter zz)
                       #(= (mod % 2) 0))
         (doseq [x zz]
-          (println x))))
+          (test-println x))))
 
-    (let [xs (map #(inc %) a)]
+    (let [xs (map inc a)]
       (doseq [x xs]
-        (println x))
+        (test-println x))
 
-      (println (reduce + xs))
+      (test-println (reduce + xs))
 
       (doseq [x (filter #(= (mod % 2) 0)
-                        (map #(inc %) a))]
-        (println x)))
+                        (map inc a))]
+        (test-println x)))
     0))

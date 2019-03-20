@@ -1,8 +1,13 @@
 (ns foil.core
   (:require [forward_list]
+            [iostream]
             [map]
             [set]
             [vector]))
+
+(def ^:dynamic ^:ref *out* std::cout)
+(def ^:dynamic ^:ref *err* std::cerr)
+(def ^:dynamic ^:ref *in* std::cin)
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
@@ -69,6 +74,18 @@
 
 (defn last [coll]
   (.back coll))
+
+(defn inc [n]
+  (+ n 1))
+
+(defn dec [n]
+  (- n 1))
+
+(defn print [x]
+  (<< *out* x))
+
+(defn println [x]
+  (<< *out* x std::endl))
 
 (defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
