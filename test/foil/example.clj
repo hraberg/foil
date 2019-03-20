@@ -41,39 +41,27 @@
         return acc;
     }")
 
-($code "template <typename Pred, typename Coll>
-    decltype(auto) filter(const Pred& pred, const Coll& coll) {
-        Coll acc;
-        for (const auto& x : coll) {
-            if (pred(x)) {
-                acc.push_back(x);
-            }
-        }
-        return acc;
-    }")
+(defn filter [pred coll]
+  (let [^:mut acc (__T_coll.)]
+    (doseq [x coll]
+      (when (pred x)
+        (.push_back acc x)))
+    acc))
 
-($code "template <typename Fn, typename Coll, typename Val>
-    decltype(auto) reduce(const Fn& f, const Val& val, const Coll& coll) {
-        Val acc = val;
-        for (const auto& x : coll) {
-            acc = f(acc, x);
-        }
-        return acc;
-    }")
-
-($code "template <typename Fn, typename Coll>
-    decltype(auto) reduce(const Fn& f, const Coll& coll) {
-        typename Coll::value_type acc = coll.front();
-        auto first = true;
-        for (const auto& x : coll) {
-            if (first) {
-                first = false;
-                continue;
-            }
-            acc = f(acc, x);
-        }
-        return acc;
-    }")
+(defn reduce
+  ([f coll]
+   (let [^:mut acc (.front coll)
+         ^:mut first true]
+     (doseq [x coll]
+       (if first
+         (set! first false)
+         (set! acc (f acc x))))
+     acc))
+  ([f val coll]
+   (let [^:mut acc val]
+     (doseq [x coll]
+       (set! acc (f acc x)))
+     acc)))
 
 (defn println
   (^void [^std::string x]
