@@ -1,14 +1,13 @@
 (ns foil.main
   (:require [clojure.tools.reader :as r]
             [clojure.tools.reader.reader-types :as rt]
-            [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as w])
   (:import java.util.regex.Pattern)
   (:gen-class))
 
 (defn- read-source [in]
-  (let [r (rt/indexing-push-back-reader (io/reader in) 2)]
+  (let [r (rt/indexing-push-back-reader in 2)]
     (binding [r/*read-eval* false]
       (->> (repeatedly #(r/read {:eof ::eof} r))
            (take-while #(not= ::eof %))
