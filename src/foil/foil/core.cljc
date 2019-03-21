@@ -1,5 +1,6 @@
 (ns foil.core
-  (:require [forward_list]
+  (:require [algorithm]
+            [forward_list]
             [functional]
             [iostream]
             [map]
@@ -94,6 +95,9 @@
 (defn vector ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
   ^Arg (std::vector. arg args...))
 
+(defn identity [x]
+  x)
+
 (defn partial
   ([f]
    f)
@@ -108,6 +112,16 @@
 
 (defn odd? [n]
   (not (even? n)))
+
+(defn min [x y]
+  (std::min x y))
+
+(defn max [x y]
+  (std::max x y))
+
+(defn sort [^:mut coll]
+  (std::sort (.begin coll) (.end coll))
+  coll)
 
 (defn print
   ([arg]
