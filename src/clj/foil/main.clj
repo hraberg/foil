@@ -626,6 +626,7 @@
     (println)
     (println (str *indent* "struct " fn-type " {"))
     (binding [*indent* (str default-indent *indent*)]
+      (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
       (if (vector? args?)
         (emit-function-arity form)
         (doseq [arity (drop 2 form)]

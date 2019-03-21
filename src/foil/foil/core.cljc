@@ -150,6 +150,7 @@
    (<< *out* arg))
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg)
+   (print " ")
    (print args...)))
 
 (defn flush []
@@ -163,10 +164,10 @@
    (newline))
   ([arg]
    (print arg)
-   (newline))
+   (println))
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
-   (print arg)
-   (println args...)))
+   (print arg args...)
+   (println)))
 
 (defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
