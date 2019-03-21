@@ -62,8 +62,11 @@
    (.erase map key)
    map))
 
-(defn contains? [coll x]
-  (.contains coll x))
+(defn contains?
+  (^{:tmpl [K]} [^"std::set<K>" coll ^K key]
+   (> (.count coll key) 0))
+  ([coll key]
+   (.contains coll key)))
 
 (defn count [coll]
   (.size coll))
@@ -165,6 +168,11 @@
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg args...)
    (println)))
+
+(defn into! [^:mut to from]
+  (doseq [x from]
+    (conj! to x))
+  to)
 
 (defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]

@@ -53,6 +53,9 @@
 
     (my-fun x)
 
+    (let [^:mut s ^int #{}]
+      (println (contains? (into! s l) 7)))
+
     (test-println *pi*)
     (binding [*pi* -1]
       (test-println *pi*))
