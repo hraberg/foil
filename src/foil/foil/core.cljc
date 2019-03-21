@@ -162,9 +162,6 @@
 (defn println
   ([]
    (newline))
-  ([arg]
-   (print arg)
-   (println))
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg args...)
    (println)))
