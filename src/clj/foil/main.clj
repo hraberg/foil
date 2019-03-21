@@ -234,6 +234,8 @@
   ([var default-tag]
    (let [{:keys [const dynamic val ref & mut !]} (meta var)
          tag (form->tag var default-tag)]
+     (when (= '_ var)
+       (print "__attribute__((unused)) "))
      (when (or const (not (or mut ! dynamic)))
        (print "const "))
      (when dynamic
