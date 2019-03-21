@@ -141,6 +141,11 @@
     (emit-expression idx)
     (print "]")))
 
+(defn- maybe-make-ref [p]
+  (if (string? p)
+    p
+    (vary-meta p assoc :ref (not (:val (meta p))))))
+
 (defn- maybe-template-params [form]
   (let [tag (form->tag form nil)]
     (if (vector? tag)
@@ -418,9 +423,7 @@
                 *tail?* false]
         (doseq [[[var v-binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
           (println (str indent "for (" (with-out-str
-                                         (emit-var-declaration (if (string? var)
-                                                                 var
-                                                                 (vary-meta var assoc :ref true)) 'auto)) " : "
+                                         (emit-var-declaration (maybe-make-ref var) 'auto)) " : "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression v-binding)))
@@ -596,15 +599,10 @@
     p
     (vary-meta p assoc :tag (form->tag p tn))))
 
-(defn- maybe-make-ref [p]
-  (if (string? p)
-    p
-    (vary-meta p assoc :ref (not (:val (meta p))))))
-
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
-                               (munge-name (str "__T_" arg)))
+                               (symbol (munge-name (str "__T_" arg))))
           fn-name (str "__" (munge-name f))]
       (emit-template args arg-template-names)
       (print (str *indent*

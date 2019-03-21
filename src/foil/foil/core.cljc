@@ -107,6 +107,9 @@
   (^{:tmpl [F Arg ...Args]} [^F f ^Arg arg ^Args&... args]
    (partial (partial f arg) args...)))
 
+(defn nil? [x]
+  (= 'nullptr x))
+
 (defn even? [n]
   (= (mod n 2) 0))
 
@@ -179,3 +182,11 @@
      (doseq [x coll]
        (set! acc (f acc x)))
      acc)))
+
+(defn nth [coll index not-found]
+  (let [^:mut n 0]
+    (doseq [x coll]
+      (when (= n index)
+        (return x))
+      (set! n (inc n)))
+    not-found))

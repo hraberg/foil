@@ -24,14 +24,18 @@
         m ^std::string {:foo "bar"}
         s ^int #{1 2}
         l ^int '(7 8)
-        my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))]
+        my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))
+        ^:mut ss ^int [2 3 1]]
 
     (println ((partial + 2) 4))
 
-    (doseq [x (sort ^int [2 3 1])]
+    (doseq [x (sort ss)]
       (println x))
 
     (println (min 3 2))
+
+    (println (nth ^std::string ["hello" "world"] 1 "?"))
+    (println (nth ^std::string ["hello" "world"] 3 "?"))
 
     (aset a 0 4)
     (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (.at m :foo)) foo (.count s 1) (.count s 3))
