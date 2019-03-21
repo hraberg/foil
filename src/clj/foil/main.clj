@@ -692,6 +692,8 @@
           tag (form->tag main-args)]
       (println)
       (println "int main(int argc, char** argv) {")
+      (println (str default-indent "std::cout << std::boolalpha;"))
+      (println (str default-indent "std::cerr << std::boolalpha;"))
       (println (str default-indent (munge-name '*command-line-args*)
                     " = std::vector<std::string>(argv + 1, argv + argc);"))
       (println (str default-indent (str (when (= 'int tag)
