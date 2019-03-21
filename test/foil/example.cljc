@@ -56,6 +56,9 @@
       (println (key x))
       (println (val x)))
 
+    (doseq [x (keys m)]
+      (println x))
+
     (while (< x 10)
       (set! x (+ x 1)))
 

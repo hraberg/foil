@@ -96,7 +96,8 @@
 
 (defn first
   (^{:tmpl [T1 T2]} [^"std::pair<T1,T2>" coll]
-   (.-first coll))
+   (let [^:mut k (.-first coll)]
+     k))
   ([coll]
    (.front coll)))
 
@@ -260,3 +261,9 @@
      (doseq [x coll]
        (set! acc (f acc x)))
      acc)))
+
+(defn keys [m]
+  (map key m))
+
+(defn vals [m]
+  (map val m))
