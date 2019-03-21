@@ -234,14 +234,22 @@
   (let [^:mut acc ^"typename T::value_type" []]
     (into! acc coll)))
 
-(defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
-  (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
+(defn map ^{:tmpl [F C]} [^F f ^C coll]
+  (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
     (doseq [x coll]
       (conj! acc (f x)))
     acc))
 
-(defn filter ^{:tmpl [TP TC]} [^TP pred ^TC coll]
-  (let [^:mut acc ^"typename TC::value_type" []]
+(defn map-indexed ^{:tmpl [F C]} [^F f ^C coll]
+  (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []
+        ^:mut n 0]
+    (doseq [x coll]
+      (conj! acc (f n x))
+      (set! n (inc n)))
+    acc))
+
+(defn filter ^{:tmpl [P C]} [^P pred ^C coll]
+  (let [^:mut acc ^"typename C::value_type" []]
     (doseq [x coll]
       (when (pred x)
         (conj! acc x)))
