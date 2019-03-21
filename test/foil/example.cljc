@@ -50,7 +50,7 @@
     (println (nth ^std::string ["hello" "world"] 3 "?"))
 
     (aset a 0 4)
-    (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (.at m :foo)) foo (.count s 1) (.count s 3))
+    (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (get m :foo)) foo (contains? s 1) (contains? s 3))
 
     (while (< x 10)
       (set! x (+ x 1)))
@@ -87,7 +87,7 @@
     (let [s "foo"]
       (test-println s))
 
-    (test-println (.front l))
+    (test-println (first l))
 
     (test-println (sin *pi*))
 
@@ -110,9 +110,9 @@
                      test-println)
 
       (test-println (std::accumulate (.begin x)
-                                (.end x)
-                                0
-                                +))
+                                     (.end x)
+                                     0
+                                     +))
 
       (let [^:mut zz ^int []]
         (std::copy_if (.begin x)
