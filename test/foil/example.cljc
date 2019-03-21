@@ -52,6 +52,10 @@
     (aset a 0 4)
     (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (get m :foo)) foo (contains? s 1) (contains? s 3))
 
+    (doseq [x m]
+      (println (key x))
+      (println (val x)))
+
     (while (< x 10)
       (set! x (+ x 1)))
 

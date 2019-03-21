@@ -80,8 +80,8 @@
 (defn empty? [coll]
   (.empty coll))
 
-(defn first [coll]
-  (.front coll))
+(defn get [map key]
+  (.at map key))
 
 (defn next [coll]
   (let [^:mut tail coll]
@@ -94,8 +94,23 @@
     (.push_front tail x)
     tail))
 
-(defn get [map key]
-  (.at map key))
+(defn first
+  (^{:tmpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+   (.-first coll))
+  ([coll]
+   (.front coll)))
+
+(def key first)
+
+(defn second
+  (^{:tmpl [T]} [^std::forward_list<T> coll]
+   (first (next coll)))
+  (^{:tmpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+   (.-second coll))
+  ([x]
+   (get x 1)))
+
+(def val second)
 
 (defn nth
   (^{:tmpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
@@ -118,12 +133,6 @@
        (recur tail))))
   ([coll]
    (.back coll)))
-
-(defn second
-  (^{:tmpl [T]} [^std::forward_list<T> coll]
-   (first (next coll)))
-  ([x]
-   (get x 1)))
 
 (defn inc [n]
   (+ n 1))

@@ -17,6 +17,8 @@ false
 world
 ?
 -1 4 bar 3.14 1 0
+:foo
+bar
 1 4
 1 3
 2 4
