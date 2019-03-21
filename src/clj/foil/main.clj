@@ -510,7 +510,7 @@
 
         (and (= 'do op)
              (not *expr?*))
-        (emit-block (next form))
+        (emit-block (next form) "")
 
         :else
         (let [macro-expansion (foil-macroexpand form)]
