@@ -134,14 +134,14 @@
 (defn constantly [x]
   (fn [] x))
 
-(defn hash-set ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
-  ^Arg (std::set. arg args...))
+(defn hash-set ^{:tmpl [T ...Args]} [^Args&... args]
+  ^T (std::set. args...))
 
-(defn list ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
-  ^Arg (std::forward_list. arg args...))
+(defn list ^{:tmpl [T ...Args]} [^Args&... args]
+  ^T (std::forward_list. args...))
 
-(defn vector ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
-  ^Arg (std::vector. arg args...))
+(defn vector ^{:tmpl [T ...Args]} [^Args&... args]
+  ^T (std::vector. args...))
 
 (defn identity [x]
   x)

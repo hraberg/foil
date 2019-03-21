@@ -23,7 +23,7 @@
         ^:mut a ^int [2 t]
         m ^std::string {:foo "bar"}
         s ^int #{1 2}
-        l ^int '(7 8)
+        l ^int (list 7 8)
         my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))
         ^:mut ss ^int [2 3 1]]
 

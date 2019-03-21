@@ -214,7 +214,7 @@
       :else
       (do (emit-expression f)
           (when-let [tag (maybe-template-params form)]
-            (print (str "<" tag ">")))
+            (print (str ".operator()<" tag ">")))
           (print (str "(" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) args)) ")"))))))
 
