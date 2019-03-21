@@ -77,6 +77,9 @@
 (defn last [coll]
   (.back coll))
 
+(defn second [x]
+  (get x 1))
+
 (defn inc [n]
   (+ n 1))
 
@@ -108,7 +111,7 @@
    (partial (partial f arg) args...)))
 
 (defn nil? [x]
-  (= 'nullptr x))
+  (= nullptr x))
 
 (defn even? [n]
   (= (mod n 2) 0))
@@ -126,10 +129,14 @@
   (= n 0))
 
 (defn min [x y]
-  (std::min x y))
+  (if (> x y)
+    y
+    x))
 
 (defn max [x y]
-  (std::max x y))
+  (if (< x y)
+    x
+    y))
 
 (defn sort [^:mut coll]
   (std::sort (.begin coll) (.end coll))
@@ -139,20 +146,23 @@
   ([arg]
    (<< *out* arg))
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
-   (<< *out* arg)
+   (print arg)
    (print args...)))
 
+(defn flush []
+  (.flush *out*))
+
 (defn newline []
-  (<< *out* std::endl))
+  (print "\n"))
 
 (defn println
   ([]
    (newline))
   ([arg]
-   (<< *out* arg)
+   (print arg)
    (newline))
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
-   (<< *out* arg)
+   (print arg)
    (println args...)))
 
 (defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
@@ -187,7 +197,7 @@
   (^{:tmpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
    (if (>= (count coll) index)
      not-found
-     (.at coll index)))
+     (get coll index)))
   ([coll index not-found]
    (let [^:mut n 0]
      (doseq [x coll]

@@ -28,6 +28,7 @@
         ^:mut ss ^int [2 3 1]]
 
     (println ((partial + 2) 4))
+    (println)
 
     (doseq [x (sort ss)]
       (println x))
