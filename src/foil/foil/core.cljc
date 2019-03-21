@@ -174,6 +174,14 @@
     (conj! to x))
   to)
 
+(defn set ^{:tmpl [T]} [^T coll]
+  (let [^:mut acc ^"typename T::value_type" #{}]
+    (into! acc coll)))
+
+(defn vec ^{:tmpl [T]} [^T coll]
+  (let [^:mut acc ^"typename T::value_type" []]
+    (into! acc coll)))
+
 (defn map ^{:tmpl [TF TC]} [^TF f ^TC coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename TC::value_type>()))" []]
     (doseq [x coll]
