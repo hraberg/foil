@@ -94,11 +94,14 @@
 (defn vector ^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
   ^Arg (std::vector. arg args...))
 
-(defn partial ^{:tmpl [F ...Args]} [^F f ^Args&&... args]
-  (std::bind f ($ "std::forward<Args>(args)...")))
-
-(defn apply ^{:tmpl [F ...Args]} [^F f ^Args&&... args]
-  (f ($ "std::forward<Args>(args)...")))
+(defn partial
+  ([f]
+   f)
+  (^{:tmpl [F Arg]} [^F f ^Arg arg]
+   (fn [arg2]
+     (f arg arg2)))
+  (^{:tmpl [F Arg ...Args]} [^F f ^Arg arg ^Args&... args]
+   (partial (partial f arg) args...)))
 
 (defn even? [n]
   (= (mod n 2) 0))
