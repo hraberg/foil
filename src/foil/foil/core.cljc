@@ -113,6 +113,15 @@
 (defn odd? [n]
   (not (even? n)))
 
+(defn neg? [n]
+  (< n 0))
+
+(defn pos? [n]
+  (> n 0))
+
+(defn zero? [n]
+  (= n 0))
+
 (defn min [x y]
   (std::min x y))
 
@@ -130,11 +139,15 @@
    (<< *out* arg)
    (print args...)))
 
+(defn newline []
+  (<< *out* std::endl))
+
 (defn println
   ([]
-   (<< *out* std::endl))
+   (newline))
   ([arg]
-   (<< *out* arg std::endl))
+   (<< *out* arg)
+   (newline))
   (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (<< *out* arg)
    (println args...)))
