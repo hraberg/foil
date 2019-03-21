@@ -678,7 +678,7 @@
     (let [[_ _ main-args] main
           tag (form->tag main-args)]
       (println)
-      (print "int main(int argc, char** argv) {")
+      (println "int main(int argc, char** argv) {")
       (println (str default-indent (munge-name '*command-line-args*)
                     " = std::vector<std::string>(argv + 1, argv + argc);"))
       (println (str default-indent (str (when (= 'int tag)
