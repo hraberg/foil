@@ -144,9 +144,12 @@
     x
     y))
 
-(defn sort [^:mut coll]
-  (std::sort (.begin coll) (.end coll))
-  coll)
+(defn sort
+  ([^:mut coll]
+   (sort < coll))
+  ([comp ^:mut coll]
+   (std::sort (.begin coll) (.end coll) comp)
+   coll))
 
 (defn print
   ([arg]
