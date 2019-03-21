@@ -38,6 +38,9 @@
     (println (first (next l)))
     (println (first l))
     (println (count l))
+    (println (count (next l)))
+    (println (count (next (next l))))
+    (println (count (next (next (next l)))))
 
     (println (nth ^std::string ["hello" "world"] 1 "?"))
     (println (nth ^std::string ["hello" "world"] 3 "?"))
