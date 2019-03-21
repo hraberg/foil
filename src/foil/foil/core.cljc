@@ -63,7 +63,7 @@
   (.contains coll x))
 
 (defn count [coll]
-  (.count coll))
+  (.size coll))
 
 (defn empty? [coll]
   (.empty coll))
@@ -183,10 +183,15 @@
        (set! acc (f acc x)))
      acc)))
 
-(defn nth [coll index not-found]
-  (let [^:mut n 0]
-    (doseq [x coll]
-      (when (= n index)
-        (return x))
-      (set! n (inc n)))
-    not-found))
+(defn nth
+  (^{:tmpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
+   (if (>= (count coll) index)
+     not-found
+     (.at coll index)))
+  ([coll index not-found]
+   (let [^:mut n 0]
+     (doseq [x coll]
+       (when (= n index)
+         (return x))
+       (set! n (inc n)))
+     not-found)))
