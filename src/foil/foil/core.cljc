@@ -63,19 +63,31 @@
    map))
 
 (defn contains?
-  (^{:tmpl [K]} [^"std::set<K>" coll ^K key]
+  (^{:tmpl [K]} [^std::set<K> coll ^K key]
    (> (.count coll key) 0))
   ([coll key]
    (.contains coll key)))
 
-(defn count [coll]
-  (.size coll))
+(defn count
+  (^{:tmpl [T]} [^std::forward_list<T> coll]
+   (let [^:mut n 0]
+     (doseq [_ coll]
+       (set! n (inc n)))
+     n))
+  ([coll]
+   (.size coll)))
 
 (defn empty? [coll]
   (.empty coll))
 
 (defn first [coll]
   (.front coll))
+
+(defn next [coll]
+  (let [^:mut tail coll]
+    (when (not (empty? tail))
+      (.pop_front tail))
+    tail))
 
 (defn get [map key]
   (.at map key))

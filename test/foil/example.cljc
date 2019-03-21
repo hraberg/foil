@@ -35,6 +35,10 @@
 
     (println (min 3 2))
 
+    (println (first (next l)))
+    (println (first l))
+    (println (count l))
+
     (println (nth ^std::string ["hello" "world"] 1 "?"))
     (println (nth ^std::string ["hello" "world"] 3 "?"))
 

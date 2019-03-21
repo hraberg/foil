@@ -311,9 +311,6 @@
 (defmethod foil-macroexpand :fn* [form]
   (macroexpand-lambda form))
 
-(defmethod foil-macroexpand :lambda [form]
-  (macroexpand-lambda form))
-
 (defmethod foil-macroexpand :λ [form]
   (macroexpand-lambda form))
 
@@ -365,9 +362,6 @@
 (defmethod foil-macroexpand :do [form]
   (macroexpand-do form))
 
-(defmethod foil-macroexpand :begin [[_ & body :as form]]
-  `(do ~@body))
-
 (defmethod foil-macroexpand :if [[_ condition then else :as form]]
   ($code
    #(binding [*expr?* true]
@@ -381,8 +375,8 @@
 (defmethod foil-macroexpand :when [[_ condition & then]]
   `(~'if ~condition (~'do ~@then)))
 
-(defmethod foil-macroexpand :unless [[_ condition & then]]
-  `(~'if (~'not ~condition) (~'do ~@then)))
+(defmethod foil-macroexpand :when-not [[_ condition & then]]
+  `(~'when (~'not ~condition) ~@then))
 
 (defmethod foil-macroexpand :cond [[_ condition then & rest :as form]]
   (if then
@@ -718,8 +712,8 @@
                      (emit-using ['use 'foil.core]))
                    (emit-headers form))
             (include require) (emit-include form)
-            (def define) (emit-variable-definition form)
-            (defn defun) (do (when (= '-main (second form))
+            def (emit-variable-definition form)
+            defn (do (when (= '-main (second form))
                                (reset! main form))
                              (emit-function form))
             (defrecord defstruct) (emit-struct form)
