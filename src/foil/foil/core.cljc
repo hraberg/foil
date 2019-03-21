@@ -107,10 +107,10 @@
 
 (defn last
   (^{:tmpl [T]} [^std::forward_list<T> coll]
-   (def ^:mut ^T last)
-   (doseq [x coll]
-     (set! last x))
-   last)
+   (let [tail (next coll)]
+     (if (empty? tail)
+       (first coll)
+       (recur tail))))
   ([coll]
    (.back coll)))
 
