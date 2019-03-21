@@ -37,6 +37,7 @@
 
     (println (first (next l)))
     (println (first l))
+    (println (second l))
     (println (count l))
     (println (count (next l)))
     (println (count (next (next l))))

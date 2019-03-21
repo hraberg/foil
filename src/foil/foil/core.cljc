@@ -92,11 +92,33 @@
 (defn get [map key]
   (.at map key))
 
-(defn last [coll]
-  (.back coll))
+(defn nth
+  (^{:tmpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
+   (if (>= (count coll) index)
+     not-found
+     (get coll index)))
+  ([coll index not-found]
+   (let [^:mut n 0]
+     (doseq [x coll]
+       (when (= n index)
+         (return x))
+       (set! n (inc n)))
+     not-found)))
 
-(defn second [x]
-  (get x 1))
+(defn last
+  (^{:tmpl [T]} [^std::forward_list<T> coll]
+   (def ^:mut ^T last)
+   (doseq [x coll]
+     (set! last x))
+   last)
+  ([coll]
+   (.back coll)))
+
+(defn second
+  (^{:tmpl [T]} [^std::forward_list<T> coll]
+   (first (next coll)))
+  ([x]
+   (get x 1)))
 
 (defn inc [n]
   (+ n 1))
@@ -224,16 +246,3 @@
      (doseq [x coll]
        (set! acc (f acc x)))
      acc)))
-
-(defn nth
-  (^{:tmpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
-   (if (>= (count coll) index)
-     not-found
-     (get coll index)))
-  ([coll index not-found]
-   (let [^:mut n 0]
-     (doseq [x coll]
-       (when (= n index)
-         (return x))
-       (set! n (inc n)))
-     not-found)))
