@@ -7,8 +7,8 @@
             [set]
             [vector]))
 
-(def ^:dynamic ^:ref *out* std::cout)
-(def ^:dynamic ^:ref *err* std::cerr)
+(def ^:dynamic ^:ref *out* (<< std::cout std::boolalpha))
+(def ^:dynamic ^:ref *err* (<< std::cerr std::boolalpha))
 (def ^:dynamic ^:ref *in* std::cin)
 
 (def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
