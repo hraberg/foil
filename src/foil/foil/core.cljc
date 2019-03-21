@@ -85,7 +85,7 @@
 
 (defn next [coll]
   (let [^:mut tail coll]
-    (when (not (empty? tail))
+    (when-not (empty? tail)
       (.pop_front tail))
     tail))
 

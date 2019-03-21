@@ -108,7 +108,8 @@
                            bit-shift-right >>
                            >> >>})
 
-(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda emit-function-body emit-variable-definition foil-macroexpand)
+(declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda
+         emit-function-body emit-variable-definition foil-macroexpand emit-if)
 
 (defn- needs-loop-target? [body]
   (let [recur-found? (atom false)]
@@ -292,7 +293,7 @@
 (defmulti foil-macroexpand (fn [[op :as form]] (when (symbol? op)
                                                  (keyword (name op)))))
 
-(defn- macroexpand-lambda [[_ args & body :as form]]
+(defmethod foil-macroexpand :fn [[_ args & body :as form]]
   ($code
    (fn []
      (print (str "[=] ("
@@ -303,16 +304,13 @@
                  ") {"))
      (binding [*return-type* 'auto]
        (emit-function-body "lambda" args body))
-     (print (str *indent* "}"))))  )
+     (print (str *indent* "}")))))
 
-(defmethod foil-macroexpand :fn [form]
-  (macroexpand-lambda form))
+(defmethod foil-macroexpand :fn* [[_ args & body :as form]]
+  `(fn ~args ~@body))
 
-(defmethod foil-macroexpand :fn* [form]
-  (macroexpand-lambda form))
-
-(defmethod foil-macroexpand :λ [form]
-  (macroexpand-lambda form))
+(defmethod foil-macroexpand :λ [[_ args & body :as form]]
+  `(fn ~args ~@body))
 
 (defmethod foil-macroexpand :let [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
@@ -364,13 +362,16 @@
 
 (defmethod foil-macroexpand :if [[_ condition then else :as form]]
   ($code
-   #(binding [*expr?* true]
-      (binding [*tail?* false]
-        (emit-expression condition))
-      (print " ? ")
-      (emit-expression then)
-      (print " : ")
-      (emit-expression (or else 'nullptr)))))
+   #(if *expr?*
+      (binding [*expr?* true]
+        (binding [*tail?* false]
+          (emit-expression condition))
+        (print " ? ")
+        (emit-expression then)
+        (print " : ")
+        (emit-expression (or else 'nullptr)))
+      (do (println)
+          (emit-if form)))))
 
 (defmethod foil-macroexpand :when [[_ condition & then]]
   `(~'if ~condition (~'do ~@then)))
@@ -491,31 +492,45 @@
   (print (str/join body)))
 
 (defn- emit-expression [form]
-  (if (or (literal? form) *quote?*)
-    (emit-literal form)
-    (let [op (first form)]
-      (cond
-        (contains? '#{$code $} op)
-        (emit-code form)
+  (let [needs-return? (and *tail?*
+                           (not= 'void *return-type*)
+                           (not (and (seq? form)
+                                     (= 'return (first form)))))]
+    (if (or (literal? form) *quote?*)
+      (do (when needs-return?
+            (print "return "))
+          (emit-literal form))
+      (let [op (first form)]
+        (cond
+          (contains? '#{$code $} op)
+          (emit-code form)
 
-        (= 'quote op)
-        (binding [*quote?* true]
-          (emit-literal (with-meta
-                          (second form)
-                          (meta form))))
+          (= 'quote op)
+          (binding [*quote?* true]
+            (when needs-return?
+              (print "return "))
+            (emit-literal (with-meta
+                            (second form)
+                            (meta form))))
 
-        (and (= 'do op)
-             (not *expr?*))
-        (emit-block (next form) "")
+          (and (= 'do op)
+               (not *expr?*))
+          (emit-block (next form) "")
 
-        :else
-        (let [macro-expansion (foil-macroexpand form)]
-          (cond
-            (= form macro-expansion)
-            (emit-application form)
+          :else
+          (let [macro-expansion (foil-macroexpand form)]
+            (cond
+              (= form macro-expansion)
+              (do (when needs-return?
+                    (print "return "))
+                  (emit-application form))
 
-            (not (nil? macro-expansion))
-            (emit-expression macro-expansion)))))))
+              (not (nil? macro-expansion))
+              (do (when (and needs-return?
+                             (seq? form)
+                             (= 'fn (first form)))
+                    (print "return "))
+                  (emit-expression macro-expansion)))))))))
 
 (def ^:dynamic ^:private *file-name* nil)
 
@@ -531,13 +546,11 @@
           ::literal)
     return (emit-return form)
     recur (emit-recur form)
-    (if when) (emit-if form)
     def (emit-variable-definition form)
-    (if (and *tail?* (not= 'void *return-type*))
-      (emit-return `(~'return ~form))
-      (do (print *indent*)
-          (emit-expression form)
-          (println ";")))))
+    (binding [*expr?* false]
+      (print *indent*)
+      (emit-expression form)
+      (println ";"))))
 
 (defn- emit-body [body]
   (loop [[x & xs] body]
