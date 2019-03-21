@@ -11,7 +11,8 @@
 (def ^:dynamic ^:ref *err* std::cerr)
 (def ^:dynamic ^:ref *in* std::cin)
 
-(def ^:dynamic ^:ref ^"std::vector<std::string>" *command-line-args*)
+(def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
+(def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
