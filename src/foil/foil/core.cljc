@@ -89,6 +89,11 @@
       (.pop_front tail))
     tail))
 
+(defn cons [x coll]
+  (let [^:mut tail coll]
+    (.push_front tail x)
+    tail))
+
 (defn get [map key]
   (.at map key))
 
