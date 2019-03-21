@@ -11,6 +11,8 @@
 (def ^:dynamic ^:ref *err* std::cerr)
 (def ^:dynamic ^:ref *in* std::cin)
 
+(def ^:dynamic ^:ref ^"std::vector<std::string>" *command-line-args*)
+
 (def ^std::plus<> +)
 (def ^std::minus<> -)
 (def ^std::multiplies<> *)

@@ -1,7 +1,7 @@
 (ns hello-world
   (:require [iostream]))
 
-(defn -main [args]
+(defn -main []
   (println "Hello World")
-  (doseq [x args]
+  (doseq [x *command-line-args*]
     (println x)))
