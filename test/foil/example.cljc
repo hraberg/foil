@@ -79,15 +79,15 @@
     (test-println *pi*)
 
     (test-println (if (= 10 x)
-               "ten"
-               "not ten"))
+                    "ten"
+                    "not ten"))
 
     (test-println (cond
-               (= 10 x)
-               "ten"
+                    (= 10 x)
+                    "ten"
 
-               (= 20 x)
-               "not ten"))
+                    (= 20 x)
+                    "not ten"))
 
     (test-println 42)
 
@@ -99,9 +99,9 @@
     (test-println (sin *pi*))
 
     (test-println (loop [n 0]
-               (if (< n 3)
-                 (recur (inc n))
-                 n)))
+                    (if (< n 3)
+                      (recur (inc n))
+                      n)))
 
     (let [^:mut x ^int []
           ^:mut z ^int []]
