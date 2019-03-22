@@ -36,11 +36,11 @@
 
     (let [sp1 ^std::vector<int> (std::make_shared ^int [1 2])
           sp2 (identity sp1)]
-      (println (aget (* sp1) 0))
+      (println (aget @sp1 0))
       (aset (* sp1) 0 0)
-      (println (= (* sp2) (* sp1)))
+      (println (= @sp2 @sp1))
       (aset (* sp2) 1 3)
-      (println (= (* sp2) (* sp1)))
+      (println (= @sp2 @sp1))
       (println (.use_count sp1)))
 
     (println (identity 5))

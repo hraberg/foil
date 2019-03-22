@@ -75,7 +75,8 @@
                           bit-not "~"
                           - -
                           & &
-                          * *})
+                          * *
+                          clojure.core/deref *})
 
 (def ^:private unary-inc-dec-op '{inc +
                                   dec -})
