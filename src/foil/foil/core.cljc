@@ -5,7 +5,8 @@
             [iostream]
             [map]
             [set]
-            [vector]))
+            [vector]
+            [experimental/optional]))
 
 (def ^:dynamic ^:ref *out* (<< std::cout std::boolalpha))
 (def ^:dynamic ^:ref *err* (<< std::cerr std::boolalpha))
@@ -101,6 +102,11 @@
   ([coll]
    (.front coll)))
 
+(defn first-opt ^{:tmpl [T]} [^T coll]
+  (if (empty? coll)
+    ^"typename T::value_type" (std::experimental::fundamentals_v1::optional.)
+    (std::experimental::fundamentals_v1::make_optional (.front coll))))
+
 (def key first)
 
 (defn second
@@ -192,6 +198,17 @@
   (if (< x y)
     x
     y))
+
+(defn true? [x]
+  (= true x))
+
+(defn false? [x]
+  (= false x))
+
+(defn boolean [x]
+  (if x
+    true
+    false))
 
 (defn sort
   ([^:mut coll]

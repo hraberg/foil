@@ -58,6 +58,9 @@
     (println (count (next (next l))))
     (println (count (next (next (next l)))))
 
+    (println @(first-opt l))
+    (println (boolean (first-opt ^int ())))
+
     (println (nth ^std::string ["hello" "world"] 1 "?"))
     (println (nth ^std::string ["hello" "world"] 3 "?"))
 

@@ -15,12 +15,6 @@
 
 (def ^:private default-tag 'auto)
 
-(defn- collection-literal? [form]
-  (or (vector? form)
-      (map? form)
-      (set? form)
-      (seq? form)))
-
 (defn- munge-name [n]
   (str/replace (munge n) "_COLON_" ":"))
 
@@ -265,7 +259,7 @@
   (println ") {")
   (binding [*indent* (str *indent* default-indent)]
     (emit-expression-statement then))
-  (when else
+  (when-not (nil? else)
     (println (str *indent* "} else {"))
     (binding [*indent* (str *indent* default-indent)]
       (emit-expression-statement else)))
@@ -373,7 +367,9 @@
         (print " ? ")
         (emit-expression then)
         (print " : ")
-        (emit-expression (or else 'nullptr)))
+        (emit-expression (if (nil? else)
+                           'nullptr
+                           else)))
       (do (println)
           (emit-if form)))))
 
@@ -435,7 +431,7 @@
   form)
 
 (defn- literal? [form]
-  (not (seq? form)))
+  (or (not (seq? form)) (= () form)))
 
 (def ^:private ^:dynamic *quote?* false)
 
