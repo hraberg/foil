@@ -6,7 +6,7 @@
             [iostream]
             [memory]))
 
-(defrecord Point ^{:tmpl "<typename X = int>"} [^X x ^int y])
+(defrecord Point ^{:tpl "<typename X = int>"} [^X x ^int y])
 
 (def foo 3.14)
 (def ^:dynamic *pi* 3.14)

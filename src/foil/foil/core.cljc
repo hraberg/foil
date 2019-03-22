@@ -38,39 +38,39 @@
 ;; ($code "const std::bit_not<> _TILDE_;")
 
 (defn assoc!
-  (^{:tmpl [K V]} [^:mut ^"std::map<K,V>" map ^K key ^V val]
+  (^{:tpl [K V]} [^:mut ^"std::map<K,V>" map ^K key ^V val]
    (.insert_or_assign map key val)
    map))
 
 (defn conj!
-  (^{:tmpl [T]} [^:mut ^std::vector<T> coll ^T x]
+  (^{:tpl [T]} [^:mut ^std::vector<T> coll ^T x]
    (.push_back coll x)
    coll)
-  (^{:tmpl [T]} [^:mut ^std::forward_list<T> coll ^T x]
+  (^{:tpl [T]} [^:mut ^std::forward_list<T> coll ^T x]
    (.push_front coll x)
    coll)
-  (^{:tmpl [T]} [^:mut ^std::set<T> coll ^T x]
+  (^{:tpl [T]} [^:mut ^std::set<T> coll ^T x]
    (.insert coll x)
    coll))
 
 (defn disj!
-  (^{:tmpl [T]} [^:mut ^std::set<T> set ^T x]
+  (^{:tpl [T]} [^:mut ^std::set<T> set ^T x]
    (.erase set x)
    set))
 
 (defn dissoc!
-  (^{:tmpl [K V]} [^:mut ^"std::map<K,V>" map ^K key]
+  (^{:tpl [K V]} [^:mut ^"std::map<K,V>" map ^K key]
    (.erase map key)
    map))
 
 (defn contains?
-  (^{:tmpl [K]} [^std::set<K> coll ^K key]
+  (^{:tpl [K]} [^std::set<K> coll ^K key]
    (> (.count coll key) 0))
   ([coll key]
    (.contains coll key)))
 
 (defn count
-  (^{:tmpl [T]} [^std::forward_list<T> coll]
+  (^{:tpl [T]} [^std::forward_list<T> coll]
    (let [^:mut n 0]
      (doseq [_ coll]
        (set! n (inc n)))
@@ -96,13 +96,13 @@
     tail))
 
 (defn first
-  (^{:tmpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
    (let [^:mut k (.-first coll)]
      k))
   ([coll]
    (.front coll)))
 
-(defn first-opt ^{:tmpl [T]} [^T coll]
+(defn first-opt ^{:tpl [T]} [^T coll]
   (if (empty? coll)
     ^"typename T::value_type" (std::experimental::fundamentals_v1::optional.)
     (std::experimental::fundamentals_v1::make_optional (.front coll))))
@@ -110,9 +110,9 @@
 (def key first)
 
 (defn second
-  (^{:tmpl [T]} [^std::forward_list<T> coll]
+  (^{:tpl [T]} [^std::forward_list<T> coll]
    (first (next coll)))
-  (^{:tmpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
    (.-second coll))
   ([x]
    (get x 1)))
@@ -120,7 +120,7 @@
 (def val second)
 
 (defn nth
-  (^{:tmpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
+  (^{:tpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
    (if (>= (count coll) index)
      not-found
      (get coll index)))
@@ -133,7 +133,7 @@
      not-found)))
 
 (defn last
-  (^{:tmpl [T]} [^std::forward_list<T> coll]
+  (^{:tpl [T]} [^std::forward_list<T> coll]
    (let [tail (next coll)]
      (if (empty? tail)
        (first coll)
@@ -150,25 +150,25 @@
 (defn constantly [x]
   (fn [] x))
 
-(defn hash-set ^{:tmpl [T ...Args]} [^Args&... args]
+(defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::set. args...))
 
-(defn list ^{:tmpl [T ...Args]} [^Args&... args]
+(defn list ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::forward_list. args...))
 
-(defn vector ^{:tmpl [T ...Args]} [^Args&... args]
+(defn vector ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::vector. args...))
 
-(defn identity ^{:tmpl [T]} ^T&& [^:mut ^T&& x]
+(defn identity ^{:tpl [T]} ^T&& [^:mut ^T&& x]
   ^T (std::forward x))
 
 (defn partial
   ([f]
    f)
-  (^{:tmpl [F Arg]} [^F f ^Arg arg]
+  (^{:tpl [F Arg]} [^F f ^Arg arg]
    (fn [arg2]
      (f arg arg2)))
-  (^{:tmpl [F Arg ...Args]} [^F f ^Arg arg ^Args&... args]
+  (^{:tpl [F Arg ...Args]} [^F f ^Arg arg ^Args&... args]
    (partial (partial f arg) args...)))
 
 (defn nil? [x]
@@ -220,7 +220,7 @@
 (defn print
   ([arg]
    (<< *out* arg))
-  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
+  (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg)
    (print " ")
    (print args...)))
@@ -234,7 +234,7 @@
 (defn println
   ([]
    (newline))
-  (^{:tmpl [Arg ...Args]} [^Arg arg ^Args&... args]
+  (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg args...)
    (println)))
 
@@ -243,21 +243,21 @@
     (conj! to x))
   to)
 
-(defn set ^{:tmpl [T]} [^T coll]
+(defn set ^{:tpl [T]} [^T coll]
   (let [^:mut acc ^"typename T::value_type" #{}]
     (into! acc coll)))
 
-(defn vec ^{:tmpl [T]} [^T coll]
+(defn vec ^{:tpl [T]} [^T coll]
   (let [^:mut acc ^"typename T::value_type" []]
     (into! acc coll)))
 
-(defn map ^{:tmpl [F C]} [^F f ^C coll]
+(defn map ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
     (doseq [x coll]
       (conj! acc (f x)))
     acc))
 
-(defn filter ^{:tmpl [P C]} [^P pred ^C coll]
+(defn filter ^{:tpl [P C]} [^P pred ^C coll]
   (let [^:mut acc ^"typename C::value_type" []]
     (doseq [x coll]
       (when (pred x)

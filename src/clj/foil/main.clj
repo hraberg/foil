@@ -582,7 +582,7 @@
           (emit-body body)))))
 
 (defn- emit-template [parameters template-names]
-  (if-let [template (:tmpl (meta parameters))]
+  (if-let [template (:tpl (meta parameters))]
     (let [template (if (vector? template)
                      (str "<" (->> (for [tn template]
                                      (str "typename " tn (when-let [tag (:tag (meta tn))]
