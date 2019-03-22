@@ -153,7 +153,7 @@
 (defn vector ^{:tmpl [T ...Args]} [^Args&... args]
   ^T (std::vector. args...))
 
-(defn identity ^"auto" [x]
+(defn identity ^{:tmpl [T]} [^:mut ^T&& x]
   x)
 
 (defn partial
