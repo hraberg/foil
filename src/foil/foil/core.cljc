@@ -153,7 +153,7 @@
 (defn vector ^{:tmpl [T ...Args]} [^Args&... args]
   ^T (std::vector. args...))
 
-(defn identity [x]
+(defn identity ^"auto" [x]
   x)
 
 (defn partial
@@ -238,14 +238,6 @@
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
     (doseq [x coll]
       (conj! acc (f x)))
-    acc))
-
-(defn map-indexed ^{:tmpl [F C]} [^F f ^C coll]
-  (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []
-        ^:mut n 0]
-    (doseq [x coll]
-      (conj! acc (f n x))
-      (set! n (inc n)))
     acc))
 
 (defn filter ^{:tmpl [P C]} [^P pred ^C coll]
