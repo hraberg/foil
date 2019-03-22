@@ -158,13 +158,15 @@
     (cond
       (and (contains? unary-op f)
            (= 1 (count args)))
-      (do (print (get unary-op f))
-          (emit-expression (first args)))
+      (do (print (str "(" (get unary-op f)))
+          (emit-expression (first args))
+          (print ")"))
 
       (and (contains? unary-inc-dec-op f)
            (= 1 (count args)))
-      (do (emit-expression (first args))
-          (print (str " " (get unary-inc-dec-op f) " 1")))
+      (do (print "(")
+          (emit-expression (first args))
+          (print (str " " (get unary-inc-dec-op f) " 1)")))
 
       (contains? binary-op f)
       (do (assert (>= (count args) 2) "Requires minimum two operands.")
@@ -213,7 +215,9 @@
       :else
       (do (emit-expression f)
           (when-let [tag (maybe-template-params form)]
-            (print (str ".operator()<" tag ">")))
+            (when-not (re-find #"::" (str f))
+              (println ".operator()"))
+            (print (str "<" tag ">")))
           (print (str "(" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) args)) ")"))))))
 
