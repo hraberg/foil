@@ -153,8 +153,8 @@
 (defn vector ^{:tmpl [T ...Args]} [^Args&... args]
   ^T (std::vector. args...))
 
-(defn identity ^{:tmpl [T]} [^:mut ^T&& x]
-  x)
+(defn identity ^{:tmpl [T]} ^T&& [^:mut ^T&& x]
+  ^T (std::forward x))
 
 (defn partial
   ([f]
