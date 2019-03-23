@@ -41,7 +41,7 @@
 
 (defn assoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
-   (.insert_or_assign map key val)
+   (.insert map (std::make_pair key val))
    map))
 
 (defn conj!
@@ -161,6 +161,13 @@
 (defn sorted-set-by ^{:tpl [T C ...Args]} [^C comp ^Args&... args]
   (def ^std::initializer_list<T> s args...)
   ^"T,C" (std::set. s comp))
+
+(defn hash-map ^{:tpl [K V ...Args]} [^Args&... args]
+  (def ^std::initializer_list<Args...> s args...)
+  (let [^:mut m ^"K,V" (std::unordered_map.)]
+    (doseq [arg s]
+      (assoc! m (first arg) (second arg)))
+    m))
 
 (defn list ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::forward_list. args...))

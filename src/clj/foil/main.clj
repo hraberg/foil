@@ -234,7 +234,10 @@
    (emit-var-declaration var default-tag))
   ([var default-tag]
    (let [{:keys [const dynamic val ref & mut !]} (meta var)
-         tag (form->tag var default-tag)]
+         tag (form->tag var default-tag)
+         ref? (and (or ref &)
+                   (not val)
+                   (not (re-find #"\&" (str tag))))]
      (when (= '_ var)
        (print "__attribute__((unused)) "))
      (when (or const (not (or mut ! dynamic)))
@@ -244,10 +247,7 @@
      (print (if (string? var)
               var
               (str tag
-                   (when (and (or ref &)
-                              (not val)
-                              (not (string? tag))
-                              (not (re-find #"\&" (str tag))))
+                   (when ref?
                      "&")
                    " " (if (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")

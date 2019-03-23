@@ -93,6 +93,10 @@
     (doseq [x ^int (sorted-set-by > 8 7)]
       (println x))
 
+    (doseq [x ^"std::string,std::string" (hash-map ^std::string ["foo" "bar"])]
+      (println (key x))
+      (println (val x)))
+
     (test-println *pi*)
     (binding [*pi* -1]
       (test-println *pi*))
