@@ -40,8 +40,11 @@
 ;; ($code "const std::bit_xor<> _CARET_;")
 ;; ($code "const std::bit_not<> _TILDE_;")
 
-(defn empty? [coll]
-  (.empty coll))
+(defn empty?
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
+   false)
+  ([coll]
+   (.empty coll)))
 
 (defn get [map key]
   (.at map key))
@@ -132,6 +135,8 @@
      (doseq [_ coll]
        (set! n (inc n)))
      n))
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
+   2)
   ([coll]
    (.size coll)))
 
