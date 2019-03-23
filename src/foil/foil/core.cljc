@@ -287,7 +287,7 @@
   (map val m))
 
 (defn deref
-  (^{:tpl [T]} [^std::atomic<T> x]
+  (^{:tpl [T]} [^std::atomic<T>& x]
    (.load x))
   ([x]
    (* x)))
