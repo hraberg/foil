@@ -4,6 +4,7 @@
             [forward_list]
             [functional]
             [iostream]
+            [map]
             [set]
             [unordered_map]
             [unordered_set]
@@ -42,6 +43,9 @@
 (defn assoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
    (.insert map (std::make_pair key val))
+   map)
+  (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key ^V val]
+   (.insert map (std::make_pair key val))
    map))
 
 (defn conj!
@@ -53,20 +57,31 @@
    coll)
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]
    (.insert coll x)
+   coll)
+  (^{:tpl [T C]} [^:mut ^"std::set<T,C>" coll ^T x]
+   (.insert coll x)
    coll))
 
 (defn disj!
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
+   (.erase set x)
+   set)
+  (^{:tpl [T C]} [^:mut ^"std::set<T,C>" set ^T x]
    (.erase set x)
    set))
 
 (defn dissoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key]
    (.erase map key)
+   map)
+  (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key]
+   (.erase map key)
    map))
 
 (defn contains?
   (^{:tpl [K]} [^std::unordered_set<K> coll ^K key]
+   (= (.count coll key) 1))
+  (^{:tpl [K C]} [^"std::set<K,C>" coll ^K key]
    (= (.count coll key) 1))
   ([coll key]
    (.contains coll key)))
@@ -163,8 +178,22 @@
   ^"T,C" (std::set. s comp))
 
 (defn hash-map ^{:tpl [K V ...Args]} [^Args&... args]
-  (def ^std::initializer_list<Args...> s args...)
+  ($ "auto s = {args...}")
   (let [^:mut m ^"K,V" (std::unordered_map.)]
+    (doseq [arg s]
+      (assoc! m (first arg) (second arg)))
+    m))
+
+(defn sorted-map ^{:tpl [K V ...Args]} [^Args&... args]
+  ($ "auto s = {args...}")
+  (let [^:mut m ^"K,V" (std::map.)]
+    (doseq [arg s]
+      (assoc! m (first arg) (second arg)))
+    m))
+
+(defn sorted-map-by ^{:tpl [K V C ...Args]} [^C comp ^Args&... args]
+  ($ "auto s = {args...}")
+  (let [^:mut m ^"K,V,C" (std::map. comp)]
     (doseq [arg s]
       (assoc! m (first arg) (second arg)))
     m))

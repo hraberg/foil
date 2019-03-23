@@ -97,6 +97,12 @@
       (println (key x))
       (println (val x)))
 
+    (doseq [x ^"int,int" (sorted-map-by >
+                                        ^int [1 2]
+                                        ^int [3 4])]
+      (println (key x))
+      (println (val x)))
+
     (test-println *pi*)
     (binding [*pi* -1]
       (test-println *pi*))
