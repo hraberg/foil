@@ -1,5 +1,6 @@
 (ns foil.core
   (:require [algorithm]
+            [atomic]
             [forward_list]
             [functional]
             [iostream]
@@ -284,3 +285,25 @@
 
 (defn vals [m]
   (map val m))
+
+(defn deref
+  (^{:tpl [T]} [^std::atomic<T> x]
+   (.load x))
+  ([x]
+   (* x)))
+
+(defn reset! [^:mut atom x]
+  (.store atom x)
+  x)
+
+(defn swap! ^{:tpl [T F ...Args]} [^std::atomic<T> ^:mut atom ^F f ^Args&... args]
+  (let [^:mut oldval @atom
+        newval (f oldval args...)]
+    (if (.compare_exchange_strong atom oldval newval)
+      newval
+      (recur))))
+
+#_(defn atom ^{:tpl [T]} ^std::atomic<T> [^T x]
+    (def ^std::atomic<T> ^:mut a)
+    (reset! a x)
+    a)

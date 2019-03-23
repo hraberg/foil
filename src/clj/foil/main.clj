@@ -69,8 +69,7 @@
                           bit-not "~"
                           - -
                           & &
-                          * *
-                          clojure.core/deref *})
+                          * *})
 
 (def ^:private unary-inc-dec-op '{inc +
                                   dec -})
@@ -101,6 +100,8 @@
                            << <<
                            bit-shift-right >>
                            >> >>})
+
+(def ^:private fn-replacements '{clojure.core/deref deref})
 
 (declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda
          emit-function-body emit-variable-definition foil-macroexpand emit-if)
@@ -208,12 +209,13 @@
                                                  (emit-expression %)) (rest args))) ")")))
 
       :else
-      (do (emit-expression f)
-          (when-let [tag (maybe-template-params form)]
-            (when-not (re-find #"::" (str f))
-              (println ".operator()"))
-            (print (str "<" tag ">")))
-          (print (str "(" (str/join ", " (map #(with-out-str
+      (let [f (get fn-replacements f f)]
+        (emit-expression f)
+        (when-let [tag (maybe-template-params form)]
+          (when-not (re-find #"::" (str f))
+            (println ".operator()"))
+          (print (str "<" tag ">")))
+        (print (str "(" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) args)) ")"))))))
 
 (defn- emit-return [[_ value :as from]]
