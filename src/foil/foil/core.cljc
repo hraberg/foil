@@ -4,6 +4,7 @@
             [forward_list]
             [functional]
             [iostream]
+            [set]
             [unordered_map]
             [unordered_set]
             [vector]
@@ -153,6 +154,9 @@
 
 (defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::unordered_set. args...))
+
+(defn sorted-set ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::set. args...))
 
 (defn list ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::forward_list. args...))

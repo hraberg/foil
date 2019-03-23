@@ -87,6 +87,8 @@
     (my-fun x)
 
     (println (contains? (set l) 7))
+    (doseq [x ^int (sorted-set 8 7)]
+      (println x))
 
     (test-println *pi*)
     (binding [*pi* -1]
