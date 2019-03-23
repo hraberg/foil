@@ -40,12 +40,48 @@
 ;; ($code "const std::bit_xor<> _CARET_;")
 ;; ($code "const std::bit_not<> _TILDE_;")
 
+(defn empty? [coll]
+  (.empty coll))
+
+(defn get [map key]
+  (.at map key))
+
+(defn first
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+   (let [^:mut k (.-first coll)]
+     k))
+  ([coll]
+   (.front coll)))
+
+(defn first-opt ^{:tpl [T]} [^T coll]
+  (if (empty? coll)
+    ^"typename T::value_type" (std::experimental::fundamentals_v1::optional.)
+    (std::experimental::fundamentals_v1::make_optional (.front coll))))
+
+(def key first)
+
+(defn next [coll]
+  (let [^:mut tail coll]
+    (when-not (empty? tail)
+      (.pop_front tail))
+    tail))
+
+(defn second
+  (^{:tpl [T]} [^std::forward_list<T> coll]
+   (first (next coll)))
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+   (.-second coll))
+  ([x]
+   (get x 1)))
+
+(def val second)
+
 (defn assoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
-   (.insert map (std::make_pair key val))
+   (aset map key val)
    map)
   (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key ^V val]
-   (.insert map (std::make_pair key val))
+   (aset map key val)
    map))
 
 (defn conj!
@@ -60,7 +96,11 @@
    coll)
   (^{:tpl [T C]} [^:mut ^"std::set<T,C>" coll ^T x]
    (.insert coll x)
-   coll))
+   coll)
+  (^{:tpl [K V T]} [^:mut ^"std::unordered_map<K,V>" map ^T x]
+   (assoc! map (first x) (second x)))
+  (^{:tpl [K V C T]} [^:mut ^"std::map<K,V,C>" map ^T x]
+   (assoc! map (first x) (second x))))
 
 (defn disj!
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
@@ -95,46 +135,10 @@
   ([coll]
    (.size coll)))
 
-(defn empty? [coll]
-  (.empty coll))
-
-(defn get [map key]
-  (.at map key))
-
-(defn next [coll]
-  (let [^:mut tail coll]
-    (when-not (empty? tail)
-      (.pop_front tail))
-    tail))
-
 (defn cons [x coll]
   (let [^:mut tail coll]
     (.push_front tail x)
     tail))
-
-(defn first
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
-   (let [^:mut k (.-first coll)]
-     k))
-  ([coll]
-   (.front coll)))
-
-(defn first-opt ^{:tpl [T]} [^T coll]
-  (if (empty? coll)
-    ^"typename T::value_type" (std::experimental::fundamentals_v1::optional.)
-    (std::experimental::fundamentals_v1::make_optional (.front coll))))
-
-(def key first)
-
-(defn second
-  (^{:tpl [T]} [^std::forward_list<T> coll]
-   (first (next coll)))
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
-   (.-second coll))
-  ([x]
-   (get x 1)))
-
-(def val second)
 
 (defn nth
   (^{:tpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
@@ -166,43 +170,6 @@
 
 (defn constantly [x]
   (fn [] x))
-
-(defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::unordered_set. args...))
-
-(defn sorted-set ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::set. args...))
-
-(defn sorted-set-by ^{:tpl [T C ...Args]} [^C comp ^Args&... args]
-  (def ^std::initializer_list<T> s args...)
-  ^"T,C" (std::set. s comp))
-
-(defn hash-map ^{:tpl [K V ...Args]} [^Args&... args]
-  ($ "auto s = {args...}")
-  (let [^:mut m ^"K,V" (std::unordered_map.)]
-    (doseq [arg s]
-      (assoc! m (first arg) (second arg)))
-    m))
-
-(defn sorted-map ^{:tpl [K V ...Args]} [^Args&... args]
-  ($ "auto s = {args...}")
-  (let [^:mut m ^"K,V" (std::map.)]
-    (doseq [arg s]
-      (assoc! m (first arg) (second arg)))
-    m))
-
-(defn sorted-map-by ^{:tpl [K V C ...Args]} [^C comp ^Args&... args]
-  ($ "auto s = {args...}")
-  (let [^:mut m ^"K,V,C" (std::map. comp)]
-    (doseq [arg s]
-      (assoc! m (first arg) (second arg)))
-    m))
-
-(defn list ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::forward_list. args...))
-
-(defn vector ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::vector. args...))
 
 (defn identity ^{:tpl [T]} ^T&& [^:mut ^T&& x]
   ^T (std::forward x))
@@ -287,6 +254,37 @@
   (doseq [x from]
     (conj! to x))
   to)
+
+(defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::unordered_set. args...))
+
+(defn sorted-set ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::set. args...))
+
+(defn sorted-set-by ^{:tpl [T C ...Args]} [^C comp ^Args&... args]
+  ($ "auto xs = {args...}")
+  ^"T,C" (std::set. xs comp))
+
+(defn hash-map ^{:tpl [K V ...Args]} [^Args&... args]
+  ($ "auto xs = {args...}")
+  (let [^:mut m ^"K,V" (std::unordered_map.)]
+    (into! m xs)))
+
+(defn sorted-map ^{:tpl [K V ...Args]} [^Args&... args]
+  ($ "auto xs = {args...}")
+  (let [^:mut m ^"K,V" (std::map.)]
+    (into! m xs)))
+
+(defn sorted-map-by ^{:tpl [K V C ...Args]} [^C comp ^Args&... args]
+  ($ "auto xs = {args...}")
+  (let [^:mut m ^"K,V,C" (std::map. comp)]
+    (into! m xs)))
+
+(defn list ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::forward_list. args...))
+
+(defn vector ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::vector. args...))
 
 (defn set ^{:tpl [T]} [^T coll]
   (let [^:mut acc ^"typename T::value_type" #{}]
