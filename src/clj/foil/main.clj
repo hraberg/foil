@@ -666,7 +666,10 @@
    (print initial-indent)
    (emit-var-declaration name)
    (when (seq values)
-     (print " {")
+     (when (or (> (count values) 1)
+               (re-find #"\.\.\.$" (str (first values))))
+       (print " = "))
+     (print "{")
      (str/join ", "
                (for [value values]
                  (emit-expression value)))

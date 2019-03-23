@@ -262,22 +262,22 @@
   ^T (std::set. args...))
 
 (defn sorted-set-by ^{:tpl [T C ...Args]} [^C comp ^Args&... args]
-  ($ "auto xs = {args...}")
-  ^"T,C" (std::set. xs comp))
+  (let [^:mut xs args...]
+    ^"T,C" (std::set. xs comp)))
 
 (defn hash-map ^{:tpl [K V ...Args]} [^Args&... args]
-  ($ "auto xs = {args...}")
-  (let [^:mut m ^"K,V" (std::unordered_map.)]
+  (let [xs args...
+        ^:mut m ^"K,V" (std::unordered_map.)]
     (into! m xs)))
 
 (defn sorted-map ^{:tpl [K V ...Args]} [^Args&... args]
-  ($ "auto xs = {args...}")
-  (let [^:mut m ^"K,V" (std::map.)]
+  (let [xs args...
+        ^:mut m ^"K,V" (std::map.)]
     (into! m xs)))
 
 (defn sorted-map-by ^{:tpl [K V C ...Args]} [^C comp ^Args&... args]
-  ($ "auto xs = {args...}")
-  (let [^:mut m ^"K,V,C" (std::map. comp)]
+  (let [xs args...
+        ^:mut m ^"K,V,C" (std::map. comp)]
     (into! m xs)))
 
 (defn list ^{:tpl [T ...Args]} [^Args&... args]
