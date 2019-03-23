@@ -3,8 +3,8 @@
             [forward_list]
             [functional]
             [iostream]
-            [map]
-            [set]
+            [unordered_map]
+            [unordered_set]
             [vector]
             [experimental/optional]))
 
@@ -38,7 +38,7 @@
 ;; ($code "const std::bit_not<> _TILDE_;")
 
 (defn assoc!
-  (^{:tpl [K V]} [^:mut ^"std::map<K,V>" map ^K key ^V val]
+  (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
    (.insert_or_assign map key val)
    map))
 
@@ -49,23 +49,23 @@
   (^{:tpl [T]} [^:mut ^std::forward_list<T> coll ^T x]
    (.push_front coll x)
    coll)
-  (^{:tpl [T]} [^:mut ^std::set<T> coll ^T x]
+  (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]
    (.insert coll x)
    coll))
 
 (defn disj!
-  (^{:tpl [T]} [^:mut ^std::set<T> set ^T x]
+  (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
    (.erase set x)
    set))
 
 (defn dissoc!
-  (^{:tpl [K V]} [^:mut ^"std::map<K,V>" map ^K key]
+  (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key]
    (.erase map key)
    map))
 
 (defn contains?
-  (^{:tpl [K]} [^std::set<K> coll ^K key]
-   (> (.count coll key) 0))
+  (^{:tpl [K]} [^std::unordered_set<K> coll ^K key]
+   (= (.count coll key) 1))
   ([coll key]
    (.contains coll key)))
 
@@ -151,7 +151,7 @@
   (fn [] x))
 
 (defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::set. args...))
+  ^T (std::unordered_set. args...))
 
 (defn list ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::forward_list. args...))
@@ -238,7 +238,7 @@
    (print arg args...)
    (println)))
 
-(defn into! [^:mut to from]
+(defn into! ^{:tpl [T F]} ^T [^:mut ^T to ^F from]
   (doseq [x from]
     (conj! to x))
   to)

@@ -464,7 +464,7 @@
 
                 :else
                 (str "std::string," tag))]
-      (print (str "std::map<" tag ">"
+      (print (str "std::unordered_map<" tag ">"
                   "{" (str/join ", " (map (fn [[k v]]
                                             (str "{"
                                                  (with-out-str
@@ -479,7 +479,7 @@
         (vector? form))
     (print (str "std::" (cond
                           (seq? form) "forward_list"
-                          (set? form) "set"
+                          (set? form) "unordered_set"
                           (vector? form) "vector")
                 "<" (form->tag form) ">"
                 "{" (str/join ", " (map #(with-out-str
