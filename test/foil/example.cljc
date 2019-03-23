@@ -90,6 +90,9 @@
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
 
+    (doseq [x ^int (sorted-set-by > 8 7)]
+      (println x))
+
     (test-println *pi*)
     (binding [*pi* -1]
       (test-println *pi*))

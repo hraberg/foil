@@ -158,6 +158,10 @@
 (defn sorted-set ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::set. args...))
 
+(defn sorted-set-by ^{:tpl [T C ...Args]} [^C comp ^Args&... args]
+  (def ^std::initializer_list<T> s args...)
+  ^"T,C" (std::set. s comp))
+
 (defn list ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::forward_list. args...))
 
