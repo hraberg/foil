@@ -662,12 +662,15 @@
 (defn- emit-variable-definition
   ([form]
    (emit-variable-definition form *indent*))
-  ([[_ name value :as form] initial-indent]
+  ([[_ name & values :as form] initial-indent]
    (print initial-indent)
    (emit-var-declaration name)
-   (when value
-     (print " = ")
-     (emit-expression value))
+   (when (seq values)
+     (print " {")
+     (str/join ", "
+               (for [value values]
+                 (emit-expression value)))
+     (print "}"))
    (println ";")))
 
 (defn- collect-extra-headers [body]

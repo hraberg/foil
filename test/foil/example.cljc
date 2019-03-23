@@ -154,8 +154,7 @@
                         (map inc a))]
         (test-println x)))
 
-    (def ^:mut ^std::atomic<int> at)
-    (reset! at 2)
+    (def ^:mut ^std::atomic<int> at 2)
     (println @at)
     (swap! at + 3)
     (println @at)
