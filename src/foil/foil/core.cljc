@@ -65,6 +65,9 @@
   ([coll]
    (.front coll)))
 
+(defn ffirst [coll]
+  (first (first coll)))
+
 (defn first-opt ^{:tpl [T]} [^T coll]
   (if (empty? coll)
     ^"typename T::value_type" (std::experimental::fundamentals_v1::optional.)
