@@ -348,6 +348,7 @@
 
 (defn map ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
+    (.reserve acc (count coll))
     (doseq [x coll]
       (conj! acc (f x)))
     acc))
@@ -355,6 +356,7 @@
 (defn map-indexed ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut ^std::size_t n 0
         ^:mut acc ^"decltype(f(std::declval<std::size_t>(), std::declval<typename C::value_type>()))" []]
+    (.reserve acc (count coll))
     (doseq [x coll]
       (conj! acc (f n x))
       (set! n (inc n)))
@@ -430,12 +432,14 @@
 
 (defn repeat ^{:tpl [T]} [^std::size_t n ^T x]
   (let [^:mut acc ^T []]
+    (.reserve acc n)
     (dotimes [_ n]
       (conj! acc x))
     acc))
 
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
+    (.reserve acc n)
     (dotimes [_ n]
       (conj! acc (f)))
     acc))
