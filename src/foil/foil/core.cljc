@@ -327,6 +327,14 @@
       (conj! acc (f x)))
     acc))
 
+(defn map-indexed ^{:tpl [F C]} [^F f ^C coll]
+  (let [^:mut ^std::size_t n 0
+        ^:mut acc ^"decltype(f(std::declval<std::size_t>(), std::declval<typename C::value_type>()))" []]
+    (doseq [x coll]
+      (conj! acc (f n x))
+      (set! n (inc n)))
+    acc))
+
 (defn filter ^{:tpl [P C]} [^P pred ^C coll]
   (let [^:mut acc ^"typename C::value_type" []]
     (doseq [x coll]

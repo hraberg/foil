@@ -102,6 +102,10 @@
       (println (count (empty xs)))
       (println (count xs)))
 
+    (doseq [x (map-indexed (fn [idx _]
+                             idx) l)]
+      (println x))
+
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
