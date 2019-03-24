@@ -81,25 +81,25 @@
 
 (defn assoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
-   (aset map key val)
-   map)
+   (doto map
+     (aset key val)))
   (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key ^V val]
-   (aset map key val)
-   map))
+   (doto map
+     (aset key val))))
 
 (defn conj!
   (^{:tpl [T]} [^:mut ^std::vector<T> coll ^T x]
-   (.push_back coll x)
-   coll)
+   (doto coll
+     (.push_back x)))
   (^{:tpl [T]} [^:mut ^std::forward_list<T> coll ^T x]
-   (.push_front coll x)
-   coll)
+   (doto coll
+     (.push_front x)))
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]
-   (.insert coll x)
-   coll)
+   (doto coll
+     (.insert x)))
   (^{:tpl [T C]} [^:mut ^"std::set<T,C>" coll ^T x]
-   (.insert coll x)
-   coll)
+   (doto coll
+     (.insert x)))
   (^{:tpl [K V T]} [^:mut ^"std::unordered_map<K,V>" map ^T x]
    (assoc! map (first x) (second x)))
   (^{:tpl [K V C T]} [^:mut ^"std::map<K,V,C>" map ^T x]
@@ -107,19 +107,19 @@
 
 (defn disj!
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
-   (.erase set x)
-   set)
+   (doto set
+     (.erase x)))
   (^{:tpl [T C]} [^:mut ^"std::set<T,C>" set ^T x]
-   (.erase set x)
-   set))
+   (doto set
+     (.erase x))))
 
 (defn dissoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key]
-   (.erase map key)
-   map)
+   (doto map
+     (.erase key)))
   (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key]
-   (.erase map key)
-   map))
+   (doto map
+     (.erase key))))
 
 (defn contains?
   (^{:tpl [K]} [^std::unordered_set<K> coll ^K key]
@@ -142,8 +142,8 @@
 
 (defn cons [x coll]
   (let [^:mut tail coll]
-    (.push_front tail x)
-    tail))
+    (doto tail
+      (.push_front x))))
 
 (defn nth
   (^{:tpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]

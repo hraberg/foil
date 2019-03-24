@@ -141,7 +141,6 @@
                       (std::back_inserter x)
                       inc)
 
-
       (std::for_each (.begin x)
                      (.end x)
                      test-println)
@@ -165,8 +164,9 @@
 
       (test-println (reduce + xs))
 
-      (doseq [x (filter #(= (mod % 2) 0)
-                        (map inc a))]
+      (doseq [x (->> a
+                     (map inc)
+                     (filter #(= (mod % 2) 0)))]
         (test-println x)))
 
     (let [^:mut ^std::atomic<int> at 2]

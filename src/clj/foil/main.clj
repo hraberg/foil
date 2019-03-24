@@ -429,6 +429,24 @@
                         ")")))
         (emit-block body)))))
 
+(defmethod foil-macroexpand :doto [[_ x & forms]]
+  `(do
+     ~@(for [[y & ys] forms]
+         (concat [y x] ys))
+     ~x))
+
+(defmethod foil-macroexpand :-> [[_ x & forms]]
+  (reduce
+   (fn [x [y & ys]]
+     (concat [y x] ys))
+   x forms))
+
+(defmethod foil-macroexpand :->> [[_ x & forms]]
+  (reduce
+   (fn [x ys]
+     (concat ys [x]))
+   x forms))
+
 (defmethod foil-macroexpand :default [form]
   form)
 
