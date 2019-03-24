@@ -375,15 +375,26 @@
       (do (println)
           (emit-if form)))))
 
+(defmethod foil-macroexpand :if-not [[_ condition then else]]
+  `(~'if (~'not ~condition) ~then ~else))
+
+(defmethod foil-macroexpand :if-let [[_ binding then else]]
+  `(~'let ~binding (~'if ~(first binding) ~then ~else)))
+
 (defmethod foil-macroexpand :when [[_ condition & then]]
   `(~'if ~condition (~'do ~@then)))
 
 (defmethod foil-macroexpand :when-not [[_ condition & then]]
   `(~'when (~'not ~condition) ~@then))
 
+(defmethod foil-macroexpand :when-let [[_ binding & then]]
+  `(~'let ~binding (~'when ~(first binding) ~@then)))
+
 (defmethod foil-macroexpand :cond [[_ condition then & rest :as form]]
   (if then
-    `(~'if ~condition
+    `(~'if ~(if (= :else condition)
+              true
+              condition)
       ~then
       (~'cond
        ~@rest))
