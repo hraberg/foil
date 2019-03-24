@@ -402,6 +402,12 @@
       (conj! acc x))
     acc))
 
+(defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
+  (let [^:mut acc ^"decltype(f())" []]
+    (dotimes [_ n]
+      (conj! acc (f)))
+    acc))
+
 (defn keys [m]
   (map key m))
 

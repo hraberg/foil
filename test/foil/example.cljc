@@ -112,6 +112,8 @@
     (println (count (repeat 3 42)))
     (println (first (repeat 3 42)))
 
+    (println (= ^int '[42 42 42] (repeatedly 3 (constantly 42))))
+
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
