@@ -396,6 +396,7 @@
    (let [^:mut accs ^"typename C::value_type" []
          ^:mut acc (first coll)
          ^:mut first? true]
+     (.reserve accs (count coll))
      (doseq [x coll]
        (if first?
          (set! first? false)
@@ -405,6 +406,7 @@
   (^{:tpl [F T C]} [^F f ^T val ^C coll]
    (let [^:mut accs ^T []
          ^:mut acc val]
+     (.reserve accs (count coll))
      (doseq [x coll]
        (set! acc (f acc x))
        (conj! accs acc))
