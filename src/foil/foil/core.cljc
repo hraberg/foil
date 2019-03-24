@@ -391,6 +391,25 @@
        (set! acc (f acc x)))
      acc)))
 
+(defn reductions
+  (^{:tpl [F C]} [^F f ^C coll]
+   (let [^:mut accs ^"typename C::value_type" []
+         ^:mut acc (first coll)
+         ^:mut first? true]
+     (doseq [x coll]
+       (if first?
+         (set! first? false)
+         (set! acc (f acc x))
+         (conj! accs acc)))
+     accs))
+  (^{:tpl [F T C]} [^F f ^T val ^C coll]
+   (let [^:mut accs ^T []
+         ^:mut acc val]
+     (doseq [x coll]
+       (set! acc (f acc x))
+       (conj! accs acc))
+     accs)))
+
 (defn reverse ^{:tpl [C]} [^C coll]
   (let [^:mut acc ^"typename C::value_type" ()]
     (into! acc coll)))
