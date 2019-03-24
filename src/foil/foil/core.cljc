@@ -341,6 +341,31 @@
   (let [^:mut acc ^"typename C::value_type" ()]
     (into! acc coll)))
 
+(defn drop ^{:tpl [C]} [^std::size_t n ^C coll]
+  (let [^:mut ^std::size_t i 0
+        ^:mut acc ^"typename C::value_type" []]
+    (doseq [x coll]
+      (when (>= i n)
+        (conj! acc x))
+      (set! i (inc i)))
+    acc))
+
+(defn take ^{:tpl [C]} [^std::size_t n ^C coll]
+  (let [^:mut ^std::size_t i 0
+        ^:mut acc ^"typename C::value_type" []]
+    (doseq [x coll]
+      (if (= i n)
+        (return acc)
+        (conj! acc x))
+      (set! i (inc i)))
+    acc))
+
+(defn every? ^{:tpl [P C]} [^P pred ^C coll]
+  (doseq [x coll]
+    (when-not (pred x)
+      (return false)))
+  true)
+
 (defn keys [m]
   (map key m))
 

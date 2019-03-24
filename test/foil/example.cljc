@@ -87,7 +87,12 @@
     (my-fun x)
 
     (println (count (concat l s)))
-    (println (first (reverse l)))
+    (println (= ^int '(8 7) (reverse l)))
+
+    (println (every? pos? l))
+    (println (every? neg? l))
+    (println (= ^int [8] (drop 1 l)))
+    (println (= ^int [7] (take 1 l)))
 
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
