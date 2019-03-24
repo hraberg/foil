@@ -98,6 +98,9 @@
       (println (count (empty! xs)))
       (println (count xs)))
 
+    (println (= ^int '[8] (get (group-by even? l) true)))
+    (println (= ^int '[7] (get (group-by even? l) false)))
+
     (let [xs ^int [7]]
       (println (count (empty xs)))
       (println (count xs)))

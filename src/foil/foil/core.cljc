@@ -150,6 +150,10 @@
    (= (.count coll key) 1))
   (^{:tpl [K C]} [^"std::set<K,C>" coll ^K key]
    (= (.count coll key) 1))
+  (^{:tpl [K V]} [^"std::unordered_map<K,V>" coll ^K key]
+   (= (.count coll key) 1))
+  (^{:tpl [K V C]} [^"std::map<K,V,C>" coll ^K key]
+   (= (.count coll key) 1))
   ([coll key]
    (.contains coll key)))
 
