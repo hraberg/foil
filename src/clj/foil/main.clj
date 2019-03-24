@@ -431,7 +431,7 @@
      #(binding [*expr?* false
                 *tail?* false]
         (doseq [[var limit] (partition 2 bindings)]
-          (println (str "for (int " var " = 0; " var " < "
+          (println (str "for (int " var " = 0; " var " < (int) "
                         (binding [*expr?* true]
                           (with-out-str
                             (emit-expression limit))) "; " var "++)")))

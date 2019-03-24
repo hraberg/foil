@@ -107,7 +107,10 @@
       (println x))
 
     (println (= ^int '[7 8 8 9] (mapcat (fn [x]
-                                      ^int [x (inc x)]) l)))
+                                          ^int [x (inc x)]) l)))
+
+    (println (count (repeat 3 42)))
+    (println (first (repeat 3 42)))
 
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]

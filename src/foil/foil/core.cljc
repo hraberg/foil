@@ -393,6 +393,15 @@
       (return false)))
   true)
 
+(defn not-any? [pred coll]
+  (not (every? pred coll)))
+
+(defn repeat ^{:tpl [T]} [^std::size_t n ^T x]
+  (let [^:mut acc ^T []]
+    (dotimes [_ n]
+      (conj! acc x))
+    acc))
+
 (defn keys [m]
   (map key m))
 
