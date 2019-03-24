@@ -266,6 +266,10 @@
     (conj! to x))
   to)
 
+(defn concat [x y]
+  (let [^:mut acc x]
+    (into! acc y)))
+
 (defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::unordered_set. args...))
 

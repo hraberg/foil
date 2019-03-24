@@ -86,6 +86,8 @@
 
     (my-fun x)
 
+    (println (count (concat l s)))
+
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
