@@ -335,6 +335,13 @@
       (set! n (inc n)))
     acc))
 
+(defn mapcat ^{:tpl [F C]} [^F f ^C coll]
+  (let [^:mut acc ^"typename decltype(f(std::declval<typename C::value_type>()))::value_type" []]
+    (doseq [x coll
+            y (f x)]
+      (conj! acc y))
+    acc))
+
 (defn filter ^{:tpl [P C]} [^P pred ^C coll]
   (let [^:mut acc ^"typename C::value_type" []]
     (doseq [x coll]

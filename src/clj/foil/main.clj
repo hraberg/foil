@@ -482,54 +482,55 @@
   (instance? Pattern x))
 
 (defn- emit-literal [form]
-  (cond
-    (or (string? form)
-        (keyword? form))
-    (print (str "std::string(u8" (pr-str (str form)) ")"))
+  (binding [*tail?* false]
+    (cond
+      (or (string? form)
+          (keyword? form))
+      (print (str "std::string(u8" (pr-str (str form)) ")"))
 
-    (symbol? form)
-    (print (munge-name form))
+      (symbol? form)
+      (print (munge-name form))
 
-    (re? Pattern)
-    (print (str "std::regex(" (pr-str (str form)) ")"))
+      (re? Pattern)
+      (print (str "std::regex(" (pr-str (str form)) ")"))
 
-    (inst? form)
-    (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
+      (inst? form)
+      (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
 
-    (map? form)
-    (let [tag (form->tag form)
-          tag (cond
-                (string? tag)
-                tag
+      (map? form)
+      (let [tag (form->tag form)
+            tag (cond
+                  (string? tag)
+                  tag
 
-                (vector? tag)
-                (str/join "," tag)
+                  (vector? tag)
+                  (str/join "," tag)
 
-                :else
-                (str "std::string," tag))]
-      (print (str "std::unordered_map<" tag ">"
-                  "{" (str/join ", " (map (fn [[k v]]
-                                            (str "{"
-                                                 (with-out-str
-                                                   (emit-expression k))
-                                                 ", "
-                                                 (with-out-str
-                                                   (emit-expression v))
-                                                 "}")) form)) "}")))
+                  :else
+                  (str "std::string," tag))]
+        (print (str "std::unordered_map<" tag ">"
+                    "{" (str/join ", " (map (fn [[k v]]
+                                              (str "{"
+                                                   (with-out-str
+                                                     (emit-expression k))
+                                                   ", "
+                                                   (with-out-str
+                                                     (emit-expression v))
+                                                   "}")) form)) "}")))
 
-    (or (seq? form)
-        (set? form)
-        (vector? form))
-    (print (str "std::" (cond
-                          (seq? form) "forward_list"
-                          (set? form) "unordered_set"
-                          (vector? form) "vector")
-                "<" (form->tag form) ">"
-                "{" (str/join ", " (map #(with-out-str
-                                           (emit-expression %)) form)) "}"))
+      (or (seq? form)
+          (set? form)
+          (vector? form))
+      (print (str "std::" (cond
+                            (seq? form) "forward_list"
+                            (set? form) "unordered_set"
+                            (vector? form) "vector")
+                  "<" (form->tag form) ">"
+                  "{" (str/join ", " (map #(with-out-str
+                                             (emit-expression %)) form)) "}"))
 
-    :else
-    (pr form)))
+      :else
+      (pr form))))
 
 (defn- emit-code [[op & body]]
   (print (str/join body)))

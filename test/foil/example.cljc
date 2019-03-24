@@ -106,6 +106,9 @@
                              idx) l)]
       (println x))
 
+    (println (= ^int '[7 8 8 9] (mapcat (fn [x]
+                                      ^int [x (inc x)]) l)))
+
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
