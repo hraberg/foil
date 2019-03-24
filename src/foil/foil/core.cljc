@@ -46,6 +46,15 @@
   ([coll]
    (.empty coll)))
 
+(defn empty! ^{:tpl [T]} ^T [^:mut ^T coll]
+  (doto coll
+    (.clear)))
+
+(defn empty [coll]
+  (let [^:mut xs coll]
+    (doto xs
+      (.clear))))
+
 (defn get [map key]
   (.at map key))
 

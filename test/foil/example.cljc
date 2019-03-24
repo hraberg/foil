@@ -94,6 +94,14 @@
     (println (= ^int [8] (drop 1 l)))
     (println (= ^int [7] (take 1 l)))
 
+    (let [^:mut xs ^int [7]]
+      (println (count (empty! xs)))
+      (println (count xs)))
+
+    (let [xs ^int [7]]
+      (println (count (empty xs)))
+      (println (count xs)))
+
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
