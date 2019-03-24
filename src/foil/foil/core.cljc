@@ -139,6 +139,12 @@
    (doto map
      (.erase key))))
 
+(defn update!
+  (^{:tpl [K V F ...Args]} [^:mut ^"std::unordered_map<K,V>" m ^K k ^F f ^Args&... args]
+   (assoc! m k (f (get m k) args...)))
+  (^{:tpl [K V C F ...Args]} [^:mut ^"std::map<K,V,C>" m ^K k ^F f ^Args&... args]
+   (assoc! m k (f (get m k) args...))))
+
 (defn contains?
   (^{:tpl [K]} [^std::unordered_set<K> coll ^K key]
    (= (.count coll key) 1))
@@ -259,6 +265,13 @@
    (let [^:mut xs coll]
      (sort! comp xs)
      xs)))
+
+(defn sort-by
+  ([keyfn coll]
+   (sort-by keyfn < coll))
+  ([keyfn comp coll]
+   (sort (fn [a b]
+           (comp (keyfn a) (keyfn b))) coll)))
 
 (defn print
   ([arg]
