@@ -69,6 +69,12 @@
       (.pop_front tail))
     tail))
 
+(defn butlast [coll]
+  (let [^:mut xs coll]
+    (when-not (empty? xs)
+      (.pop_back xs))
+    xs))
+
 (defn second
   (^{:tpl [T]} [^std::forward_list<T> coll]
    (first (next coll)))
