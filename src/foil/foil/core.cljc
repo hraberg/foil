@@ -245,12 +245,20 @@
     true
     false))
 
-(defn sort
+(defn sort!
   ([^:mut coll]
-   (sort < coll))
+   (sort! < coll))
   ([comp ^:mut coll]
    (std::sort (.begin coll) (.end coll) comp)
    coll))
+
+(defn sort
+  ([coll]
+   (sort < coll))
+  ([comp coll]
+   (let [^:mut xs coll]
+     (sort! comp xs)
+     xs)))
 
 (defn print
   ([arg]
