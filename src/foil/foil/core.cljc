@@ -415,10 +415,8 @@
 (defn group-by ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>())),std::vector<typename C::value_type>" {}]
     (doseq [x coll]
-      (let [y (f x)]
-        (when (not (contains? acc y))
-          (aset acc y ^"typename C::value_type" []))
-        (conj! (aget acc y) x)))
+      (let [^:ref ^:mut k (aget acc (f x))]
+        (conj! k x)))
     acc))
 
 (defn every? ^{:tpl [P C]} [^P pred ^C coll]
