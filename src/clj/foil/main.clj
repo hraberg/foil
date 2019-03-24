@@ -400,6 +400,18 @@
        ~@rest))
     'nullptr))
 
+(defmethod foil-macroexpand :case [[_ e & clauses :as form]]
+  (let [e-sym (gensym 'case-e)]
+    `(~'let [~e-sym ~e]
+      (~'cond
+       ~@(apply concat
+                (for [[constant expr] (partition 2 clauses)]
+                  `[~(if (seq? constant)
+                       `(~'or ~@(for [constant constant]
+                                  `(~'= ~'case-e ~constant)))
+                       `(~'= ~'case-e ~constant))
+                    ~expr]))))))
+
 (defmethod foil-macroexpand :while [[_ condition & body :as form]]
   (if *expr?*
     `((~'fn ^:no-loop [] ~form ~'nullptr))
