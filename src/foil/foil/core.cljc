@@ -337,6 +337,10 @@
        (set! acc (f acc x)))
      acc)))
 
+(defn reverse ^{:tpl [C]} [^C coll]
+  (let [^:mut acc ^"typename C::value_type" ()]
+    (into! acc coll)))
+
 (defn keys [m]
   (map key m))
 
