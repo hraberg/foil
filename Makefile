@@ -24,16 +24,19 @@ $(TARGET)/foil/%.hpp: src/foil/foil/%.cljc $(UBERJAR)
 	mkdir -p `dirname $@`
 	java -jar $(UBERJAR) $< $@
 
+$(TARGET)/foil/%.hpp.ghc: $(TARGET)/foil/%.hpp
+	$(CXX) $< $(CXXFLAGS) -o $@
+
 $(TARGET)/%.s: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
 
 $(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
-$(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
+$(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp.ghc
 	$(CXX) $< $(CXXFLAGS) -o $@
 
-check: $(TARGET)/example $(TARGET)/example.cpp $(TARGET)/foil/core.hpp
+check: $(TARGET)/example $(TARGET)/example.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
