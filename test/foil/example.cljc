@@ -210,6 +210,8 @@
     (let [^:mut at (atom 2)]
       (println @at)
       (swap! at + 3)
+      (println @at)
+      (reset! at 4)
       (println @at))
 
     0))

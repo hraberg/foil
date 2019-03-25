@@ -482,8 +482,8 @@
   ([x]
    (* x)))
 
-(defn reset! [^:mut atom x]
-  (.store atom x)
+(defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
+  (.store (* atom) x)
   x)
 
 (defn swap! ^{:tpl [T F ...Args]} [^std::unique_ptr<std::atomic<T>> ^:mut atom ^F f ^Args&... args]
