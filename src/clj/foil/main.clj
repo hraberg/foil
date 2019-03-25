@@ -732,6 +732,9 @@
         (println ";")))
     (println (str *indent* "};"))))
 
+(defn- parameter-pack? [x]
+  (re-find #"\.\.\.$" (str x)))
+
 (defn- emit-variable-definition
   ([form]
    (emit-variable-definition form *indent*))
@@ -740,7 +743,7 @@
    (emit-var-declaration name)
    (when (seq values)
      (when (or (> (count values) 1)
-               (re-find #"\.\.\.$" (str (first values))))
+               (parameter-pack? (first values)))
        (print " = "))
      (print "{")
      (binding [*expr?* true
