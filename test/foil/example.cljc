@@ -207,7 +207,7 @@
                      (filter #(= (mod % 2) 0)))]
         (test-println x)))
 
-    (let [^:mut ^std::atomic<int> at 2]
+    (let [^:mut at (atom 2)]
       (println @at)
       (swap! at + 3)
       (println @at))

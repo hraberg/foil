@@ -477,6 +477,8 @@
 (defn deref
   (^{:tpl [T]} [^std::atomic<T> x]
    (.load x))
+  (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
+   (deref (* x)))
   ([x]
    (* x)))
 
@@ -484,14 +486,12 @@
   (.store atom x)
   x)
 
-(defn swap! ^{:tpl [T F ...Args]} [^std::atomic<T> ^:mut atom ^F f ^Args&... args]
+(defn swap! ^{:tpl [T F ...Args]} [^std::unique_ptr<std::atomic<T>> ^:mut atom ^F f ^Args&... args]
   (let [^:mut oldval @atom
         newval (f oldval args...)]
-    (if (.compare_exchange_strong atom oldval newval)
+    (if (.compare_exchange_strong (* atom) oldval newval)
       newval
       (recur))))
 
-#_(defn atom ^{:tpl [T]} ^std::atomic<T> [^T x]
-    (def ^std::atomic<T> ^:mut a)
-    (reset! a x)
-    a)
+(defn atom ^{:tpl [T]} [^T x]
+  ^"std::atomic<T>" (std::make_unique x))
