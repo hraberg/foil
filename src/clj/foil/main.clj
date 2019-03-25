@@ -472,6 +472,13 @@
     body
     (reverse (partition 2 bindings)))))
 
+(defmethod foil-macroexpand :for [[_ bindings body :as form]]
+  (let [acc-sym (gensym "__for")]
+    `(~'let [~(with-meta acc-sym {:mut true})
+             ~(with-meta [] {:tag (:tag (meta form))})]
+      (~'doseq ~bindings (~'conj! ~acc-sym ~body))
+      ~acc-sym)))
+
 (defmethod foil-macroexpand :doto [[_ x & forms]]
   `(do
      ~@(for [[y & ys] forms]

@@ -111,6 +111,10 @@
                              idx) l)]
       (println x))
 
+    (println (count ^std::size_t (for [x (map-indexed (fn [idx _]
+                                                        idx) l)]
+                                   x)))
+
     (println (= ^int '[7 8 8 9] (mapcat (fn [x]
                                           ^int [x (inc x)]) l)))
 
