@@ -464,7 +464,7 @@
          `(~'let ~v-binding ~@x)
 
          (= :while var)
-         `(~'if ~v-binding ~@x '(~'$code "break;"))
+         `(~'if ~v-binding (~'do ~@x) (~'$code "break;"))
 
          :else
          `(~'doseq* [~var ~v-binding] ~@x))])

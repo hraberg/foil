@@ -428,10 +428,9 @@
 (defn take ^{:tpl [C]} [^std::size_t n ^C coll]
   (let [^:mut ^std::size_t i 0
         ^:mut acc ^"typename C::value_type" []]
-    (doseq [x coll]
-      (if (= i n)
-        (return acc)
-        (conj! acc x))
+    (doseq [x coll
+            :while (< i n)]
+      (conj! acc x)
       (set! i (inc i)))
     acc))
 
