@@ -112,7 +112,8 @@
       (println x))
 
     (println (count ^std::size_t (for [x (map-indexed (fn [idx _]
-                                                        idx) l)]
+                                                        idx) l)
+                                       :when (even? x)]
                                    x)))
 
     (println (= ^int '[7 8 8 9] (mapcat (fn [x]
