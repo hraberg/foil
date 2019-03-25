@@ -43,6 +43,12 @@
 (def ^std::bit_xor<> bit-xor)
 (def ^std::bit_not<> bit-not)
 
+(defn optional
+  (^{:tpl [T]} []
+   ^T (std::experimental::fundamentals_v1::optional.))
+  (^{:tpl [T]} [^:mut ^T&& x]
+   (std::experimental::fundamentals_v1::make_optional ^T (std::forward x))))
+
 (defn empty?
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
    false)
@@ -73,8 +79,8 @@
 
 (defn first-opt ^{:tpl [T]} [^T coll]
   (if (empty? coll)
-    ^"typename T::value_type" (std::experimental::fundamentals_v1::optional.)
-    (std::experimental::fundamentals_v1::make_optional (.front coll))))
+    ^"typename T::value_type" (optional)
+    (optional (.front coll))))
 
 (def key first)
 
