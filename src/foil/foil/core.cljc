@@ -500,4 +500,4 @@
       (recur))))
 
 (defn atom ^{:tpl [T]} [^T x]
-  ^"std::atomic<T>" (box x))
+  ^std::atomic<T> (box x))
