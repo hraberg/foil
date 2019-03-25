@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.reader "1.3.2"]]
   :profiles {:uberjar {:jvm-opts ["-Dclojure.compiler.direct-linking=true"
-                                  "-Dclojure.spec.compile-asserts=false"]}}
+                                  "-Dclojure.spec.compile-asserts=false"
+                                  "-Dclojure.spec.skip-macros=true"]}}
   :source-paths ["src/clj"]
   :test-paths ["test/clj"]
   :global-vars {*warn-on-reflection* true}
