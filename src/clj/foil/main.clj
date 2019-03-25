@@ -740,9 +740,11 @@
                (re-find #"\.\.\.$" (str (first values))))
        (print " = "))
      (print "{")
-     (str/join ", "
-               (for [value values]
-                 (emit-expression value)))
+     (binding [*expr?* true
+               *tail?* false]
+       (str/join ", "
+                 (for [value values]
+                   (emit-expression value))))
      (print "}"))
    (println ";")))
 
