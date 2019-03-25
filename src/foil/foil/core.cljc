@@ -474,6 +474,12 @@
 (defn vals [m]
   (map val m))
 
+(defn box ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::make_unique args...))
+
+(defn rc ^{:tpl [T ...Args]} [^Args&... args]
+  ^T (std::make_shared args...))
+
 (defn deref
   (^{:tpl [T]} [^std::atomic<T> x]
    (.load x))
@@ -494,4 +500,4 @@
       (recur))))
 
 (defn atom ^{:tpl [T]} [^T x]
-  ^"std::atomic<T>" (std::make_unique x))
+  ^"std::atomic<T>" (box x))
