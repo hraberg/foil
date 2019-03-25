@@ -1,5 +1,6 @@
 (ns foil.main
-  (:require [clojure.tools.reader :as r]
+  (:require [clojure.java.io :as io]
+            [clojure.tools.reader :as r]
             [clojure.tools.reader.reader-types :as rt]
             [clojure.string :as str]
             [clojure.walk :as w])
@@ -790,4 +791,12 @@
       (println "#endif"))))
 
 (defn -main [& args]
-  (emit-source *in* *out*))
+  (case (count args)
+    0 (emit-source *in* *out*)
+    1 (with-open [in (io/reader (io/file (first args)))]
+        (binding [*file-name* (first args)]
+          (emit-source in *out*)))
+    2 (with-open [in (io/reader (io/file (first args)))
+                  out (io/writer (io/file (second args)))]
+        (binding [*file-name* (first args)]
+          (emit-source in out)))))

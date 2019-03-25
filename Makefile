@@ -18,11 +18,11 @@ clean:
 	rm -rf $(TARGET)
 
 $(TARGET)/%.cpp: test/foil/%.cljc $(UBERJAR)
-	cat $< | java -jar $(UBERJAR) > $@
+	java -jar $(UBERJAR) $< $@
 
 $(TARGET)/foil/%.hpp: src/foil/foil/%.cljc $(UBERJAR)
 	mkdir -p `dirname $@`
-	cat $< | java -jar $(UBERJAR) > $@
+	java -jar $(UBERJAR) $< $@
 
 $(TARGET)/%.s: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
