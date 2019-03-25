@@ -480,10 +480,11 @@
       ~acc-sym)))
 
 (defmethod foil-macroexpand :doto [[_ x & forms]]
-  `(do
-     ~@(for [[y & ys] forms]
-         (concat [y x] ys))
-     ~x))
+  (let [x-sym (gensym "__doto")]
+    `(~'let [~(with-meta x-sym {:mut true :ref true}) ~x]
+      ~@(for [[y & ys] forms]
+          (concat [y x-sym] ys))
+      ~x-sym)))
 
 (defmethod foil-macroexpand :-> [[_ x & forms]]
   (reduce
