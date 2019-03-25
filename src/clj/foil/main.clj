@@ -456,7 +456,18 @@
   (first
    (reduce
     (fn [x [var v-binding]]
-      [`(~'doseq* [~var ~v-binding] ~@x)])
+      [(cond
+         (= :when var)
+         `(~'when ~v-binding ~@x)
+
+         (= :let var)
+         `(~'let ~v-binding ~@x)
+
+         (= :while var)
+         `(~'if ~v-binding ~@x '(~'$code "break;"))
+
+         :else
+         `(~'doseq* [~var ~v-binding] ~@x))])
     body
     (reverse (partition 2 bindings)))))
 
