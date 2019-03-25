@@ -181,9 +181,9 @@
   ([coll index not-found]
    (let [^:mut n 0]
      (doseq [x coll]
-       (when (= n index)
-         (return x))
-       (set! n (inc n)))
+       (if (= n index)
+         (return x)
+         (set! n (inc n))))
      not-found)))
 
 (defn last
@@ -371,9 +371,9 @@
 
 (defn filter ^{:tpl [P C]} [^P pred ^C coll]
   (let [^:mut acc ^"typename C::value_type" []]
-    (doseq [x coll]
-      (when (pred x)
-        (conj! acc x)))
+    (doseq [x coll
+            :when (pred x)]
+      (conj! acc x))
     acc))
 
 (defn reduce
@@ -400,8 +400,8 @@
      (doseq [x coll]
        (if first?
          (set! first? false)
-         (set! acc (f acc x))
-         (conj! accs acc)))
+         (do (set! acc (f acc x))
+             (conj! accs acc))))
      accs))
   (^{:tpl [F T C]} [^F f ^T val ^C coll]
    (let [^:mut accs ^T []
@@ -437,10 +437,10 @@
 
 (defn group-by ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>())),std::vector<typename C::value_type>" {}]
-    (doseq [x coll]
-      (let [k (f x)
-            ^:ref ^:mut v (aget acc k)]
-        (conj! v x)))
+    (doseq [x coll
+            :let [k (f x)
+                  ^:ref ^:mut v (aget acc k)]]
+      (conj! v x))
     acc))
 
 (defn every? ^{:tpl [P C]} [^P pred ^C coll]
