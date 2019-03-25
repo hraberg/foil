@@ -22,7 +22,7 @@
 (def ^std::minus<> -)
 (def ^std::multiplies<> *)
 (def ^std::divides<> /)
-(def ^std::modulus<> %)
+(def ^std::modulus<> mod)
 
 (def ^std::equal_to<> =)
 (def ^std::not_equal_to<> !=)
@@ -35,10 +35,10 @@
 (def ^std::logical_or<> ||)
 (def ^std::logical_not<> !)
 
-(def ^std::bit_and<> &)
-(def ^std::bit_or<> |)
-;; ($code "const std::bit_xor<> _CARET_;")
-;; ($code "const std::bit_not<> _TILDE_;")
+(def ^std::bit_and<> bit-and)
+(def ^std::bit_or<> bit-or)
+(def ^std::bit_xor<> bit-xor)
+(def ^std::bit_not<> bit-not)
 
 (defn empty?
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
