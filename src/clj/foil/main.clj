@@ -10,7 +10,10 @@
 (defn- read-source [in]
   (let [r (rt/indexing-push-back-reader in 2)]
     (binding [r/*read-eval* false]
-      (->> (repeatedly #(r/read {:eof ::eof} r))
+      (->> (repeatedly #(r/read {:read-cond :allow
+                                 :features #{:foil
+                                             :c++}
+                                 :eof ::eof} r))
            (take-while #(not= ::eof %))
            (vec)))))
 
