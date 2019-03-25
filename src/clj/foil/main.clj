@@ -745,24 +745,6 @@
      (print "}"))
    (println ";")))
 
-(defn- collect-extra-headers [body]
-  (let [extra-headers (atom #{})]
-    (w/postwalk #(do (cond
-                       (re? %)
-                       (swap! extra-headers conj 'regex)
-
-                       (inst? %)
-                       (swap! extra-headers conj 'chrono)
-
-                       (and (seq? %) (= 'binding (first %)))
-                       (swap! extra-headers conj 'memory))
-                     %) body)
-    @extra-headers))
-
-(defn- emit-implicit-includes [forms]
-  (doseq [header (collect-extra-headers forms)]
-    (emit-include (vector 'include header))))
-
 (defn- emit-main [ns main]
   (when main
     (let [[_ _ main-args] main
@@ -789,7 +771,6 @@
           file-guard (str "FOIL_" (System/currentTimeMillis))]
       (println (str "#ifndef " file-guard))
       (println (str "#define " file-guard))
-      (emit-implicit-includes forms)
       (doseq [[top-level :as form] forms]
         (emit-line form)
         (binding [*indent* (if @ns

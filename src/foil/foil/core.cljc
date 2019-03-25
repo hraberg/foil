@@ -1,10 +1,13 @@
 (ns foil.core
   (:require [algorithm]
             [atomic]
+            [chrono]
             [forward_list]
             [functional]
             [iostream]
             [map]
+            [memory]
+            [regex]
             [set]
             [unordered_map]
             [unordered_set]
