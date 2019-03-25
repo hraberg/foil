@@ -431,11 +431,12 @@
     ($code
      #(binding [*expr?* false
                 *tail?* false]
-        (doseq [[var limit] (partition 2 bindings)]
-          (println (str "for (int " var " = 0; " var " < static_cast<int>("
+        (doseq [[var limit] (partition 2 bindings)
+                :let [limit-sym (gensym "__limit")]]
+          (println (str "for (int " var " = 0, " limit-sym " = static_cast<int>("
                         (binding [*expr?* true]
                           (with-out-str
-                            (emit-expression limit))) "); " var "++)")))
+                            (emit-expression limit))) "); " var " < " limit-sym "; " var "++)")))
         (emit-block body)))))
 
 (defmethod foil-macroexpand :doseq* [[_ [var v-binding] & body :as form]]
