@@ -33,7 +33,7 @@ $(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 $(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -o $@
 
-check: $(TARGET)/example $(TARGET)/example.s $(TARGET)/example.cpp $(TARGET)/foil/core.hpp
+check: $(TARGET)/example $(TARGET)/example.cpp $(TARGET)/foil/core.hpp
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
 
 $(NATIVE_IMAGE): $(UBERJAR)
