@@ -438,20 +438,27 @@
                             (emit-expression limit))) "); " var "++)")))
         (emit-block body)))))
 
-(defmethod foil-macroexpand :doseq [[_ bindings & body :as form]]
+(defmethod foil-macroexpand :doseq* [[_ [var v-binding] & body :as form]]
   (if *expr?*
     `((~'fn ^:no-loop [] ~form ~'nullptr))
     ($code
      #(binding [*expr?* false
                 *tail?* false]
-        (doseq [[[var v-binding] indent] (map vector (partition 2 bindings) (cons "" (repeat *indent*)))]
-          (println (str indent "for (" (with-out-str
-                                         (emit-var-declaration (maybe-make-ref var) 'auto)) " : "
-                        (binding [*expr?* true]
-                          (with-out-str
-                            (emit-expression v-binding)))
-                        ")")))
+        (println (str "for (" (with-out-str
+                                (emit-var-declaration (maybe-make-ref var) 'auto)) " : "
+                      (binding [*expr?* true]
+                        (with-out-str
+                          (emit-expression v-binding)))
+                      ")"))
         (emit-block body)))))
+
+(defmethod foil-macroexpand :doseq [[_ bindings & body :as form]]
+  (first
+   (reduce
+    (fn [x [var v-binding]]
+      [`(~'doseq* [~var ~v-binding] ~@x)])
+    body
+    (reverse (partition 2 bindings)))))
 
 (defmethod foil-macroexpand :doto [[_ x & forms]]
   `(do
