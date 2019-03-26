@@ -505,11 +505,11 @@
 (defn vals [m]
   (map val m))
 
-(defn box ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::make_unique args...))
+(defn box ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::make_unique ($ "std::forward<Args>(args)...")))
 
-(defn rc ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::make_shared args...))
+(defn rc ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::make_shared ($ "std::forward<Args>(args)...")))
 
 (defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
   (.store (* atom) x)
@@ -522,8 +522,8 @@
       newval
       (recur))))
 
-(defn atom ^{:tpl [T]} [^T x]
-  ^std::atomic<T> (box x))
+(defn atom ^{:tpl [T]} [^:mut ^T&& x]
+  ^std::atomic<T> (box ^T (std::forward x)))
 
 (defn re-pattern [s]
   (std::regex. s))
