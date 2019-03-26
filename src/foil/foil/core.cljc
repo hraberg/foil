@@ -14,9 +14,9 @@
             [vector]
             [experimental/optional]))
 
-(def ^:dynamic ^:ref *out* ^std::basic_ostream (<< std::cout std::boolalpha))
-(def ^:dynamic ^:ref *err* ^std::basic_ostream (<< std::cerr std::boolalpha))
-(def ^:dynamic ^:ref *in* ^std::basic_istream std::cin)
+(def ^:dynamic ^:ref ^std::ostream *out* (<< std::cout std::boolalpha))
+(def ^:dynamic ^:ref ^std::ostream *err* (<< std::cerr std::boolalpha))
+(def ^:dynamic ^:ref ^std::istream *in* std::cin)
 
 (def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
 (def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
