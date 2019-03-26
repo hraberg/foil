@@ -14,9 +14,9 @@
             [vector]
             [experimental/optional]))
 
-(def ^:dynamic ^:ref *out* (<< std::cout std::boolalpha))
-(def ^:dynamic ^:ref *err* (<< std::cerr std::boolalpha))
-(def ^:dynamic ^:ref *in* std::cin)
+(def ^:dynamic ^:ref *out* ^std::basic_ostream (<< std::cout std::boolalpha))
+(def ^:dynamic ^:ref *err* ^std::basic_ostream (<< std::cerr std::boolalpha))
+(def ^:dynamic ^:ref *in* ^std::basic_istream std::cin)
 
 (def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
 (def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
@@ -533,3 +533,13 @@
    (.substr s start))
   ([s start end]
    (.substr s start (- end start))))
+
+(defn str
+  ([]
+   "")
+  ([x]
+   (let [^:mut out (std::ostringstream.)]
+     (<< out std::boolalpha x)
+     (.str out)))
+  (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
+   (+ (str arg) (str args...))))

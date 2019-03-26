@@ -227,4 +227,6 @@
     (println (subs "hello" 2))
     (println (subs "hello" 1 3))
 
+    (println (str 2.2 false "foo"))
+
     0))
