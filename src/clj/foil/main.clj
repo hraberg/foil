@@ -240,7 +240,7 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (let [{:keys [const dynamic val ref & mut !]} (meta var)
+   (let [{:keys [const dynamic val ref & mut ! ptr]} (meta var)
          tag (form->tag var default-tag)
          ref? (and (or ref &)
                    (not val)
@@ -256,6 +256,8 @@
               (str tag
                    (when ref?
                      "&")
+                   (when ptr
+                     "*")
                    " " (if (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
                          (munge-name var))))))))

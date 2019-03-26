@@ -14,9 +14,9 @@
             [vector]
             [experimental/optional]))
 
-(def ^:dynamic *out* (& (<< std::cout std::boolalpha)))
-(def ^:dynamic *err* (& (<< std::cerr std::boolalpha)))
-(def ^:dynamic *in* (& std::cin))
+(def ^:dynamic ^:ptr ^std::ostream *out* (& (<< std::cout std::boolalpha)))
+(def ^:dynamic ^:ptr ^std::ostream *err* (& (<< std::cerr std::boolalpha)))
+(def ^:dynamic ^:ptr ^std::istream *in* (& std::cin))
 
 (def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
 (def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
