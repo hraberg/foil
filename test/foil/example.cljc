@@ -229,4 +229,9 @@
 
     (println (str 2.2 false "foo"))
 
+    (println (with-out-str
+               (print 42)))
+    (println (count (with-out-str
+                      (print 42))))
+
     0))

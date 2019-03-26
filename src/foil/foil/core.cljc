@@ -14,9 +14,9 @@
             [vector]
             [experimental/optional]))
 
-(def ^:dynamic ^:ref ^std::ostream *out* (<< std::cout std::boolalpha))
-(def ^:dynamic ^:ref ^std::ostream *err* (<< std::cerr std::boolalpha))
-(def ^:dynamic ^:ref ^std::istream *in* std::cin)
+(def ^:dynamic *out* (& (<< std::cout std::boolalpha)))
+(def ^:dynamic *err* (& (<< std::cerr std::boolalpha)))
+(def ^:dynamic *in* (& std::cin))
 
 (def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
 (def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
@@ -52,6 +52,14 @@
 (defn cast
   (^{:tpl [C T]} [^:mut ^T&& x]
    ^C (static_cast ^T (std::forward x))))
+
+(defn deref
+  (^{:tpl [T]} [^std::atomic<T> x]
+   (.load x))
+  (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
+   (deref (* x)))
+  ([x]
+   (* x)))
 
 (defn empty?
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
@@ -295,14 +303,14 @@
 
 (defn print
   ([arg]
-   (<< *out* arg))
+   (<< @*out* arg))
   (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg)
    (print " ")
    (print args...)))
 
 (defn flush []
-  (.flush *out*))
+  (.flush @*out*))
 
 (defn newline []
   (print "\n"))
@@ -502,14 +510,6 @@
 
 (defn rc ^{:tpl [T ...Args]} [^Args&... args]
   ^T (std::make_shared args...))
-
-(defn deref
-  (^{:tpl [T]} [^std::atomic<T> x]
-   (.load x))
-  (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
-   (deref (* x)))
-  ([x]
-   (* x)))
 
 (defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
   (.store (* atom) x)

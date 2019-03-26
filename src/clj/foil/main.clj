@@ -494,8 +494,8 @@
 
 (defmethod foil-macroexpand :with-out-str [[_ & body :as form]]
   (let [out-sym (gensym "__out")]
-    `(let [~out-sym (~(symbol "std::ostringstream."))]
-       (~'binding [~'*out*  ~out-sym]
+    `(let [~(with-meta out-sym {:mut true}) (~(symbol "std::ostringstream."))]
+       (~'binding [~'*out*  (~'& ~out-sym)]
         ~@body)
        (~'.str ~out-sym))))
 
