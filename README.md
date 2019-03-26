@@ -160,6 +160,95 @@ or `.cljc` in Foil, just defining a set that should work on both so
 one can consciously choose to target writing code in this set for
 certain use cases.
 
+## Reflections After Second Week
+
+Foil has mainly grown and gotten more features and the core has been
+split out to a `.hpp` file written in Foil. Many new (and improved)
+macros and functions. Some support for atoms and smart pointers.
+
+But the details of this can be seen in the code and in the git
+history. Let's instead reflect on the initial points set out at day
+one, as Foil has somewhat drifted into something more concrete.
+
+### Layered Design.
+#### Small Core. (Scheme, Shen, C)
+
+The core is small, and so is the compiler. But most of it's not
+currently reusable in any real sense, as there's a lot of things that
+tie both to C++ at the moment. The compiler still just walks the Lisp
+code and generates C++ directly without any intermediate passes or
+representation.
+
+### Gradual Regions -> GC. (Rust, Ada)
+#### Memory Safety.
+
+Foil embraces normal C++ RIAA and by default creates all data on the
+stack. Smart pointers can be used to create data on the heap. Raw
+pointer and array access is possible. So this area is still very
+basic.
+
+I'm considering to introduce `unsafe` blocks, and disallow (explicit)
+pointer and array access outside it (and potentially also
+interop). Foil doesn't support `nil` directly, but functions may still
+return `nullptr` during interop and some functions are inherently
+unsafe, like `front` on an empty vector for example.
+
+There's an example of `first-opt` which uses `std::optional`, but
+going down this route is quite intrusive, but would move the language
+closer to OCaml or Rust. Pattern matching then becomes if not needed,
+at least desirable.
+
+### Gradual Static -> Dynamic Typing. (Clojure, Typescript)
+#### Hindley-Milner Type Inference (OCaml, Rust, Typescript)
+
+Currently this is all done via `auto` type deduction and
+templates. Many places require explicit types, especially when it
+comes to collection element types. Templates make the compilation
+slower, but in overall this area works quite well.
+
+C++ has quite confusing (or elaborate) reference, move and copy
+semantics, so it's bound to have some issues currently. By default
+local variables are created as by value and function template
+parameters as by reference, this is a bit ad-hoc.
+
+### Easy C (or host) Interop. (C, Rust, Graal)
+#### Predictable Performance.
+#### SIMD Intrinsics.
+#### Safe libc Wrapper.
+
+As Foil compiles directly to C++, all this is potentially alreaday
+there. There's no safe wrappers yet, and performance isn't necessarily
+predicable or tuned. Foil has a `$code` macro the allows to splice in
+verbal host (C++) code into the generated output.
+
+### Lisp Syntax. (Clojure, Scheme)
+#### Standard library inspired by Clojure / Scheme R7RS + libc.
+#### Macros.
+#### REPL: Preferable but Not Key.
+
+Apart from REPL all this is true, but macros still have to be written
+using Clojure. `foil.core` is inspired by `clojure.core` and is a
+superset of a subset. For a while I aimed to keep it R7RS inspired as
+well, but decided to stick mainly to Clojure as it created too much
+duplication and confusion in a small language.
+
+### Gradual Purely Functional -> Systems Programming. (Clojure, OCaml, Rust)
+#### Persistent Data Structures.
+#### Eager By Default, Lazy Possible.
+
+Foil currently only support eager, mutable collections, but it does
+also support the basic higher order functions expected from functional
+programming. Unlike Clojure, variables can be declared to be mutable
+by adding `^:mut`.
+
+### Verified Design by Contract. (Ada/SPARK)
+
+Nothing done here yet.
+
+### Gradual Systems Programming -> WebAssembly (Rust, Graal)
+
+Foil still only compiles to C++.
+
 ## Name
 
 Unknown to me, turns out there are (at least) a few things called
