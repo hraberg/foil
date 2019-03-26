@@ -126,6 +126,8 @@
 
     (println (= ^int '[42 42 42] (repeatedly 3 (constantly 42))))
 
+    (println (empty? ^int (hash-set)))
+
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))
