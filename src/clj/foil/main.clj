@@ -492,6 +492,13 @@
           (concat [y x-sym] ys))
       ~x-sym)))
 
+(defmethod foil-macroexpand :with-out-str [[_ & body :as form]]
+  (let [out-sym (gensym "__out")]
+    `(let [~out-sym (~(symbol "std::ostringstream."))]
+       (~'binding [~'*out*  ~out-sym]
+        ~@body)
+       (~'.str ~out-sym))))
+
 (defmethod foil-macroexpand :-> [[_ x & forms]]
   (reduce
    (fn [x [y & ys]]
