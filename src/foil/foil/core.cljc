@@ -49,6 +49,10 @@
   (^{:tpl [T]} [^:mut ^T&& x]
    (std::experimental::fundamentals_v1::make_optional ^T (std::forward x))))
 
+(defn cast
+  (^{:tpl [C T]} [^:mut ^T&& x]
+   ^C (static_cast ^T (std::forward x))))
+
 (defn empty?
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
    false)

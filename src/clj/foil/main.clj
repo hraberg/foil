@@ -107,6 +107,8 @@
 
 (def ^:private fn-replacements '{clojure.core/deref deref})
 
+(def ^:private builtins '#{static_cast})
+
 (declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda
          emit-function-body emit-variable-definition foil-macroexpand emit-if)
 
@@ -216,7 +218,8 @@
       (let [f (get fn-replacements f f)]
         (emit-expression f)
         (when-let [tag (maybe-template-params form)]
-          (when-not (re-find #"::" (str f))
+          (when-not (or (re-find #"::" (str f))
+                        (contains? builtins f))
             (println ".operator()"))
           (print (str "<" tag ">")))
         (print (str "(" (str/join ", " (map #(with-out-str

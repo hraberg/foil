@@ -216,4 +216,6 @@
       (reset! at 4)
       (println @at))
 
+    (println ^int (cast 1.2))
+
     0))
