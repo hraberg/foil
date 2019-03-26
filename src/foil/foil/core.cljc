@@ -226,7 +226,7 @@
   (- n 1))
 
 (defn constantly [x]
-  (fn [] x))
+  (fn [^auto... _] x))
 
 (defn identity ^{:tpl [T]} ^T&& [^:mut ^T&& x]
   ^T (std::forward x))
