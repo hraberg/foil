@@ -190,8 +190,8 @@
    (.size coll)))
 
 (defn cons
-  (^{:tpl [T1 T2]} [^T1 car ^T2 cdr]
-   ^"T1,T2" (std::pair. car cdr))
+  ([car cdr]
+   (std::make_pair car cdr))
   (^{:tpl [T]} [^T x ^std::forward_list<T> coll]
    (let [^:mut tail coll]
      (doto tail
