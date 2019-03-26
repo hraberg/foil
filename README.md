@@ -294,6 +294,8 @@ http://www.stroustrup.com/resource-model.pdf
 https://www.youtube.com/watch?v=zt0OQb1DBko
 https://stackoverflow.com/questions/2067988/recursive-lambda-functions-in-c11
 https://github.com/arximboldi/immer
+https://github.com/Ableton/atria
+https://github.com/solodon4/Mach7
 https://github.com/nlohmann/json
 https://gist.github.com/foonathan/023ff0fe923c6b0312dfc15e17ebb595
 http://tutok.sk/fastgl/callback.html
