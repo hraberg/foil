@@ -527,3 +527,9 @@
 
 (defn re-pattern [s]
   (std::regex. s))
+
+(defn subs
+  ([s start]
+   (.substr s start))
+  ([s start end]
+   (.substr s start (- end start))))

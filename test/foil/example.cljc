@@ -224,5 +224,7 @@
       (println @at))
 
     (println ^int (cast 1.2))
+    (println (subs "hello" 2))
+    (println (subs "hello" 1 3))
 
     0))
