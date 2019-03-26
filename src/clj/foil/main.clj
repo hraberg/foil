@@ -223,7 +223,9 @@
             (print ".operator()"))
           (print (str "<" tag ">")))
         (print (str "(" (str/join ", " (map #(with-out-str
-                                                 (emit-expression %)) args)) ")"))))))
+                                               (emit-expression %)) args)) ")"))
+        (when (:... (meta form))
+          (print "..."))))))
 
 (defn- emit-return [[_ value :as from]]
   (let [maybe-expanded (when (and (seq? value)
@@ -803,8 +805,8 @@
             (include require) (emit-include form)
             def (emit-variable-definition form)
             defn (do (when (= '-main (second form))
-                               (reset! main form))
-                             (emit-function form))
+                       (reset! main form))
+                     (emit-function form))
             (defrecord defstruct) (emit-struct form)
             ($code $) (do (print *indent*)
                           (emit-code form)

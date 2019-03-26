@@ -506,10 +506,10 @@
   (map val m))
 
 (defn box ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
-  ^T (std::make_unique ($ "std::forward<Args>(args)...")))
+  ^T (std::make_unique ^Args ^:... (std::forward args)))
 
 (defn rc ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
-  ^T (std::make_shared ($ "std::forward<Args>(args)...")))
+  ^T (std::make_shared ^Args ^:... (std::forward args)))
 
 (defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
   (.store (* atom) x)
