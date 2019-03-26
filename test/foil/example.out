@@ -94,5 +94,5 @@ foo str
 llo
 el
 2.2falsefoo
-42
-2
+42 true
+5
