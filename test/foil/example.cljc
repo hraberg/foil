@@ -58,6 +58,8 @@
     (println (count (next (next l))))
     (println (count (next (next (next l)))))
 
+    (println (second (cons 1 2)))
+
     (when-let [f (first-opt l)]
       (println @f))
     (when-not (first-opt ^int ())

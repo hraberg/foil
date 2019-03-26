@@ -181,10 +181,13 @@
   ([coll]
    (.size coll)))
 
-(defn cons [x coll]
-  (let [^:mut tail coll]
-    (doto tail
-      (.push_front x))))
+(defn cons
+  (^{:tpl [T1 T2]} [^T1 car ^T2 cdr]
+   ^"T1,T2" (std::pair. car cdr))
+  (^{:tpl [T]} [^T x ^std::forward_list<T> coll]
+   (let [^:mut tail coll]
+     (doto tail
+       (.push_front x)))))
 
 (defn nth
   (^{:tpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
