@@ -524,3 +524,6 @@
 
 (defn atom ^{:tpl [T]} [^T x]
   ^std::atomic<T> (box x))
+
+(defn re-pattern [s]
+  (std::regex. s))

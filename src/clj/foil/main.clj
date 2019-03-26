@@ -525,8 +525,8 @@
       (symbol? form)
       (print (munge-name form))
 
-      (re? Pattern)
-      (print (str "std::regex(" (pr-str (str form)) ")"))
+      (re? form)
+      (print (str "re_pattern(u8" (pr-str (str form)) ")"))
 
       (inst? form)
       (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
@@ -542,26 +542,26 @@
 
                   :else
                   (str "std::string," tag))]
-        (print (str "std::unordered_map<" tag ">"
-                    "{" (str/join ", " (map (fn [[k v]]
-                                              (str "{"
+        (print (str "hash_map.operator()<" tag ">"
+                    "(" (str/join ", " (map (fn [[k v]]
+                                              (str "cons("
                                                    (with-out-str
                                                      (emit-expression k))
                                                    ", "
                                                    (with-out-str
                                                      (emit-expression v))
-                                                   "}")) form)) "}")))
+                                                   ")")) form)) ")")))
 
       (or (seq? form)
           (set? form)
           (vector? form))
-      (print (str "std::" (cond
-                            (seq? form) "forward_list"
-                            (set? form) "unordered_set"
-                            (vector? form) "vector")
-                  "<" (form->tag form) ">"
-                  "{" (str/join ", " (map #(with-out-str
-                                             (emit-expression %)) form)) "}"))
+      (print (str (cond
+                    (seq? form) "list"
+                    (set? form) "hash_set"
+                    (vector? form) "vector")
+                  ".operator()<" (form->tag form) ">"
+                  "(" (str/join ", " (map #(with-out-str
+                                             (emit-expression %)) form)) ")"))
 
       :else
       (pr form))))
