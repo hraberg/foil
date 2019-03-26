@@ -220,7 +220,7 @@
         (when-let [tag (maybe-template-params form)]
           (when-not (or (re-find #"::" (str f))
                         (contains? builtins f))
-            (println ".operator()"))
+            (print ".operator()"))
           (print (str "<" tag ">")))
         (print (str "(" (str/join ", " (map #(with-out-str
                                                  (emit-expression %)) args)) ")"))))))
