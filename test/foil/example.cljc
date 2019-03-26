@@ -25,6 +25,8 @@
         m ^std::string {:foo "bar"}
         s ^int #{1 2}
         l ^int (list 7 8)
+        r #"\n"
+        d #inst "1980"
         my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))
         ^:mut ss ^int [2 3 1]]
 

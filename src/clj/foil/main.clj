@@ -526,7 +526,7 @@
       (print (munge-name form))
 
       (re? form)
-      (print (str "re_pattern(u8" (pr-str (str form)) ")"))
+      (emit-application `(~'re-pattern ~(str form)))
 
       (inst? form)
       (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
@@ -542,26 +542,23 @@
 
                   :else
                   (str "std::string," tag))]
-        (print (str "hash_map.operator()<" tag ">"
-                    "(" (str/join ", " (map (fn [[k v]]
-                                              (str "cons("
-                                                   (with-out-str
-                                                     (emit-expression k))
-                                                   ", "
-                                                   (with-out-str
-                                                     (emit-expression v))
-                                                   ")")) form)) ")")))
+        (emit-application (with-meta
+                            (cons
+                             'hash-map
+                             (for [[k v] form]
+                               `(~'cons ~k ~v)))
+                            {:tag tag})))
 
       (or (seq? form)
           (set? form)
           (vector? form))
-      (print (str (cond
-                    (seq? form) "list"
-                    (set? form) "hash_set"
-                    (vector? form) "vector")
-                  ".operator()<" (form->tag form) ">"
-                  "(" (str/join ", " (map #(with-out-str
-                                             (emit-expression %)) form)) ")"))
+      (emit-application (with-meta
+                          (cons (cond
+                                  (seq? form) 'list
+                                  (set? form) 'hash_set
+                                  (vector? form) 'vector)
+                                form)
+                          {:tag (form->tag form)}))
 
       :else
       (pr form))))
