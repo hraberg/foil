@@ -307,7 +307,11 @@
 (defmethod foil-macroexpand :fn [[_ args & body :as form]]
   ($code
    (fn []
-     (print (str "[=] ("
+     (print (str "["
+                 (if (:ref (meta args))
+                   "&"
+                   "=")
+                 "] ("
                  (->> args
                       (map #(with-out-str
                               (emit-var-declaration %)))
@@ -366,7 +370,7 @@
   (when (seq body)
     (if (= 1 (count body))
       (first body)
-      `((~'fn ^:no-loop [] ~@body)))))
+      `((~'fn ^:no-loop ^:ref [] ~@body)))))
 
 (defmethod foil-macroexpand :do [form]
   (macroexpand-do form))
@@ -616,7 +620,7 @@
                              (seq? form)
                              (= 'fn (first form)))
                     (print "return "))
-                  (emit-expression macro-expansion)))))))))
+                  (recur macro-expansion)))))))))
 
 (def ^:dynamic ^:private *file-name* nil)
 
@@ -759,9 +763,10 @@
      (print "{")
      (binding [*expr?* true
                *tail?* false]
-       (str/join ", "
-                 (for [value values]
-                   (emit-expression value))))
+       (print (str/join ", "
+                        (for [value values]
+                          (with-out-str
+                            (emit-expression value))))))
      (print "}"))
    (println ";")))
 

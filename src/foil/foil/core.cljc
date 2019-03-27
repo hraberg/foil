@@ -468,13 +468,12 @@
           x))))
 
 (defn take ^{:tpl [C]} [^std::size_t n ^C coll]
-  (let [^:mut ^std::size_t i 0
-        ^:mut acc ^"typename C::value_type" []]
-    (doseq [x coll
-            :while (< i n)]
-      (conj! acc x)
-      (set! i (inc i)))
-    acc))
+  (let [^:mut ^std::size_t i 0]
+    ^"typename C::value_type"
+    (for [x coll
+          :while (< i n)]
+      (do (set! i (inc i))
+          x))))
 
 (defn take-while ^{:tpl [P C]} [^P pred ^C coll]
   ^"typename C::value_type"
