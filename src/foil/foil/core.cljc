@@ -236,11 +236,9 @@
 (defn partial
   ([f]
    f)
-  (^{:tpl [F Arg]} [^F f ^Arg arg]
-   (fn [arg2]
-     (f arg arg2)))
-  (^{:tpl [F Arg ...Args]} [^F f ^Arg arg ^Args&... args]
-   (partial (partial f arg) args...)))
+  (^{:tpl [F ...Args]} [^F f ^Args&... args]
+   (fn [^auto... p-args]
+     (f args... p-args...))))
 
 (defn nil? [x]
   (= nullptr x))
