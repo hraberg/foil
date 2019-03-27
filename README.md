@@ -300,6 +300,7 @@ https://github.com/nlohmann/json
 https://gist.github.com/foonathan/023ff0fe923c6b0312dfc15e17ebb595
 http://tutok.sk/fastgl/callback.html
 https://vittorioromeo.info/index/blog/passing_functions_to_functions.html
+https://brycelelbach.github.io/cpp17_features/
 
 ## License
 
