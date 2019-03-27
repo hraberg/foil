@@ -322,10 +322,10 @@
      (print (str *indent* "}")))))
 
 (defmethod foil-macroexpand :fn* [[_ args & body :as form]]
-  `(fn ~args ~@body))
+  `(~'fn ~args ~@body))
 
 (defmethod foil-macroexpand :λ [[_ args & body :as form]]
-  `(fn ~args ~@body))
+  `(~'fn ~args ~@body))
 
 (defmethod foil-macroexpand :let [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
