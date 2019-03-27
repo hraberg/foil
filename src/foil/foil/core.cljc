@@ -528,10 +528,10 @@
   ^:unsafe (.store (* atom) x)
   x)
 
-(defn swap! ^{:tpl [T F ...Args]} [^std::unique_ptr<std::atomic<T>> ^:mut atom ^F f ^Args&... args]
+(defn swap! ^{:tpl [T F ...Args]} [^std::unique_ptr<std::atomic<T>> ^:mut atom ^F f ^:mut ^Args&&... args]
   ^:unsafe
   (let [^:mut oldval @atom
-        newval (f oldval args...)]
+        newval (f oldval ^Args ^:... (std::forward args))]
     (if (.compare_exchange_strong (* atom) oldval newval)
       newval
       (recur))))
