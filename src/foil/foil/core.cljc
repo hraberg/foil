@@ -163,10 +163,10 @@
      (.erase key))))
 
 (defn update!
-  (^{:tpl [K V F ...Args]} [^:mut ^"std::unordered_map<K,V>" m ^K k ^F f ^Args&... args]
-   (assoc! m k (f (get m k) args...)))
-  (^{:tpl [K V C F ...Args]} [^:mut ^"std::map<K,V,C>" m ^K k ^F f ^Args&... args]
-   (assoc! m k (f (get m k) args...))))
+  (^{:tpl [K V F ...Args]} [^:mut ^"std::unordered_map<K,V>" m ^K k ^F f ^:mut ^Args&&... args]
+   (assoc! m k (f (get m k) ^Args ^:... (std::forward args))))
+  (^{:tpl [K V C F ...Args]} [^:mut ^"std::map<K,V,C>" m ^K k ^F f ^:mut ^Args&&... args]
+   (assoc! m k (f (get m k) ^Args ^:... (std::forward args)))))
 
 (defn contains?
   (^{:tpl [K]} [^std::unordered_set<K> coll ^K key]
@@ -302,12 +302,12 @@
            (comp (keyfn a) (keyfn b))) coll)))
 
 (defn print
-  ([arg]
-   ^:unsafe (<< @*out* arg))
-  (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
-   (print arg)
+  (^{:tpl [Arg]} [^:mut ^Arg&& arg]
+   ^:unsafe (<< @*out* ^Arg (std::forward arg)))
+  (^{:tpl [Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
+   (print ^Arg (std::forward arg))
    (print " ")
-   (print args...)))
+   (print ^Args ^:... (std::forward args))))
 
 (defn flush []
   ^:unsafe (.flush @*out*))
@@ -318,8 +318,8 @@
 (defn println
   ([]
    (newline))
-  (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
-   (print arg args...)
+  (^{:tpl [Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
+   (print ^Arg (std::forward arg) ^Args ^:... (std::forward args))
    (println)))
 
 (defn into! ^{:tpl [T F]} ^T [^:mut ^T to ^F from]
@@ -331,11 +331,11 @@
   (let [^:mut acc x]
     (into! acc y)))
 
-(defn hash-set ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::unordered_set. args...))
+(defn hash-set ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::unordered_set. ^Args ^:... (std::forward args)))
 
-(defn sorted-set ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::set. args...))
+(defn sorted-set ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::set. ^Args ^:... (std::forward args)))
 
 (defn sorted-set-by
   (^{:tpl [T C]} [^C comp]
@@ -368,11 +368,11 @@
          ^:mut m ^"K,V,C" (std::map. comp)]
      (into! m xs))))
 
-(defn list ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::forward_list. args...))
+(defn list ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::forward_list. ^Args ^:... (std::forward args)))
 
-(defn vector ^{:tpl [T ...Args]} [^Args&... args]
-  ^T (std::vector. args...))
+(defn vector ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::vector. ^Args ^:... (std::forward args)))
 
 (defn set ^{:tpl [T]} [^T coll]
   (let [^:mut acc ^"typename T::value_type" #{}]
