@@ -524,11 +524,17 @@
 (defn rc ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
   ^T (std::make_shared ^Args ^:... (std::forward args)))
 
+(defn weak
+  (^{:tpl [T]} [^T x]
+   ^"typename T::element_type" (std::weak_ptr. x))
+  (^{:tpl [T]} [^:mut ^T&& x]
+   ^"typename T::element_type" (std::weak_ptr. ^T (std::forward x))))
+
 (defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
   ^:unsafe (.store (* atom) x)
   x)
 
-(defn swap! ^{:tpl [T F ...Args]} [^std::unique_ptr<std::atomic<T>> ^:mut atom ^F f ^:mut ^Args&&... args]
+(defn swap! ^{:tpl [T F ...Args]} [^:mut ^std::unique_ptr<std::atomic<T>> atom ^F f ^:mut ^Args&&... args]
   ^:unsafe
   (let [^:mut oldval @atom
         newval (f oldval ^Args ^:... (std::forward args))]

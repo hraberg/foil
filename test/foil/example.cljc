@@ -36,7 +36,10 @@
 
     ^:unsafe
     (let [sp1 ^std::vector<int> (rc ^int [1 2])
-          sp2 (identity sp1)]
+          sp2 (identity sp1)
+          w (weak sp2)]
+      (weak w)
+      (weak (weak sp2))
       (println (aget @sp1 0))
       (aset (* sp1) 0 0)
       (println (= @sp2 @sp1))
