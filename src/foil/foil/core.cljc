@@ -459,6 +459,14 @@
       (set! i (inc i)))
     acc))
 
+(defn drop-while ^{:tpl [P C]} [^P pred ^C coll]
+  (let [^:mut drop? true]
+    ^"typename C::value_type"
+    (for [x coll
+          :when (not (and drop? (p x)))]
+      (do (set! drop? false)
+          x))))
+
 (defn take ^{:tpl [C]} [^std::size_t n ^C coll]
   (let [^:mut ^std::size_t i 0
         ^:mut acc ^"typename C::value_type" []]
@@ -467,6 +475,12 @@
       (conj! acc x)
       (set! i (inc i)))
     acc))
+
+(defn take-while ^{:tpl [P C]} [^P pred ^C coll]
+  ^"typename C::value_type"
+  (for [x coll
+        :while (p x)]
+    x))
 
 (defn group-by ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>())),std::vector<typename C::value_type>" {}]
