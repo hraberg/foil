@@ -2,9 +2,7 @@
   (:require [cstdio]
             [cmath]
             [algorithm]
-            [functional]
-            [iostream]
-            [memory]))
+            [iostream]))
 
 (defrecord Point ^{:tpl "<typename X = int>"} [^X x ^int y])
 
