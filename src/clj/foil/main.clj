@@ -269,7 +269,7 @@
               (str tag
                    (when ref?
                      "&")
-                   (when ptr
+                   (when (or ptr (:* (meta var)))
                      "*")
                    " " (if (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
