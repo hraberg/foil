@@ -336,6 +336,15 @@
         ~@body)
       (meta form))))
 
+(defmethod foil-macroexpand :def [form]
+  (emit-variable-definition form))
+
+(defmethod foil-macroexpand :return [form]
+  (emit-return form))
+
+(defmethod foil-macroexpand :recur [form]
+  (emit-recur form))
+
 (defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
     (with-meta
@@ -346,23 +355,22 @@
         ~@(map second bindings))
       (meta form))))
 
+(defmethod foil-macroexpand :defer [[_ & body :as form]]
+  (let [defer-sym (gensym "__defer")]
+    `(~'def ~defer-sym ^"std::ostream,std::function<void(std::ostream*)>"
+      (~(symbol "std::unique_ptr.") (~'& ~(symbol "std::cout"))
+       (~'fn ^:no-loop ^:ref [~'_]
+        ~@body)))))
+
 (defmethod foil-macroexpand :binding [[op bindings & body :as form]]
   (with-meta
     `(~'do
-      ~@(for [[var v-binding] (partition 2 bindings)
-              :let [old-binding (gensym "__old_binding")]]
-          ($code
-           #(do (emit-variable-definition ['def old-binding var] "")
-                (binding [*indent* (str *indent* default-indent)]
-                  (print *indent*)
-                  (println (format "auto %s = std::unique_ptr<decltype(%s), std::function<void(decltype(%s)*)>>(&%s, [](auto old) { %s = *old; });"
-                                   (gensym "__binding_guard")
-                                   old-binding
-                                   old-binding
-                                   old-binding
-                                   (munge-name var)))
-                  (print *indent*)
-                  (emit-assignment ['set! var v-binding])))))
+      ~@(->> (for [[var v-binding] (partition 2 bindings)
+                   :let [old-binding (gensym "__old_binding")]]
+               `[(~'def ~old-binding ~var)
+                 (~'defer (~'set! ~var ~old-binding))
+                 (~'set! ~var ~v-binding)])
+             (apply concat))
       ~@body)
     (meta form)))
 
@@ -631,16 +639,10 @@
 
 (defn- emit-expression-statement [form]
   (emit-line form)
-  (case (if (seq? form)
-          (first form)
-          ::literal)
-    return (emit-return form)
-    recur (emit-recur form)
-    def (emit-variable-definition form)
-    (binding [*expr?* false]
-      (print *indent*)
-      (emit-expression form)
-      (println ";"))))
+  (binding [*expr?* false]
+    (print *indent*)
+    (emit-expression form)
+    (println ";")))
 
 (defn- emit-body [body]
   (loop [[x & xs] body]
