@@ -66,6 +66,7 @@
 
 (def ^:dynamic ^:private *tail?* false)
 (def ^:dynamic ^:private *expr?* false)
+(def ^:dynamic ^:private *unsafe?* false)
 (def ^:dynamic ^:private *return-type* default-tag)
 
 (def ^:private unary-op '{not !
@@ -104,6 +105,8 @@
                            << <<
                            bit-shift-right >>
                            >> >>})
+
+(def ^:private unsafe-ops '#{& * aget aset deref})
 
 (def ^:private fn-replacements '{clojure.core/deref deref})
 
@@ -154,13 +157,18 @@
       (str/join "," tag)
       tag)))
 
+(defn- check-unsafe [[f :as form]]
+  (assert (or *unsafe?* (not (contains? unsafe-ops f)))
+          (str "Operation requires unsafe: " (pr-str form))))
+
 (defn- emit-application [[f & args :as form]]
   (binding [*tail?* false
             *expr?* true]
     (cond
       (and (contains? unary-op f)
            (= 1 (count args)))
-      (do (print (str "(" (get unary-op f)))
+      (do (check-unsafe form)
+          (print (str "(" (get unary-op f)))
           (emit-expression (first args))
           (print ")"))
 
@@ -180,10 +188,12 @@
           (print ")"))
 
       (= 'aget f)
-      (emit-array-access args)
+      (do (check-unsafe form)
+          (emit-array-access args))
 
       (= 'aset f)
-      (do (emit-array-access (butlast args))
+      (do (check-unsafe form)
+          (emit-array-access (butlast args))
           (print " = ")
           (emit-expression (last args)))
 
@@ -216,6 +226,7 @@
 
       :else
       (let [f (get fn-replacements f f)]
+        (check-unsafe form)
         (emit-expression f)
         (when-let [tag (maybe-template-params form)]
           (when-not (or (re-find #"::" (str f))
@@ -358,7 +369,7 @@
 (defmethod foil-macroexpand :defer [[_ & body :as form]]
   (let [defer-sym (gensym "__defer")]
     `(~'def ~defer-sym ^"std::ostream,std::function<void(std::ostream*)>"
-      (~(symbol "std::unique_ptr.") (~'& ~(symbol "std::cout"))
+      (~(symbol "std::unique_ptr.") ^:unsafe (~'& ~(symbol "std::cout"))
        (~'fn ^:no-loop ^:ref [~'_]
         ~@body)))))
 
@@ -501,7 +512,7 @@
       (~'doseq ~bindings (~'conj! ~acc-sym ~body))
       ~acc-sym)))
 
-(defmethod foil-macroexpand :doto [[_ x & forms]]
+(defmethod foil-macroexpand :doto [[_ x & forms :as form]]
   (let [x-sym (gensym "__doto")]
     `(~'let [~(with-meta x-sym {:mut true :ref true}) ~x]
       ~@(for [[y & ys] forms]
@@ -511,7 +522,7 @@
 (defmethod foil-macroexpand :with-out-str [[_ & body :as form]]
   (let [out-sym (gensym "__out")]
     `(~'let [~(with-meta out-sym {:mut true}) (~(symbol "std::ostringstream."))]
-      (~'binding [~'*out*  (~'& (~'<< ~out-sym ~(symbol "std::boolalpha")))]
+      (~'binding [~'*out*  ^:unsafe (~'& (~'<< ~out-sym ~(symbol "std::boolalpha")))]
        ~@body)
       (~'.str ~out-sym))))
 
@@ -590,45 +601,49 @@
   (print (str/join body)))
 
 (defn- emit-expression [form]
-  (let [needs-return? (and *tail?*
-                           (not= 'void *return-type*)
-                           (not (and (seq? form)
-                                     (= 'return (first form)))))]
-    (if (or (literal? form) *quote?*)
-      (do (when needs-return?
-            (print "return "))
-          (emit-literal form))
-      (let [op (first form)]
-        (cond
-          (contains? '#{$code $} op)
-          (emit-code form)
-
-          (= 'quote op)
-          (binding [*quote?* true]
-            (when needs-return?
+  (binding [*unsafe?* (or (:unsafe (meta form)) *unsafe?*)]
+    (let [needs-return? (and *tail?*
+                             (not= 'void *return-type*)
+                             (not (and (seq? form)
+                                       (= 'return (first form)))))]
+      (if (or (literal? form) *quote?*)
+        (do (when needs-return?
               (print "return "))
-            (emit-literal (with-meta
-                            (second form)
-                            (meta form))))
+            (emit-literal form))
+        (let [op (first form)]
+          (cond
+            (contains? '#{$code $} op)
+            (emit-code form)
 
-          (and (= 'do op)
-               (not *expr?*))
-          (emit-block (next form) "")
+            (= 'quote op)
+            (binding [*quote?* true]
+              (when needs-return?
+                (print "return "))
+              (emit-literal (with-meta
+                              (second form)
+                              (meta form))))
 
-          :else
-          (let [macro-expansion (foil-macroexpand form)]
-            (cond
-              (= form macro-expansion)
-              (do (when needs-return?
-                    (print "return "))
-                  (emit-application form))
+            (and (= 'do op)
+                 (not *expr?*))
+            (emit-block (next form) "")
 
-              (not (nil? macro-expansion))
-              (do (when (and needs-return?
-                             (seq? form)
-                             (= 'fn (first form)))
-                    (print "return "))
-                  (recur macro-expansion)))))))))
+            :else
+            (let [macro-expansion (foil-macroexpand form)]
+              (cond
+                (= form macro-expansion)
+                (do (when needs-return?
+                      (print "return "))
+                    (emit-application form))
+
+                (not (nil? macro-expansion))
+                (do (when (and needs-return?
+                               (seq? form)
+                               (= 'fn (first form)))
+                      (print "return "))
+                    (emit-expression (vary-meta
+                                      macro-expansion
+                                      update :unsafe (fn [x]
+                                                       (or x (:unsafe (meta macro-expansion)))))))))))))))
 
 (def ^:dynamic ^:private *file-name* nil)
 

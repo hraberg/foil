@@ -14,9 +14,9 @@
             [vector]
             [experimental/optional]))
 
-(def ^:dynamic ^:ptr ^std::ostream *out* (& (<< std::cout std::boolalpha)))
-(def ^:dynamic ^:ptr ^std::ostream *err* (& (<< std::cerr std::boolalpha)))
-(def ^:dynamic ^:ptr ^std::istream *in* (& std::cin))
+(def ^:dynamic ^:ptr ^std::ostream *out* ^:unsafe (& (<< std::cout std::boolalpha)))
+(def ^:dynamic ^:ptr ^std::ostream *err* ^:unsafe (& (<< std::cerr std::boolalpha)))
+(def ^:dynamic ^:ptr ^std::istream *in* ^:unsafe (& std::cin))
 
 (def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
 (def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
@@ -57,9 +57,9 @@
   (^{:tpl [T]} [^std::atomic<T> x]
    (.load x))
   (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
-   (deref (* x)))
+   ^:unsafe (deref (* x)))
   ([x]
-   (* x)))
+   ^:unsafe (* x)))
 
 (defn empty?
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
@@ -120,9 +120,11 @@
 
 (defn assoc!
   (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
+   ^:unsafe
    (doto map
      (aset key val)))
   (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key ^V val]
+   ^:unsafe
    (doto map
      (aset key val))))
 
@@ -303,14 +305,14 @@
 
 (defn print
   ([arg]
-   (<< @*out* arg))
+   ^:unsafe (<< @*out* arg))
   (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (print arg)
    (print " ")
    (print args...)))
 
 (defn flush []
-  (.flush @*out*))
+  ^:unsafe (.flush @*out*))
 
 (defn newline []
   (print "\n"))
@@ -485,7 +487,7 @@
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>())),std::vector<typename C::value_type>" {}]
     (doseq [x coll
             :let [k (f x)
-                  ^:ref ^:mut v (aget acc k)]]
+                  ^:ref ^:mut v ^:unsafe (aget acc k)]]
       (conj! v x))
     acc))
 
@@ -525,10 +527,11 @@
   ^T (std::make_shared ^Args ^:... (std::forward args)))
 
 (defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
-  (.store (* atom) x)
+  ^:unsafe (.store (* atom) x)
   x)
 
 (defn swap! ^{:tpl [T F ...Args]} [^std::unique_ptr<std::atomic<T>> ^:mut atom ^F f ^Args&... args]
+  ^:unsafe
   (let [^:mut oldval @atom
         newval (f oldval args...)]
     (if (.compare_exchange_strong (* atom) oldval newval)

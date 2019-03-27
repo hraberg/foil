@@ -34,6 +34,7 @@
     (doseq [x (sort ss)]
       (println x))
 
+    ^:unsafe
     (let [sp1 ^std::vector<int> (rc ^int [1 2])
           sp2 (identity sp1)]
       (println (aget @sp1 0))
@@ -60,6 +61,7 @@
 
     (println (second (cons 1 2)))
 
+    ^:unsafe
     (when-let [f (first-opt l)]
       (println @f))
     (when-not (first-opt ^int ())
@@ -68,8 +70,8 @@
     (println (nth ^std::string ["hello" "world"] 1 "?"))
     (println (nth ^std::string ["hello" "world"] 3 "?"))
 
-    (aset a 0 4)
-    (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (get m :foo)) foo (contains? s 1) (contains? s 3))
+    ^:unsafe (aset a 0 4)
+    ^:unsafe (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (get m :foo)) foo (contains? s 1) (contains? s 3))
 
     (doseq [x m]
       (println (key x))
@@ -215,6 +217,7 @@
                      (filter #(= (mod % 2) 0)))]
         (test-println x)))
 
+    ^:unsafe
     (let [^:mut at (atom 2)]
       (println @at)
       (swap! at + 3)
