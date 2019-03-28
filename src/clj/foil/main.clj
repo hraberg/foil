@@ -113,7 +113,7 @@
 (def ^:private builtins '#{static_cast})
 
 (declare emit-block emit-expression-statement emit-expression emit-expression-in-lambda
-         emit-function-body emit-variable-definition foil-macroexpand emit-if)
+         emit-function-body emit-var-definition foil-macroexpand emit-if)
 
 (defn- needs-loop-target? [body]
   (let [recur-found? (atom false)]
@@ -238,17 +238,6 @@
         (when (:... (meta form))
           (print "..."))))))
 
-(defn- emit-return [[_ value :as from]]
-  (let [maybe-expanded (when (and (seq? value)
-                                  (not *expr?*))
-                         (foil-macroexpand value))]
-    (if (= 'do (first maybe-expanded))
-      (emit-expression maybe-expanded)
-      (do (print (str *indent* "return "))
-          (binding [*expr?* true]
-            (emit-expression value))
-          (println ";")))))
-
 (defn- emit-var-declaration
   ([var]
    (emit-var-declaration var default-tag))
@@ -297,16 +286,6 @@
 
 (def ^:dynamic ^:private *loop-vars*)
 
-(defn- emit-recur [[_ & expressions :as form]]
-  (assert *loop-vars* "Not in a loop.")
-  (assert *tail?* "Can only recur from tail position.")
-  (doseq [[var expression] (map vector *loop-vars* expressions)]
-    (print (str *indent* (munge-name var) " = "))
-    (binding [*expr?* true
-              *tail?* false]
-      (emit-expression expression))
-    (println ";")))
-
 (defn- $code [f]
   `(~'$code
     ~(with-out-str
@@ -348,13 +327,28 @@
       (meta form))))
 
 (defmethod foil-macroexpand :def [form]
-  (emit-variable-definition form))
+  (emit-var-definition form))
 
-(defmethod foil-macroexpand :return [form]
-  (emit-return form))
+(defmethod foil-macroexpand :return [[_ value :as from]]
+  (let [maybe-expanded (when (and (seq? value)
+                                  (not *expr?*))
+                         (foil-macroexpand value))]
+    (if (= 'do (first maybe-expanded))
+      (emit-expression maybe-expanded)
+      (do (print (str *indent* "return "))
+          (binding [*expr?* true]
+            (emit-expression value))
+          (println ";")))))
 
-(defmethod foil-macroexpand :recur [form]
-  (emit-recur form))
+(defmethod foil-macroexpand :recur [[_ & expressions :as form]]
+  (assert *loop-vars* "Not in a loop.")
+  (assert *tail?* "Can only recur from tail position.")
+  (doseq [[var expression] (map vector *loop-vars* expressions)]
+    (print (str *indent* (munge-name var) " = "))
+    (binding [*expr?* true
+              *tail?* false]
+      (emit-expression expression))
+    (println ";")))
 
 (defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
@@ -767,9 +761,9 @@
 (defn- parameter-pack? [x]
   (re-find #"\.\.\.$" (str x)))
 
-(defn- emit-variable-definition
+(defn- emit-var-definition
   ([form]
-   (emit-variable-definition form *indent*))
+   (emit-var-definition form *indent*))
   ([[_ name & values :as form] initial-indent]
    (print initial-indent)
    (emit-var-declaration name)
@@ -825,7 +819,7 @@
                      (emit-using ['use 'foil.core]))
                    (emit-headers form))
             (include require) (emit-include form)
-            def (emit-variable-definition form)
+            def (emit-var-definition form)
             defn (do (when (= '-main (second form))
                        (reset! main form))
                      (emit-function form))
