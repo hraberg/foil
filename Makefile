@@ -34,7 +34,7 @@ $(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
 $(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp.ghc
-	$(CXX) $< $(CXXFLAGS) -o $@
+	$(CXX) $< $(CXXFLAGS) -fsanitize=address -o $@
 
 check: $(TARGET)/example $(TARGET)/example.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")

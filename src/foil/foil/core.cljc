@@ -81,10 +81,11 @@
 
 (defn first
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
-   (let [^:mut k (.-first coll)]
-     k))
+   (let [^:mut x (.-first coll)]
+     x))
   ([coll]
-   (.front coll)))
+   (let [^:mut x (.front coll)]
+     x)))
 
 (defn ffirst [coll]
   (first (first coll)))
@@ -112,7 +113,8 @@
   (^{:tpl [T]} [^std::forward_list<T> coll]
    (first (next coll)))
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
-   (.-second coll))
+   (let [^:mut x (.-second coll)]
+     x))
   ([x]
    (get x 1)))
 
@@ -195,9 +197,10 @@
   ([car cdr]
    (std::make_pair car cdr))
   (^{:tpl [T]} [^T x ^std::forward_list<T> coll]
-   (let [^:mut tail coll]
-     (doto tail
-       (.push_front x)))))
+   (let [^:mut tail coll
+         ^:val tail-ret (doto tail
+                          (.push_front x))]
+     tail-ret)))
 
 (defn nth
   (^{:tpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
