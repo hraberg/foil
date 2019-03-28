@@ -65,7 +65,7 @@
     (println (second (cons 1 2)))
 
     (let [c (cons-2 10 (cons-2 20 nullptr))]
-      (doseq [x @c]
+      (doseq [x c]
         (println x)))
 
     ^:unsafe

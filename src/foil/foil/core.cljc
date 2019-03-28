@@ -46,8 +46,10 @@
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
 (defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> head])
 
-(defmethod begin ^{:tpl [T]} [^:mut ^Cons<T> cons]
-  ^:unsafe ^T (ConsIterator. (& cons)))
+(defmethod begin ^{:tpl [T]} [^Cons<T> cons]
+  ^:unsafe
+  (let [^:mut x cons]
+    ^T (ConsIterator. (& x))))
 
 (defmethod end ^{:tpl [T]} [^Cons<T> _]
   ^T (ConsIterator. nullptr))
@@ -64,18 +66,14 @@
   it)
 
 (defn cons-2
-  (^{:tpl [T]} [^T car ^:val ^std::nullptr_t _]
-   ^:unsafe
-   (let [n ^Cons<T> (std::make_shared)]
-     (set! (.-car (* n)) car)
-     (set! (.-cdr (* n)) nullptr)
-     n))
-  (^{:tpl [T]} [^T car ^:val ^std::shared_ptr<Cons<T>> cdr]
-   ^:unsafe
-   (let [n ^Cons<T> (std::make_shared)]
-     (set! (.-car (* n)) car)
-     (set! (.-cdr (* n)) cdr)
-     n)))
+  (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
+   ^T (Cons. car cdr))
+  (^{:tpl [T]} [^T car ^std::shared_ptr<Cons<T>> cdr]
+   ^T (Cons. car cdr))
+  (^{:tpl [T]} [^T car ^Cons<T> cdr]
+   (cons-2 car ^Cons<T> (std::make_shared cdr)))
+  (^{:tpl [T]} [^T car ^Cons<T>&& cdr]
+   (cons-2 car ^Cons<T> (std::make_shared cdr))))
 
 (defn optional
   (^{:tpl [T]} []
