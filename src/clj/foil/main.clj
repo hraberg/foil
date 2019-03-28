@@ -677,7 +677,8 @@
 
 (defn- emit-function-body [f args body]
   (binding [*indent* (str *indent* default-indent)
-            *tail?* true]
+            *tail?* true
+            *unsafe?* (:unsafe (meta args))]
     (if (and (not (:no-loop (meta args)))
              (needs-loop-target? body))
       (binding [*loop-vars* args]

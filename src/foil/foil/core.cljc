@@ -49,8 +49,8 @@
 (defmethod begin ^{:tpl [T]} [^:mut ^Cons<T> cons]
   ^:unsafe ^T (ConsIterator. (& cons)))
 
-(defmethod end ^{:tpl [T]} [^:mut ^Cons<T> _]
-  ^:unsafe ^T (ConsIterator. nullptr))
+(defmethod end ^{:tpl [T]} [^Cons<T> _]
+  ^T (ConsIterator. nullptr))
 
 (defmethod operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
   (not= (.-head x) (.-head y)))
