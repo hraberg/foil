@@ -64,13 +64,13 @@
   it)
 
 (defn cons-2
-  (^{:tpl [T]} ^std::shared_ptr<Cons<T>> [^T car ^:val ^std::nullptr_t _]
+  (^{:tpl [T]} [^T car ^:val ^std::nullptr_t _]
    ^:unsafe
    (let [n ^Cons<T> (std::make_shared)]
      (set! (.-car (* n)) car)
      (set! (.-cdr (* n)) nullptr)
      n))
-  (^{:tpl [T]} ^std::shared_ptr<Cons<T>> [^T car ^:val ^std::shared_ptr<Cons<T>> cdr]
+  (^{:tpl [T]} [^T car ^:val ^std::shared_ptr<Cons<T>> cdr]
    ^:unsafe
    (let [n ^Cons<T> (std::make_shared)]
      (set! (.-car (* n)) car)
