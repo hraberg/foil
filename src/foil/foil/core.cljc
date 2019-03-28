@@ -84,7 +84,7 @@
    (let [^:mut x (.-first coll)]
      x))
   ([coll]
-   (let [^:mut x (.front coll)]
+   (let [x (.front coll)]
      x)))
 
 (defn ffirst [coll]
@@ -198,8 +198,8 @@
    (std::make_pair car cdr))
   (^{:tpl [T]} [^T x ^std::forward_list<T> coll]
    (let [^:mut tail coll
-         ^:val tail-ret (doto tail
-                          (.push_front x))]
+         tail-ret (doto tail
+                    (.push_front x))]
      tail-ret)))
 
 (defn nth
