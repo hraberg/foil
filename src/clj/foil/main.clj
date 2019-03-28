@@ -717,7 +717,7 @@
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))
-          member? (:mem (meta f))]
+          member? (= 'defmethod op)]
       (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
@@ -737,24 +737,22 @@
       (emit-function-body f args body)
       (println (str *indent* "}")))))
 
+(defn- emit-function-arities [[op f args? :as form]]
+  (if (vector? args?)
+    (emit-function-arity form)
+    (doseq [arity (drop 2 form)]
+      (emit-function-arity (concat [op f] arity)))))
+
 (defn- emit-function [[op f args? :as form]]
   (let [fn-name (str "__" (munge-name f))
         fn-type (str "__T_"(munge-name f))]
     (println)
-    (if (:mem (meta f))
-      (if (vector? args?)
-        (emit-function-arity form)
-        (doseq [arity (drop 2 form)]
-          (emit-function-arity (concat [op f] arity))))
-      (do (println (str *indent* "struct " fn-type " {"))
-          (binding [*indent* (str default-indent *indent*)]
-            (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
-            (if (vector? args?)
-              (emit-function-arity form)
-              (doseq [arity (drop 2 form)]
-                (emit-function-arity (concat [op f] arity)))))
-          (println (str *indent* "};"))
-          (println (str *indent* "const " fn-type " " (munge f) ";"))))))
+    (do (println (str *indent* "struct " fn-type " {"))
+        (binding [*indent* (str default-indent *indent*)]
+          (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
+          (emit-function-arities form))
+        (println (str *indent* "};"))
+        (println (str *indent* "const " fn-type " " (munge f) ";")))))
 
 (defn- emit-struct [[_ name fields :as form]]
   (let [field-template-names (for [field fields]
@@ -835,6 +833,7 @@
             defn (do (when (= '-main (second form))
                        (reset! main form))
                      (emit-function form))
+            defmethod (emit-function-arities form)
             (defrecord defstruct) (emit-struct form)
             ($code $) (do (print *indent*)
                           (emit-code form)
