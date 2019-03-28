@@ -153,9 +153,10 @@
 
 (defn- maybe-template-params [form]
   (let [tag (form->tag form nil)]
-    (if (vector? tag)
-      (str/join "," tag)
-      tag)))
+    (cond-> (if (vector? tag)
+              (str/join "," tag)
+              tag)
+      (:ptr (meta form)) (str "*"))))
 
 (defn- check-unsafe [[f :as form]]
   (assert (or *unsafe?* (not (contains? unsafe-ops f)))
@@ -246,6 +247,7 @@
          tag (form->tag var default-tag)
          ref? (and (or ref &)
                    (not val)
+                   (not ptr)
                    (not (re-find #"\&" (str tag))))]
      (when (= '_ var)
        (print "__attribute__((unused)) "))

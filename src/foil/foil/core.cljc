@@ -43,6 +43,51 @@
 (def ^std::bit_xor<> bit-xor)
 (def ^std::bit_not<> bit-not)
 
+(defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
+(defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> head])
+
+($ "
+template <typename T>
+ConsIterator<T> begin(Cons<T>& cons) {
+    return ConsIterator<T>{&cons};
+}
+
+template<typename T>
+ConsIterator<T> end(__attribute__((unused)) Cons<T>& cons) {
+    return ConsIterator<T>{nullptr};
+}
+
+template<typename T>
+bool operator!=(__attribute__((unused)) ConsIterator<T>& x, __attribute__((unused)) ConsIterator<T>& y) {
+    return x.head != y.head;
+}
+
+template<typename T>
+T operator*(ConsIterator<T>& it) {
+    return it.head->car;
+}
+
+template<typename T>
+ConsIterator<T>& operator++(ConsIterator<T>& it) {
+    it.head = it.head->cdr.get();
+    return it;
+}
+")
+
+(defn cons-2
+  (^{:tpl [T]} ^std::shared_ptr<Cons<T>> [^:val ^T car ^:val ^std::nullptr_t _]
+   ^:unsafe
+   (let [n ^Cons<T> (std::make_shared)]
+     (set! (.-car (* n)) car)
+     (set! (.-cdr (* n)) nullptr)
+     n))
+  (^{:tpl [T]} ^std::shared_ptr<Cons<T>> [^:val ^T car ^:val ^std::shared_ptr<Cons<T>> cdr]
+   ^:unsafe
+   (let [n ^Cons<T> (std::make_shared)]
+     (set! (.-car (* n)) car)
+     (set! (.-cdr (* n)) cdr)
+     n)))
+
 (defn optional
   (^{:tpl [T]} []
    ^T (std::experimental::fundamentals_v1::optional.))
