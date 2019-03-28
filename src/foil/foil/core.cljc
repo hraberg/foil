@@ -44,21 +44,22 @@
 (def ^std::bit_not<> bit-not)
 
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> head])
 
-(defn ^:raw begin ^{:tpl [T]} [^:mut ^Cons<T> cons]
+(defn ^:mem begin ^{:tpl [T]} [^:mut ^Cons<T> cons]
   ^:unsafe ^T (ConsIterator. (& cons)))
 
-(defn ^:raw end ^{:tpl [T]} [^:mut ^Cons<T> _]
+(defn ^:mem end ^{:tpl [T]} [^:mut ^Cons<T> _]
   ^:unsafe ^T (ConsIterator. nullptr))
 
-(defn ^:raw operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
+(defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> head])
+
+(defn ^:mem operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
   (not= (.-head x) (.-head y)))
 
-(defn ^:raw operator* ^{:tpl [T]} [^ConsIterator<T> it]
+(defn ^:mem operator* ^{:tpl [T]} [^ConsIterator<T> it]
   ^:unsafe (.-car (* (.-head it))))
 
-(defn ^:raw operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
+(defn ^:mem operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
   ^:unsafe
   (set! (.-head it) (.get (.-cdr (* (.-head it)))))
   it)

@@ -717,14 +717,14 @@
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))
-          raw? (:raw (meta f))]
+          member? (:mem (meta f))]
       (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
                     "decltype(auto)"
                     *return-type*)
                   " "
-                  (if raw?
+                  (if member?
                     (munge-name f)
                     "operator()")
                   (str "("
@@ -732,7 +732,7 @@
                               (with-out-str
                                 (emit-var-declaration (maybe-make-ref (maybe-add-template-name arg tn)))))
                             (str/join ", "))
-                       ") " (when-not raw?
+                       ") " (when-not member?
                               "const ") "{")))
       (emit-function-body f args body)
       (println (str *indent* "}")))))
@@ -741,7 +741,7 @@
   (let [fn-name (str "__" (munge-name f))
         fn-type (str "__T_"(munge-name f))]
     (println)
-    (if (:raw (meta f))
+    (if (:mem (meta f))
       (if (vector? args?)
         (emit-function-arity form)
         (doseq [arity (drop 2 form)]
