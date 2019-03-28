@@ -20,7 +20,9 @@
 (def ^:private default-tag 'auto)
 
 (defn- munge-name [n]
-  (str/replace (munge n) "_COLON_" ":"))
+  (if (str/starts-with? n "operator")
+    n
+    (str/replace (munge n) "_COLON_" ":")))
 
 (defn- munge-ns [n]
   (munge-name (str/replace n "." "::")))
@@ -715,20 +717,23 @@
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))
-          fn-name (str "__" (munge-name f))]
+          raw? (:raw (meta f))]
       (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
                     "decltype(auto)"
                     *return-type*)
                   " "
-                  "operator()"
+                  (if raw?
+                    (munge-name f)
+                    "operator()")
                   (str "("
                        (->> (for [[tn arg] (map vector arg-template-names args)]
                               (with-out-str
                                 (emit-var-declaration (maybe-make-ref (maybe-add-template-name arg tn)))))
                             (str/join ", "))
-                       ") const {")))
+                       ") " (when-not raw?
+                              "const ") "{")))
       (emit-function-body f args body)
       (println (str *indent* "}")))))
 
@@ -736,15 +741,20 @@
   (let [fn-name (str "__" (munge-name f))
         fn-type (str "__T_"(munge-name f))]
     (println)
-    (println (str *indent* "struct " fn-type " {"))
-    (binding [*indent* (str default-indent *indent*)]
-      (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
+    (if (:raw (meta f))
       (if (vector? args?)
         (emit-function-arity form)
         (doseq [arity (drop 2 form)]
-          (emit-function-arity (concat [op f] arity)))))
-    (println (str *indent* "};"))
-    (println (str *indent* "const " fn-type " " (munge f) ";"))))
+          (emit-function-arity (concat [op f] arity))))
+      (do (println (str *indent* "struct " fn-type " {"))
+          (binding [*indent* (str default-indent *indent*)]
+            (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
+            (if (vector? args?)
+              (emit-function-arity form)
+              (doseq [arity (drop 2 form)]
+                (emit-function-arity (concat [op f] arity)))))
+          (println (str *indent* "};"))
+          (println (str *indent* "const " fn-type " " (munge f) ";"))))))
 
 (defn- emit-struct [[_ name fields :as form]]
   (let [field-template-names (for [field fields]

@@ -46,33 +46,22 @@
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
 (defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> head])
 
-($ "
-template <typename T>
-ConsIterator<T> begin(Cons<T>& cons) {
-    return ConsIterator<T>{&cons};
-}
+(defn ^:raw begin ^{:tpl [T]} [^:mut ^Cons<T> cons]
+  ^:unsafe ^T (ConsIterator. (& cons)))
 
-template<typename T>
-ConsIterator<T> end(__attribute__((unused)) Cons<T>& cons) {
-    return ConsIterator<T>{nullptr};
-}
+(defn ^:raw end ^{:tpl [T]} [^:mut ^Cons<T> _]
+  ^:unsafe ^T (ConsIterator. nullptr))
 
-template<typename T>
-bool operator!=(__attribute__((unused)) ConsIterator<T>& x, __attribute__((unused)) ConsIterator<T>& y) {
-    return x.head != y.head;
-}
+(defn ^:raw operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
+  (not= (.-head x) (.-head y)))
 
-template<typename T>
-T operator*(ConsIterator<T>& it) {
-    return it.head->car;
-}
+(defn ^:raw operator* ^{:tpl [T]} [^ConsIterator<T> it]
+  ^:unsafe (.-car (* (.-head it))))
 
-template<typename T>
-ConsIterator<T>& operator++(ConsIterator<T>& it) {
-    it.head = it.head->cdr.get();
-    return it;
-}
-")
+(defn ^:raw operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
+  ^:unsafe
+  (set! (.-head it) (.get (.-cdr (* (.-head it)))))
+  it)
 
 (defn cons-2
   (^{:tpl [T]} ^std::shared_ptr<Cons<T>> [^T car ^:val ^std::nullptr_t _]
