@@ -46,6 +46,14 @@
 (defstruct ConsList ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> head])
 (defstruct ConsIterator ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
 
+(defn deref
+  (^{:tpl [T]} [^std::atomic<T> x]
+   (.load x))
+  (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
+   ^:unsafe (deref (* x)))
+  ([x]
+   ^:unsafe (* x)))
+
 (defn nil? [x]
   (= nullptr x))
 
@@ -63,17 +71,16 @@
      x))
   (^{:tpl [T]} [^ConsList<T> coll]
    ^:unsafe
-   (.-car (* (.-head coll))))
+   (.-car @(.-head coll)))
   ([coll]
-   (let [x (.front coll)]
-     x)))
+   (.front coll)))
 
 (defn next
   (^{:tpl [T]} ^ConsList<T> [^ConsList<T> coll]
    (if (empty? coll)
      coll
      ^:unsafe
-     ^T (ConsList. (.-cdr (* (.-head coll)))))))
+     ^T (ConsList. (.-cdr @(.-head coll))))))
 
 (defmethod operator== ^{:tpl [T]} ^bool [^ConsList<T> x ^ConsList<T> y]
   (or (= (.-head x)
@@ -95,11 +102,11 @@
   (not= (.get (.-next x)) (.get (.-next y))))
 
 (defmethod operator* ^{:tpl [T]} [^ConsIterator<T> it]
-  ^:unsafe (.-car (* (.-next it))))
+  ^:unsafe (.-car @(.-next it)))
 
 (defmethod operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
   ^:unsafe
-  (set! (.-next it) (.-cdr (* (.-next it))))
+  (set! (.-next it) (.-cdr @(.-next it)))
   it)
 
 (defn cons
@@ -126,14 +133,6 @@
   (if x
     true
     false))
-
-(defn deref
-  (^{:tpl [T]} [^std::atomic<T> x]
-   (.load x))
-  (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
-   ^:unsafe (deref (* x)))
-  ([x]
-   ^:unsafe (* x)))
 
 (defn empty! ^{:tpl [T]} ^T [^:mut ^T coll]
   (doto coll
