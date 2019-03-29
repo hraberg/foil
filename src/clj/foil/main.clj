@@ -763,6 +763,8 @@
     (print *indent*)
     (println (str "struct " (munge-name name)) " {")
     (binding [*indent* (str *indent* default-indent)]
+      (doseq [[type name] (:tdef (meta fields))]
+        (print (str *indent* "typedef " (munge type) " " (munge name) ";")))
       (doseq [[tn field] (map vector field-template-names fields)]
         (print *indent*)
         (emit-var-declaration (maybe-add-template-name field tn))
