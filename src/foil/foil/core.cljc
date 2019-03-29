@@ -406,25 +406,22 @@
   (^{:tpl [K V]} []
    ^"K,V" (std::unordered_map.))
   (^{:tpl [K V ...Args]} [^Args&... args]
-   (let [xs args...
-         ^:mut m ^"K,V" (std::unordered_map.)]
-     (into! m xs))))
+   (let [xs args...]
+     (into! ^"K,V" (std::unordered_map.) xs))))
 
 (defn sorted-map
   (^{:tpl [K V]} []
    ^"K,V" (std::map.))
   (^{:tpl [K V ...Args]} [^Args&... args]
-   (let [xs args...
-         ^:mut m ^"K,V" (std::map.)]
-     (into! m xs))))
+   (let [xs args...]
+     (into! ^"K,V" (std::map.) xs))))
 
 (defn sorted-map-by
   (^{:tpl [K V C]} [^C comp]
    ^"K,V" (std::map. comp))
   (^{:tpl [K V C ...Args]} [^C comp ^Args&... args]
-   (let [xs args...
-         ^:mut m ^"K,V,C" (std::map. comp)]
-     (into! m xs))))
+   (let [xs args...]
+     (into! ^"K,V,C" (std::map. comp) xs))))
 
 (defn vector ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
   ^T (std::vector. ^Args ^:... (std::forward args)))
