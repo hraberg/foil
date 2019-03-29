@@ -43,7 +43,7 @@
 (def ^std::bit_not<> bit-not)
 
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsList ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> head])
+(defstruct ConsList ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> head ^:mut ^std::size_t size])
 (defstruct ConsIterator ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
 
 (defn deref
@@ -80,7 +80,7 @@
    (if (empty? coll)
      coll
      ^:unsafe
-     ^T (ConsList. (.-cdr @(.-head coll))))))
+     ^T (ConsList. (.-cdr @(.-head coll)) (dec (.-size coll))))))
 
 (defmethod operator== ^{:tpl [T]} ^bool [^ConsList<T> x ^ConsList<T> y]
   (or (= (.-head x)
@@ -113,11 +113,11 @@
   ([car cdr]
    (std::make_pair car cdr))
   (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
-   ^T (ConsList. (std::make_shared car cdr)))
+   ^T (ConsList. (std::make_shared car cdr) 1))
   (^{:tpl [T]} [^T car ^ConsList<T> cdr]
-   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr)))))
+   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr))) (inc (.-size cdr))))
   (^{:tpl [T]} [^T&& car ^ConsList<T>&& cdr]
-   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr))))))
+   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr))) (inc (.-size cdr)))))
 
 (defn optional
   (^{:tpl [T]} []
@@ -230,10 +230,7 @@
 
 (defn count
   (^{:tpl [T]} [^ConsList<T> coll]
-   (let [^:mut n 0]
-     (doseq [_ coll]
-       (set! n (inc n)))
-     n))
+   (.-size coll))
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
    2)
   ([coll]
@@ -413,7 +410,7 @@
 
 (defn list
   (^{:tpl [T]} []
-   ^T (ConsList. nullptr))
+   ^T (ConsList. nullptr 0))
   (^{:tpl [T Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
    ^T (cons ^Arg (std::forward arg) ^T (list ^Args ^:... (std::forward args)))))
 
