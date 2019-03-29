@@ -659,7 +659,7 @@
 
 (defn- emit-body [body]
   (loop [[x & xs] body]
-    (when x
+    (when (not (nil? x))
       (let [last? (not xs)]
         (binding [*expr?* false
                   *tail?* (and *tail?* last?)]
