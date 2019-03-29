@@ -141,7 +141,7 @@
     true
     false))
 
-(defn empty! ^{:tpl [T]} ^T [^:mut ^T coll]
+(defn empty! [^:mut coll]
   (doto coll
     (.clear)))
 
