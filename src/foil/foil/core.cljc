@@ -44,36 +44,47 @@
 (def ^std::bit_not<> bit-not)
 
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> head])
+(defstruct ConsList ^{:tpl [T]} [^:mut ^std::shared_ptr<Cons<T>> head])
+(defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> next])
 
-(defmethod begin ^{:tpl [T]} [^Cons<T> cons]
+(defmethod begin ^{:tpl [T]} [^ConsList<T> cons]
   ^:unsafe
   (let [^:mut x cons]
-    ^T (ConsIterator. (& x))))
+    ^T (ConsIterator. (.get (.-head x)))))
 
-(defmethod end ^{:tpl [T]} [^Cons<T> _]
+(defmethod end ^{:tpl [T]} [^ConsList<T> _]
   ^T (ConsIterator. nullptr))
 
 (defmethod operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
-  (not= (.-head x) (.-head y)))
+  (not= (.-next x) (.-next y)))
 
 (defmethod operator* ^{:tpl [T]} [^ConsIterator<T> it]
-  ^:unsafe (.-car (* (.-head it))))
+  ^:unsafe (.-car (* (.-next it))))
 
 (defmethod operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
   ^:unsafe
-  (set! (.-head it) (.get (.-cdr (* (.-head it)))))
+  (set! (.-next it) (.get (.-cdr (* (.-next it)))))
   it)
 
 (defn cons-2
   (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
-   ^T (Cons. car cdr))
-  (^{:tpl [T]} [^T car ^std::shared_ptr<Cons<T>> cdr]
-   ^T (Cons. car cdr))
-  (^{:tpl [T]} [^T car ^Cons<T> cdr]
-   (cons-2 car ^Cons<T> (std::make_shared cdr)))
-  (^{:tpl [T]} [^T car ^Cons<T>&& cdr]
-   (cons-2 car ^Cons<T> (std::make_shared cdr))))
+   ^:unsafe
+   (let [^:mut head ^Cons<T> (std::make_shared)]
+     (set! (.-car (* head)) car)
+     (set! (.-cdr (* head)) cdr)
+     ^T (ConsList. head)))
+  (^{:tpl [T]} [^T car ^ConsList<T> cdr]
+   ^:unsafe
+   (let [^:mut head ^Cons<T> (std::make_shared)]
+     (set! (.-car (* head)) car)
+     (set! (.-cdr (* head)) (.-head cdr))
+     ^T (ConsList. head)))
+  (^{:tpl [T]} [^T car ^ConsList<T>&& cdr]
+   ^:unsafe
+   (let [^:mut head ^Cons<T> (std::make_shared)]
+     (set! (.-car (* head)) car)
+     (set! (.-cdr (* head)) (.-head cdr))
+     ^T (ConsList. head))))
 
 (defn optional
   (^{:tpl [T]} []
