@@ -58,6 +58,17 @@
   ([coll]
    (.empty coll)))
 
+(defn first
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+   (let [^:mut x (.-first coll)]
+     x))
+  (^{:tpl [T]} [^ConsList<T> coll]
+   ^:unsafe
+   (.-car (* (.-head coll))))
+  ([coll]
+   (let [x (.front coll)]
+     x)))
+
 (defn next
   (^{:tpl [T]} ^ConsList<T> [^ConsList<T> coll]
    ^:unsafe
@@ -71,8 +82,8 @@
          (.-head y))
       (and (not (empty? x))
            (not (empty? y))
-           (= (.-car (* (.-head x)))
-              (.-car (* (.-head y))))
+           (= (first x)
+              (first y))
            (= (next x)
               (next y)))))
 
@@ -151,17 +162,6 @@
 
 (defn get [map key]
   (.at map key))
-
-(defn first
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
-   (let [^:mut x (.-first coll)]
-     x))
-  (^{:tpl [T]} [^ConsList<T> coll]
-   ^:unsafe
-   (.-car (* (.-head coll))))
-  ([coll]
-   (let [x (.front coll)]
-     x)))
 
 (defn ffirst [coll]
   (first (first coll)))
