@@ -371,14 +371,15 @@
    (print ^Arg (std::forward arg) ^Args ^:... (std::forward args))
    (println)))
 
-(defn into! ^{:tpl [T F]} ^T [^:mut ^T to ^F from]
-  (doseq [x from]
-    (conj! to x))
-  to)
-
-(defn concat [x y]
-  (let [^:mut acc x]
-    (into! acc y)))
+(defn into!
+  (^{:tpl [T F]} ^T [^:mut ^T to ^F from]
+   (doseq [x from]
+     (conj! to x))
+   to)
+  (^{:tpl [T F]} ^T [^:mut ^T&& to ^F from]
+   (doseq [x from]
+     (conj! to x))
+   to))
 
 (defn hash-set ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
   ^T (std::unordered_set. ^Args ^:... (std::forward args)))
@@ -427,12 +428,13 @@
    ^T (cons ^Arg (std::forward arg) ^T (list ^Args ^:... (std::forward args)))))
 
 (defn set ^{:tpl [T]} [^T coll]
-  (let [^:mut acc ^"typename T::value_type" #{}]
-    (into! acc coll)))
+  (into! ^"typename T::value_type" #{} coll))
 
 (defn vec ^{:tpl [T]} [^T coll]
-  (let [^:mut acc ^"typename T::value_type" []]
-    (into! acc coll)))
+  (into! ^"typename T::value_type" [] coll))
+
+(defn concat [x y]
+  (into! (vec x) y))
 
 (defn map ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
@@ -499,8 +501,9 @@
      accs)))
 
 (defn reverse ^{:tpl [C]} [^C coll]
-  (let [^:mut acc ^"typename C::value_type" ()]
-    (into! acc coll)))
+  (let [^:mut acc (into! ^"typename C::value_type" [] coll)]
+    (std::reverse (.begin acc) (.end acc))
+    acc))
 
 (defn drop ^{:tpl [C]} [^std::size_t n ^C coll]
   (let [^:mut ^std::size_t i 0
