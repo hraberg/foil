@@ -369,15 +369,25 @@
    (print ^Arg (std::forward arg) ^Args ^:... (std::forward args))
    (println)))
 
+(defn reduce
+  ([f coll]
+   (let [^:mut acc (first coll)
+         ^:mut first? true]
+     (doseq [x coll]
+       (if first?
+         (set! first? false)
+         (set! acc (f acc x))))
+     acc))
+  ([f ^:mut val coll]
+   (doseq [x coll]
+     (set! val (f val x)))
+   val))
+
 (defn into!
   (^{:tpl [T F]} ^T [^:mut ^T to ^F from]
-   (doseq [x from]
-     (set! to (conj! to x)))
-   to)
+   (reduce conj! to from))
   (^{:tpl [T F]} ^T [^:mut ^T&& to ^F from]
-   (doseq [x from]
-     (set! to (conj! to x)))
-   to))
+   (reduce conj! to from)))
 
 (defn hash-set ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
   ^T (std::unordered_set. ^Args ^:... (std::forward args)))
@@ -461,21 +471,6 @@
   (for [x coll
         :when (pred x)]
     x))
-
-(defn reduce
-  ([f coll]
-   (let [^:mut acc (first coll)
-         ^:mut first? true]
-     (doseq [x coll]
-       (if first?
-         (set! first? false)
-         (set! acc (f acc x))))
-     acc))
-  ([f val coll]
-   (let [^:mut acc val]
-     (doseq [x coll]
-       (set! acc (f acc x)))
-     acc)))
 
 (defn reductions
   (^{:tpl [F C]} [^F f ^C coll]
