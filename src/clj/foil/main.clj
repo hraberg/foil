@@ -250,8 +250,9 @@
          ref? (and (or ref &)
                    (not val)
                    (not ptr)
-                   (not (re-find #"\&" (str tag))))]
-     (when (= '_ var)
+                   (not (re-find #"\&" (str tag))))
+         unused? (= '_ var)]
+     (when unused?
        (print "__attribute__((unused)) "))
      (when (or const (not (or mut ! dynamic)))
        (print "const "))
@@ -264,8 +265,14 @@
                      "&")
                    (when (or ptr (:* (meta var)))
                      "*")
-                   " " (if (vector? var)
+                   " " (cond
+                         (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
+
+                         unused?
+                         (gensym "__")
+
+                         :else
                          (munge-name var))))))))
 
 (defn- emit-if [[_ condition then else :as form]]
