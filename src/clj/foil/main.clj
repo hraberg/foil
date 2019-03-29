@@ -333,33 +333,37 @@
     (with-meta
       `(~'do
         ~@(for [[var binding] bindings]
-            `(~'def ~var ~binding))
+            `^:no-indent (~'def ~var ~binding))
         ~@body)
       (meta form))))
 
 (defmethod foil-macroexpand :def [form]
-  (emit-var-definition form))
+  ($code
+   #(emit-var-definition form)))
 
 (defmethod foil-macroexpand :return [[_ value :as from]]
-  (let [maybe-expanded (when (and (seq? value)
-                                  (not *expr?*))
-                         (foil-macroexpand value))]
-    (if (= 'do (first maybe-expanded))
-      (emit-expression maybe-expanded)
-      (do (print (str *indent* "return "))
-          (binding [*expr?* true]
-            (emit-expression value))
-          (println ";")))))
+  ($code
+   #(let [maybe-expanded (when (and (seq? value)
+                                    (not *expr?*))
+                           (foil-macroexpand value))]
+      (if (= 'do (first maybe-expanded))
+        (emit-expression maybe-expanded)
+        (do (print (str *indent* "return "))
+            (binding [*expr?* true]
+              (emit-expression value))
+            (println ";"))))))
 
 (defmethod foil-macroexpand :recur [[_ & expressions :as form]]
-  (assert *loop-vars* "Not in a loop.")
-  (assert *tail?* "Can only recur from tail position.")
-  (doseq [[var expression] (map vector *loop-vars* expressions)]
-    (print (str *indent* (munge-name var) " = "))
-    (binding [*expr?* true
-              *tail?* false]
-      (emit-expression expression))
-    (println ";")))
+  ($code
+   (fn []
+     (assert *loop-vars* "Not in a loop.")
+     (assert *tail?* "Can only recur from tail position.")
+     (doseq [[var expression] (map vector *loop-vars* expressions)]
+       (print (str *indent* (munge-name var) " = "))
+       (binding [*expr?* true
+                 *tail?* false]
+         (emit-expression expression))
+       (println ";")))))
 
 (defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
@@ -785,7 +789,8 @@
   ([form]
    (emit-var-definition form *indent*))
   ([[_ name & values :as form] initial-indent]
-   (print initial-indent)
+   (when-not (:no-indent (meta form))
+     (print initial-indent))
    (emit-var-declaration name)
    (when (seq values)
      (when (or (> (count values) 1)
