@@ -107,6 +107,9 @@
 (defn empty?
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
    false)
+  (^{:tpl [T]} [^ConsList<T> coll]
+   ^:unsafe
+   (not (boolean (.-head coll))))
   ([coll]
    (.empty coll)))
 
@@ -126,6 +129,9 @@
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
    (let [^:mut x (.-first coll)]
      x))
+  (^{:tpl [T]} [^ConsList<T> coll]
+   ^:unsafe
+   (.-car (* (.-head coll))))
   ([coll]
    (let [x (.front coll)]
      x)))
@@ -136,24 +142,31 @@
 (defn first-opt ^{:tpl [T]} [^T coll]
   (if (empty? coll)
     ^"typename T::value_type" (optional)
-    (optional (.front coll))))
+    (optional (first coll))))
 
 (def key first)
 
-(defn next [coll]
-  (let [^:mut tail coll]
-    (when-not (empty? tail)
-      (.pop_front tail))
-    tail))
+(defn next
+  (^{:tpl [T]} [^ConsList<T> coll]
+   ^:unsafe
+   ^T (ConsList. (.-cdr (* (.-head coll)))))
+  (^{:tpl [T]} [^std::forward_list<T> coll]
+   (let [^:mut tail coll]
+     (when-not (empty? tail)
+       (.pop_front tail))
+     tail)))
 
-(defn butlast [coll]
-  (let [^:mut xs coll]
-    (when-not (empty? xs)
-      (.pop_back xs))
-    xs))
+(defn butlast
+  (^{:tpl [T]} [^std::forward_list<T> coll]
+   (let [^:mut xs coll]
+     (when-not (empty? xs)
+       (.pop_back xs))
+     xs)))
 
 (defn second
   (^{:tpl [T]} [^std::forward_list<T> coll]
+   (first (next coll)))
+    (^{:tpl [T]} [^ConsList<T> coll]
    (first (next coll)))
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
    (let [^:mut x (.-second coll)]
@@ -180,6 +193,8 @@
   (^{:tpl [T]} [^:mut ^std::forward_list<T> coll ^T x]
    (doto coll
      (.push_front x)))
+  (^{:tpl [T]} [^ConsList<T> coll ^T x]
+   (cons-2 x coll))
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]
    (doto coll
      (.insert x)))
@@ -231,6 +246,11 @@
      (doseq [_ coll]
        (set! n (inc n)))
      n))
+  (^{:tpl [T]} [^ConsList<T> coll]
+   (let [^:mut n 0]
+     (doseq [_ coll]
+       (set! n (inc n)))
+     n))
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
    2)
   ([coll]
@@ -239,6 +259,8 @@
 (defn cons
   ([car cdr]
    (std::make_pair car cdr))
+  (^{:tpl [T]} [^T x ^ConsList<T> coll]
+   (cons-2 x coll))
   (^{:tpl [T]} [^T x ^std::forward_list<T> coll]
    (let [^:mut tail coll
          tail-ret (doto tail
@@ -260,6 +282,11 @@
 
 (defn last
   (^{:tpl [T]} [^std::forward_list<T> coll]
+   (let [tail (next coll)]
+     (if (empty? tail)
+       (first coll)
+       (recur tail))))
+  (^{:tpl [T]} [^ConsList<T> coll]
    (let [tail (next coll)]
      (if (empty? tail)
        (first coll)
