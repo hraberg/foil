@@ -108,23 +108,11 @@
   ([car cdr]
    (std::make_pair car cdr))
   (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
-   ^:unsafe
-   (let [head ^Cons<T> (std::make_shared)]
-     (set! (.-car (* head)) car)
-     (set! (.-cdr (* head)) cdr)
-     ^T (ConsList. head)))
+   ^T (ConsList. (std::make_shared car nullptr)))
   (^{:tpl [T]} [^T car ^ConsList<T> cdr]
-   ^:unsafe
-   (let [head ^Cons<T> (std::make_shared)]
-     (set! (.-car (* head)) car)
-     (set! (.-cdr (* head)) (.-head cdr))
-     ^T (ConsList. head)))
-  (^{:tpl [T]} [^T car ^ConsList<T>&& cdr]
-   ^:unsafe
-   (let [head ^Cons<T> (std::make_shared)]
-     (set! (.-car (* head)) car)
-     (set! (.-cdr (* head)) (.-head cdr))
-     ^T (ConsList. head))))
+   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr)))))
+  (^{:tpl [T]} [^T&& car ^ConsList<T>&& cdr]
+   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr))))))
 
 (defn optional
   (^{:tpl [T]} []
