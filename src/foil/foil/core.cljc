@@ -43,9 +43,9 @@
 (def ^std::bit_xor<> bit-xor)
 (def ^std::bit_not<> bit-not)
 
-(defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsList ^{:tpl [T]} [^std::shared_ptr<Cons<T>> head])
-(defstruct ConsIterator ^{:tpl [T]} [^:mut ^std::shared_ptr<Cons<T>> next])
+(defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
+(defstruct ConsList ^{:tpl [T]} [^:val ^std::shared_ptr<Cons<T>> head])
+(defstruct ConsIterator ^{:tpl [T]} [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
 
 (defmethod begin ^{:tpl [T]} [^ConsList<T> cons]
   ^:unsafe
@@ -69,19 +69,19 @@
 (defn cons-2
   (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
    ^:unsafe
-   (let [^:mut head ^Cons<T> (std::make_shared)]
+   (let [head ^Cons<T> (std::make_shared)]
      (set! (.-car (* head)) car)
      (set! (.-cdr (* head)) cdr)
      ^T (ConsList. head)))
   (^{:tpl [T]} [^T car ^ConsList<T> cdr]
    ^:unsafe
-   (let [^:mut head ^Cons<T> (std::make_shared)]
+   (let [head ^Cons<T> (std::make_shared)]
      (set! (.-car (* head)) car)
      (set! (.-cdr (* head)) (.-head cdr))
      ^T (ConsList. head)))
   (^{:tpl [T]} [^T car ^ConsList<T>&& cdr]
    ^:unsafe
-   (let [^:mut head ^Cons<T> (std::make_shared)]
+   (let [head ^Cons<T> (std::make_shared)]
      (set! (.-car (* head)) car)
      (set! (.-cdr (* head)) (.-head cdr))
      ^T (ConsList. head))))
