@@ -541,19 +541,15 @@
 (defn not-any? [pred coll]
   (not (every? pred coll)))
 
-(defn repeat ^{:tpl [T]} [^std::size_t n ^T x]
-  (let [^:mut acc ^T []]
-    (.reserve acc n)
-    (dotimes [_ n]
-      (conj! acc x))
-    acc))
-
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
     (.reserve acc n)
     (dotimes [_ n]
       (conj! acc (f)))
     acc))
+
+(defn repeat [n x]
+  (repeatedly n (constantly x)))
 
 (defn keys [m]
   (map key m))
