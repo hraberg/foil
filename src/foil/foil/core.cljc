@@ -426,7 +426,6 @@
   (^{:tpl [T Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
    ^T (cons ^Arg (std::forward arg) ^T (list ^Args ^:... (std::forward args)))))
 
-
 (defn set ^{:tpl [T]} [^T coll]
   (let [^:mut acc ^"typename T::value_type" #{}]
     (into! acc coll)))
