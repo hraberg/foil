@@ -46,11 +46,11 @@
   [^:mut ^T car
    ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
 
-(defstruct ConsList ^{:tpl [T] :tdef {T value_type}}
+(defstruct ConsList ^{:tpl [T] :tdef [[T value_type]]}
   [^:mut ^:val ^std::shared_ptr<Cons<T>> head
    ^:mut ^:val ^std::size_t size])
 
-(defstruct ConsIterator ^{:tpl [T] :tdef {T value_type}}
+(defstruct ConsIterator ^{:tpl [T] :tdef [[T value_type]]}
   [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
 
 (defn deref
