@@ -86,9 +86,7 @@
               (next y)))))
 
 (defmethod begin ^{:tpl [T]} [^ConsList<T> cons]
-  ^:unsafe
-  (let [^:mut x cons]
-    ^T (ConsIterator. (.-head x))))
+  ^T (ConsIterator. (.-head cons)))
 
 (defmethod end ^{:tpl [T]} [^ConsList<T> _]
   ^T (ConsIterator. nullptr))
