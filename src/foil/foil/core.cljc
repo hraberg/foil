@@ -45,25 +45,25 @@
 
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
 (defstruct ConsList ^{:tpl [T]} [^:mut ^std::shared_ptr<Cons<T>> head])
-(defstruct ConsIterator ^{:tpl [T]} [^:ptr ^:mut ^Cons<T> next])
+(defstruct ConsIterator ^{:tpl [T]} [^:mut ^std::shared_ptr<Cons<T>> next])
 
 (defmethod begin ^{:tpl [T]} [^ConsList<T> cons]
   ^:unsafe
   (let [^:mut x cons]
-    ^T (ConsIterator. (.get (.-head x)))))
+    ^T (ConsIterator. (.-head x))))
 
 (defmethod end ^{:tpl [T]} [^ConsList<T> _]
   ^T (ConsIterator. nullptr))
 
 (defmethod operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
-  (not= (.-next x) (.-next y)))
+  (not= (.get (.-next x)) (.get (.-next y))))
 
 (defmethod operator* ^{:tpl [T]} [^ConsIterator<T> it]
   ^:unsafe (.-car (* (.-next it))))
 
 (defmethod operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
   ^:unsafe
-  (set! (.-next it) (.get (.-cdr (* (.-next it)))))
+  (set! (.-next it) (.-cdr (* (.-next it))))
   it)
 
 (defn cons-2
