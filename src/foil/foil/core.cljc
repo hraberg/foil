@@ -44,7 +44,7 @@
 (def ^std::bit_not<> bit-not)
 
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsList ^{:tpl [T]} [^:mut ^std::shared_ptr<Cons<T>> head])
+(defstruct ConsList ^{:tpl [T]} [^std::shared_ptr<Cons<T>> head])
 (defstruct ConsIterator ^{:tpl [T]} [^:mut ^std::shared_ptr<Cons<T>> next])
 
 (defmethod begin ^{:tpl [T]} [^ConsList<T> cons]
