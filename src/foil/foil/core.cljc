@@ -43,8 +43,8 @@
 (def ^std::bit_not<> bit-not)
 
 (defstruct Cons ^{:tpl [T]}
-  [^:mut ^T car
-   ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
+  [^T car
+   ^:val ^std::shared_ptr<Cons<T>> cdr])
 
 (defstruct ConsList ^{:tpl [T] :tdef [[T value_type]]}
   [^:mut ^:val ^std::shared_ptr<Cons<T>> head
