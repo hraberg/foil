@@ -420,14 +420,12 @@
 (defn vector ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
   ^T (std::vector. ^Args ^:... (std::forward args)))
 
-(defn list*
+(defn list
   (^{:tpl [T]} []
    ^T (ConsList. nullptr))
   (^{:tpl [T Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
-   ^T (cons ^Arg (std::forward arg) ^T (list* ^Args ^:... (std::forward args)))))
+   ^T (cons ^Arg (std::forward arg) ^T (list ^Args ^:... (std::forward args)))))
 
-(defn list ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
-  ^T (list* ^Args ^:... (std::forward args)))
 
 (defn set ^{:tpl [T]} [^T coll]
   (let [^:mut acc ^"typename T::value_type" #{}]
