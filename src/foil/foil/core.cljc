@@ -53,7 +53,6 @@
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
    false)
   (^{:tpl [T]} [^ConsList<T> coll]
-   ^:unsafe
    (nil? (.-head coll)))
   ([coll]
    (.empty coll)))
@@ -71,13 +70,12 @@
 
 (defn next
   (^{:tpl [T]} ^ConsList<T> [^ConsList<T> coll]
-   ^:unsafe
    (if (empty? coll)
      coll
+     ^:unsafe
      ^T (ConsList. (.-cdr (* (.-head coll)))))))
 
 (defmethod operator== ^{:tpl [T]} ^bool [^ConsList<T> x ^ConsList<T> y]
-  ^:unsafe
   (or (= (.-head x)
          (.-head y))
       (and (not (empty? x))
