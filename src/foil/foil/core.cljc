@@ -42,9 +42,16 @@
 (def ^std::bit_xor<> bit-xor)
 (def ^std::bit_not<> bit-not)
 
-(defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsList ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> head ^:mut ^std::size_t size])
-(defstruct ConsIterator ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
+(defstruct Cons ^{:tpl [T]}
+  [^:mut ^T car
+   ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
+
+(defstruct ConsList ^{:tpl [T] :tdef {T value_type}}
+  [^:mut ^:val ^std::shared_ptr<Cons<T>> head
+   ^:mut ^:val ^std::size_t size])
+
+(defstruct ConsIterator ^{:tpl [T] :tdef {T value_type}}
+  [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
 
 (defn deref
   (^{:tpl [T]} [^std::atomic<T> x]
