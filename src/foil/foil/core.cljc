@@ -43,7 +43,7 @@
 (def ^std::bit_not<> bit-not)
 
 (defstruct Cons ^{:tpl [T]} [^:mut ^T car ^:mut ^:val ^std::shared_ptr<Cons<T>> cdr])
-(defstruct ConsList ^{:tpl [T] :tdef {T value_type}} [^:val ^std::shared_ptr<Cons<T>> head])
+(defstruct ConsList ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> head])
 (defstruct ConsIterator ^{:tpl [T] :tdef {T value_type}} [^:mut ^:val ^std::shared_ptr<Cons<T>> next])
 
 (defn nil? [x]
@@ -372,11 +372,11 @@
 (defn into!
   (^{:tpl [T F]} ^T [^:mut ^T to ^F from]
    (doseq [x from]
-     (conj! to x))
+     (set! to (conj! to x)))
    to)
   (^{:tpl [T F]} ^T [^:mut ^T&& to ^F from]
    (doseq [x from]
-     (conj! to x))
+     (set! to (conj! to x)))
    to))
 
 (defn hash-set ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
@@ -499,9 +499,7 @@
      accs)))
 
 (defn reverse ^{:tpl [C]} [^C coll]
-  (let [^:mut acc (into! ^"typename C::value_type" [] coll)]
-    (std::reverse (.begin acc) (.end acc))
-    acc))
+  (into! ^"typename C::value_type" () coll))
 
 (defn drop ^{:tpl [C]} [^std::size_t n ^C coll]
   (let [^:mut ^std::size_t i 0

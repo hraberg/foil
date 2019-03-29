@@ -99,9 +99,8 @@
 
     (my-fun x)
 
-    ;; into! isn't working for ConsList.
     (println (count (concat l s)))
-    (println (= ^int [8 7] (reverse l)))
+    (println (= ^int '(8 7) (reverse l)))
 
     (println (every? pos? l))
     (println (every? neg? l))
