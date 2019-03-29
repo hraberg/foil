@@ -434,14 +434,15 @@
   `(~'let ~binding (~'when ~(first binding) ~@then)))
 
 (defmethod foil-macroexpand :cond [[_ condition then & rest :as form]]
-  (if then
+  (if (not (nil? then))
     `(~'if ~(if (= :else condition)
               true
               condition)
       ~then
       (~'cond
        ~@rest))
-    'nullptr))
+    (when *expr?*
+      'nullptr)))
 
 (defmethod foil-macroexpand :case [[_ e & clauses :as form]]
   (let [e-sym (gensym '__case-e)]
