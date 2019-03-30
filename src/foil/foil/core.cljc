@@ -45,23 +45,6 @@
 (defn nil? [x]
   (= nullptr x))
 
-(defstruct Cons ^{:tpl [T]}
-  [^T car
-   ^std::shared_ptr<Cons<T>> cdr])
-
-(defstruct ConsIterator ^{:tpl [T]}
-  [^:mut ^std::shared_ptr<Cons<T>> next])
-
-(defstruct ConsList ^{:tpl [T]
-                      :using [[value_type T]
-                              [size_type std::size_t]
-                              [iterator ConsIterator<value_type>]]}
-  [^:mut ^std::shared_ptr<Cons<T>> head
-   ^:mut ^size_type count]
-
-  (size ^size_type [] count)
-  (empty ^bool [] (nil? head)))
-
 (defn deref
   (^{:tpl [T]} [^std::atomic<T> x]
    (.load x))
@@ -76,13 +59,42 @@
   ([coll]
    (.empty coll)))
 
+(defstruct Cons ^{:tpl [T]}
+  [^T car
+   ^std::shared_ptr<Cons<T>> cdr])
+
+(defstruct ConsIterator ^{:tpl [T]}
+  [^:mut ^std::shared_ptr<Cons<T>> next])
+
+(defmethod operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
+  (not= (.get (.-next x)) (.get (.-next y))))
+
+(defmethod operator* ^{:tpl [T]} [^ConsIterator<T> it]
+  ^:unsafe (.-car @(.-next it)))
+
+(defmethod operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
+  ^:unsafe
+  (set! (.-next it) (.-cdr @(.-next it)))
+  it)
+
+(defstruct ConsList ^{:tpl [T]
+                      :using [[value_type T]
+                              [size_type std::size_t]
+                              [iterator ConsIterator<value_type>]]}
+  [^:mut ^std::shared_ptr<Cons<T>> head
+   ^:mut ^size_type count]
+
+  (size [] count)
+  (empty [] (nil? head))
+  (front [] ^:unsafe (.-car @head))
+
+  (begin [] (iterator. head))
+  (end [] (iterator. nullptr)))
+
 (defn first
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
    (let [^:mut x (.-first coll)]
      x))
-  (^{:tpl [T]} [^ConsList<T> coll]
-   ^:unsafe
-   (.-car @(.-head coll)))
   ([coll]
    (.front coll)))
 
@@ -102,23 +114,6 @@
               (first y))
            (= (next x)
               (next y)))))
-
-(defmethod begin ^{:tpl [T]} [^ConsList<T> cons]
-  ^T (ConsIterator. (.-head cons)))
-
-(defmethod end ^{:tpl [T]} [^ConsList<T> _]
-  ^T (ConsIterator. nullptr))
-
-(defmethod operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
-  (not= (.get (.-next x)) (.get (.-next y))))
-
-(defmethod operator* ^{:tpl [T]} [^ConsIterator<T> it]
-  ^:unsafe (.-car @(.-next it)))
-
-(defmethod operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
-  ^:unsafe
-  (set! (.-next it) (.-cdr @(.-next it)))
-  it)
 
 (defn cons
   ([car cdr]
