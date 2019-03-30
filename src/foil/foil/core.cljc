@@ -64,18 +64,18 @@
    ^std::shared_ptr<Cons<T>> cdr])
 
 (defstruct ConsIterator ^{:tpl [T]}
-  [^:mut ^std::shared_ptr<Cons<T>> next])
+  [^:mut ^std::shared_ptr<Cons<T>> next]
 
-(defmethod operator!= ^{:tpl [T]} [^ConsIterator<T> x ^ConsIterator<T> y]
-  (not= (.get (.-next x)) (.get (.-next y))))
+  (operator* []
+             ^:unsafe (.-car @next))
 
-(defmethod operator* ^{:tpl [T]} [^ConsIterator<T> it]
-  ^:unsafe (.-car @(.-next it)))
+  (operator!= [^ConsIterator<T> x]
+              (not= (.get next) (.get (.-next x))))
 
-(defmethod operator++ ^{:tpl [T]} [^:mut ^ConsIterator<T> it]
-  ^:unsafe
-  (set! (.-next it) (.-cdr @(.-next it)))
-  it)
+  (operator++ ^:mut []
+              ^:unsafe
+              (do (set! next (.-cdr @next))
+                  (* this))))
 
 (defstruct ConsList ^{:tpl [T]
                       :using [[value_type T]
