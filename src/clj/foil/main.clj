@@ -320,7 +320,10 @@
                       (map #(with-out-str
                               (emit-var-declaration %)))
                       (str/join ", "))
-                 ") {"))
+                 ") "
+                 (when-let [tag (form->tag args nil)]
+                   (str "-> " tag " "))
+                 "{"))
      (binding [*return-type* 'auto]
        (emit-function-body "lambda" args body))
      (print (str *indent* "}")))))
