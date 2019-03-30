@@ -765,7 +765,7 @@
           (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
           (emit-function-arities form))
         (println (str *indent* "};"))
-        (println (str *indent* "const " fn-type " " (munge f) ";")))))
+        (println (str *indent* "const " fn-type " " (munge-name f) ";")))))
 
 (defn- emit-struct [[_ name fields :as form]]
   (let [field-template-names (for [field fields]
@@ -775,8 +775,8 @@
     (print *indent*)
     (println (str "struct " (munge-name name)) " {")
     (binding [*indent* (str *indent* default-indent)]
-      (doseq [[type name] (:tdef (meta fields))]
-        (print (str *indent* "typedef " (munge type) " " (munge name) ";")))
+      (doseq [[name type] (:using (meta fields))]
+        (print (str *indent* "using " (munge-name name) " = " (munge-name type) ";")))
       (doseq [[tn field] (map vector field-template-names fields)]
         (print *indent*)
         (emit-var-declaration (maybe-add-template-name field tn))
