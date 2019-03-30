@@ -65,6 +65,8 @@
 
     (println (second (cons 1 2)))
 
+    (println (= ^int '[14 16] (map + l l)))
+
     (let [c (cons 10 (cons 20 ^int ()))]
       (doseq [x c]
         (println x)))

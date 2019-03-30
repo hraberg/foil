@@ -439,12 +439,26 @@
 (defn concat [x y]
   (into! (vec x) y))
 
-(defn map ^{:tpl [F C]} [^F f ^C coll]
-  (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
-    (.reserve acc (count coll))
-    (doseq [x coll]
-      (conj! acc (f x)))
-    acc))
+(defn map
+  (^{:tpl [F C]} [^F f ^C coll]
+   (let [^:mut acc ^"decltype(f(std::declval<typename C::value_type>()))" []]
+     (.reserve acc (count coll))
+     (doseq [x coll]
+       (conj! acc (f x)))
+     acc))
+  (^{:tpl [F C1 C2]} [^F f ^C1 c1 ^C2 c2]
+   (let [^:mut acc ^"decltype(f(std::declval<typename C1::value_type>(), std::declval<typename C2::value_type>()))" []]
+     (.reserve acc (min (count c1) (count c2)))
+     (loop [c1-b (.begin c1)
+            c2-b (.begin c2)
+            acc acc]
+       (if-not (or (= c1-b (.end c1))
+                   (= c2-b (.end c2)))
+         (do
+           ^:unsafe
+           (conj! acc (f @c1-b @c2-b))
+           (recur ($ "++c1_b") ($ "++c2_b") acc))
+         acc)))))
 
 (defn map-indexed ^{:tpl [F C]} [^F f ^C coll]
   (let [^:mut ^std::size_t n 0
