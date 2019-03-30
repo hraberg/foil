@@ -153,9 +153,14 @@
     p
     (vary-meta p assoc :ref (not (:val (meta p))))))
 
+(defn- maybe-reintroduce-commas [tag]
+  (if (string? tag)
+    tag
+    (str/replace (str tag) "|" ",")))
+
 (defn- maybe-template-params [form]
   (when-let [tag (form->tag form nil)]
-    (str/replace (str tag) "|" ",")))
+    (maybe-reintroduce-commas tag)))
 
 (defn- check-unsafe [[f :as form]]
   (assert (or *unsafe?* (not (contains? unsafe-ops f)))
@@ -244,7 +249,7 @@
   ([var default-tag]
    (let [{:keys [const dynamic val ref & mut ! ptr]} (meta var)
          tag (form->tag var default-tag)
-         tag (str/replace tag "|" ",")
+         tag (maybe-reintroduce-commas tag)
          ref? (and (or ref &)
                    (not val)
                    (not ptr)
