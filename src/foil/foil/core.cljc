@@ -148,8 +148,7 @@
 
 (defn empty [coll]
   (let [^:mut xs coll]
-    (doto xs
-      (.clear))))
+    (empty! xs)))
 
 (defn get [map key]
   (.at map key))
