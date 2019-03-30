@@ -730,7 +730,8 @@
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))
-          member? (= 'defmethod op)]
+          member? (or (= 'defmethod op)
+                      (= 'defmember op))]
       (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
@@ -745,7 +746,9 @@
                               (with-out-str
                                 (emit-var-declaration (maybe-make-ref (maybe-add-template-name arg tn)))))
                             (str/join ", "))
-                       ") " (when-not member?
+                       ") " (when (or (= 'defn op)
+                                      (and (= 'defmember op)
+                                           (not (:mut (meta args)))))
                               "const ") "{")))
       (emit-function-body f args body)
       (println (str *indent* "}")))))
@@ -767,7 +770,7 @@
         (println (str *indent* "};"))
         (println (str *indent* "const " fn-type " " (munge-name f) ";")))))
 
-(defn- emit-struct [[_ name fields :as form]]
+(defn- emit-struct [[_ name fields & methods :as form]]
   (let [field-template-names (for [field fields]
                                (munge-name (str "__T_" field)))]
     (println)
@@ -776,11 +779,13 @@
     (println (str "struct " (munge-name name)) " {")
     (binding [*indent* (str *indent* default-indent)]
       (doseq [[name type] (:using (meta fields))]
-        (print (str *indent* "using " (munge-name name) " = " type ";")))
+        (println (str *indent* "using " (munge-name name) " = " type ";")))
       (doseq [[tn field] (map vector field-template-names fields)]
         (print *indent*)
         (emit-var-declaration (maybe-add-template-name field tn))
-        (println ";")))
+        (println ";"))
+      (doseq [m methods]
+        (emit-function-arities (cons 'defmember m))))
     (println (str *indent* "};"))))
 
 (defn- parameter-pack? [x]
