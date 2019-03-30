@@ -371,9 +371,10 @@
 (defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
     (with-meta
-      `((~'fn ^:ref ~(vec (for [[var] bindings]
-                            (cond-> var
-                              (not (string? var)) (vary-meta assoc :mut true))))
+      `((~'fn ~(with-meta (vec (for [[var] bindings]
+                                 (cond-> var
+                                   (not (string? var)) (vary-meta assoc :mut true))))
+                 {:ref true})
          ~@body)
         ~@(map second bindings))
       (meta form))))
