@@ -78,8 +78,8 @@
                           & &
                           * *})
 
-(def ^:private unary-inc-dec-op '{++ ++
-                                  -- --})
+(def ^:private unary-inc-dec-op '{inc! ++
+                                  dec! --})
 
 (def ^:private binary-op '{+ +
                            - -

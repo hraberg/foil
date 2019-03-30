@@ -457,7 +457,7 @@
          (do
            ^:unsafe
            (conj! acc (f @c1-b @c2-b))
-           (recur (++ c1-b) (++ c2-b) acc))
+           (recur (inc! c1-b) (inc! c2-b) acc))
          acc)))))
 
 (defn map-indexed ^{:tpl [F C]} [^F f ^C coll]
