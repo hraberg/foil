@@ -729,18 +729,16 @@
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
-                               (symbol (munge-name (str "__T_" arg))))
-          member? (or (= 'defmethod op)
-                      (= 'defmember op))]
+                               (symbol (munge-name (str "__T_" arg))))]
       (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
                     "decltype(auto)"
                     *return-type*)
                   " "
-                  (if member?
-                    (munge-name f)
-                    "operator()")
+                  (if (= 'defn op)
+                    "operator()"
+                    (munge-name f))
                   (str "("
                        (->> (for [[tn arg] (map vector arg-template-names args)]
                               (with-out-str
