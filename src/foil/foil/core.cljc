@@ -289,6 +289,10 @@
    (fn [^auto... args]
      (f1 (f2 args...)))))
 
+(defn complement [f]
+  (fn [^auto... args]
+    (not (f args...))))
+
 (defn even? [n]
   (= (mod n 2) 0))
 
