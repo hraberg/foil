@@ -154,11 +154,10 @@
     (vary-meta p assoc :ref (not (:val (meta p))))))
 
 (defn- maybe-template-params [form]
-  (let [tag (form->tag form nil)]
-    (cond-> (if (vector? tag)
-              (str/join "," tag)
-              tag)
-      (:ptr (meta form)) (str "*"))))
+  (let [tag (str (cond-> (form->tag form nil)
+                   (:ptr (meta form)) (str "*")))]
+    (when (seq tag)
+      (str/replace (str tag) "|" ","))))
 
 (defn- check-unsafe [[f :as form]]
   (assert (or *unsafe?* (not (contains? unsafe-ops f)))
@@ -247,6 +246,7 @@
   ([var default-tag]
    (let [{:keys [const dynamic val ref & mut ! ptr]} (meta var)
          tag (form->tag var default-tag)
+         tag (str/replace tag "|" ",")
          ref? (and (or ref &)
                    (not val)
                    (not ptr)
@@ -576,22 +576,12 @@
       (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
 
       (map? form)
-      (let [tag (form->tag form)
-            tag (cond
-                  (string? tag)
-                  tag
-
-                  (vector? tag)
-                  (str/join "," tag)
-
-                  :else
-                  (str "std::string," tag))]
-        (emit-application (with-meta
-                            (cons
-                             'hash-map
-                             (for [[k v] form]
-                               `(~'cons ~k ~v)))
-                            {:tag tag})))
+      (emit-application (with-meta
+                          (cons
+                           'hash-map
+                           (for [[k v] form]
+                             `(~'cons ~k ~v)))
+                          {:tag (form->tag form)}))
 
       (or (seq? form)
           (set? form)
@@ -704,7 +694,7 @@
     (let [template (if (vector? template)
                      (str "<" (->> (for [tn template]
                                      (str "typename " tn (when-let [tag (:tag (meta tn))]
-                                                           (str " = " tag))))
+                                                           (str " = " (maybe-template-params tag)))))
                                    (str/join  ", "))
                           ">")
                      template)]

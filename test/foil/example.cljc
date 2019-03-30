@@ -20,7 +20,7 @@
         pt ^int (Point. -1 2)
         t 3
         ^:mut a ^int [2 t]
-        m ^std::string {:foo "bar"}
+        m ^std::string|std::string {:foo "bar"}
         s ^int #{1 2}
         l ^int (list 7 8)
         r #"\n"
@@ -140,7 +140,7 @@
     (println ((constantly 42) 1 2))
 
     (println (empty? ^int (hash-set)))
-    (println (empty? ^"std::string,std::string" (hash-map)))
+    (println (empty? ^std::string|std::string (hash-map)))
 
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
@@ -149,7 +149,7 @@
     (doseq [x ^int (sorted-set-by > 8 7)]
       (println x))
 
-    (doseq [x ^"std::string,std::string" (hash-map ^std::string ["foo" "bar"])]
+    (doseq [x ^std::string|std::string (hash-map ^std::string ["foo" "bar"])]
       (println (key x))
       (println (val x)))
 

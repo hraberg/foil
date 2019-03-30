@@ -17,7 +17,7 @@
 (def ^:dynamic ^:ptr ^std::ostream *err* ^:unsafe (& (<< std::cerr std::boolalpha)))
 (def ^:dynamic ^:ptr ^std::istream *in* ^:unsafe (& std::cin))
 
-(def ^:dynamic ^"std::vector<std::string>" *command-line-args*)
+(def ^:dynamic ^std::vector<std::string> *command-line-args*)
 (def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
 
 (def ^std::plus<> +)
@@ -88,13 +88,13 @@
   (end [] (iterator. nullptr)))
 
 (defn empty?
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
+  (^{:tpl [T1 T2]} [^std::pair<T1|T2> _]
    false)
   ([coll]
    (.empty coll)))
 
 (defn first
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+  (^{:tpl [T1 T2]} [^std::pair<T1|T2> coll]
    (let [^:mut x (.-first coll)]
      x))
   ([coll]
@@ -166,7 +166,7 @@
 (defn second
   (^{:tpl [T]} [^ConsList<T> coll]
    (first (next coll)))
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
+  (^{:tpl [T1 T2]} [^std::pair<T1|T2> coll]
    (let [^:mut x (.-second coll)]
      x))
   ([x]
@@ -175,11 +175,11 @@
 (def val second)
 
 (defn assoc!
-  (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key ^V val]
+  (^{:tpl [K V]} [^:mut ^std::unordered_map<K|V> map ^K key ^V val]
    ^:unsafe
    (doto map
      (aset key val)))
-  (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key ^V val]
+  (^{:tpl [K V C]} [^:mut ^std::map<K|V|C> map ^K key ^V val]
    ^:unsafe
    (doto map
      (aset key val))))
@@ -193,50 +193,50 @@
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]
    (doto coll
      (.insert x)))
-  (^{:tpl [T C]} [^:mut ^"std::set<T,C>" coll ^T x]
+  (^{:tpl [T C]} [^:mut ^std::set<T|C> coll ^T x]
    (doto coll
      (.insert x)))
-  (^{:tpl [K V T]} [^:mut ^"std::unordered_map<K,V>" map ^T x]
+  (^{:tpl [K V T]} [^:mut ^std::unordered_map<K|V> map ^T x]
    (assoc! map (first x) (second x)))
-  (^{:tpl [K V C T]} [^:mut ^"std::map<K,V,C>" map ^T x]
+  (^{:tpl [K V C T]} [^:mut ^std::map<K|V|C> map ^T x]
    (assoc! map (first x) (second x))))
 
 (defn disj!
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
    (doto set
      (.erase x)))
-  (^{:tpl [T C]} [^:mut ^"std::set<T,C>" set ^T x]
+  (^{:tpl [T C]} [^:mut ^std::set<T|C> set ^T x]
    (doto set
      (.erase x))))
 
 (defn dissoc!
-  (^{:tpl [K V]} [^:mut ^"std::unordered_map<K,V>" map ^K key]
+  (^{:tpl [K V]} [^:mut ^std::unordered_map<K|V> map ^K key]
    (doto map
      (.erase key)))
-  (^{:tpl [K V C]} [^:mut ^"std::map<K,V,C>" map ^K key]
+  (^{:tpl [K V C]} [^:mut ^std::map<K|V|C> map ^K key]
    (doto map
      (.erase key))))
 
 (defn update!
-  (^{:tpl [K V F ...Args]} [^:mut ^"std::unordered_map<K,V>" m ^K k ^F f ^:mut ^Args&&... args]
+  (^{:tpl [K V F ...Args]} [^:mut ^std::unordered_map<K|V> m ^K k ^F f ^:mut ^Args&&... args]
    (assoc! m k (f (get m k) ^Args ^:... (std::forward args))))
-  (^{:tpl [K V C F ...Args]} [^:mut ^"std::map<K,V,C>" m ^K k ^F f ^:mut ^Args&&... args]
+  (^{:tpl [K V C F ...Args]} [^:mut ^std::map<K|V|C> m ^K k ^F f ^:mut ^Args&&... args]
    (assoc! m k (f (get m k) ^Args ^:... (std::forward args)))))
 
 (defn contains?
   (^{:tpl [K]} [^std::unordered_set<K> coll ^K key]
    (= (.count coll key) 1))
-  (^{:tpl [K C]} [^"std::set<K,C>" coll ^K key]
+  (^{:tpl [K C]} [^std::set<K|C> coll ^K key]
    (= (.count coll key) 1))
-  (^{:tpl [K V]} [^"std::unordered_map<K,V>" coll ^K key]
+  (^{:tpl [K V]} [^std::unordered_map<K|V> coll ^K key]
    (= (.count coll key) 1))
-  (^{:tpl [K V C]} [^"std::map<K,V,C>" coll ^K key]
+  (^{:tpl [K V C]} [^std::map<K|V|C> coll ^K key]
    (= (.count coll key) 1))
   ([coll key]
    (.contains coll key)))
 
 (defn count
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
+  (^{:tpl [T1 T2]} [^std::pair<T1|T2> _]
    2)
   ([coll]
    (.size coll)))
