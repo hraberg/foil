@@ -284,6 +284,11 @@
    (fn [^auto... p-args]
      (f args... p-args...))))
 
+(defn comp
+  (^{:tpl [F1 F2]} [^F1 f1 ^F2 f2]
+   (fn [^auto... args]
+     (f1 (f2 args...)))))
+
 (defn even? [n]
   (= (mod n 2) 0))
 
