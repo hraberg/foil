@@ -53,12 +53,6 @@
   ([x]
    ^:unsafe (* x)))
 
-(defn empty?
-  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
-   false)
-  ([coll]
-   (.empty coll)))
-
 (defstruct Cons ^{:tpl [T]}
   [^T car
    ^std::shared_ptr<Cons<T>> cdr])
@@ -90,6 +84,12 @@
 
   (begin [] (iterator. head))
   (end [] (iterator. nullptr)))
+
+(defn empty?
+  (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" _]
+   false)
+  ([coll]
+   (.empty coll)))
 
 (defn first
   (^{:tpl [T1 T2]} [^"std::pair<T1,T2>" coll]
