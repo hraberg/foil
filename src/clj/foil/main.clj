@@ -108,7 +108,7 @@
                            bit-shift-right >>
                            >> >>})
 
-(def ^:private unsafe-ops '#{& * aget aset deref})
+(def ^:private unsafe-ops '#{& * aget aset deref cast})
 
 (def ^:private fn-replacements '{clojure.core/deref deref})
 

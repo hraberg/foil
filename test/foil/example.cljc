@@ -233,7 +233,7 @@
       (reset! at 4)
       (println @at))
 
-    (println ^int (cast 1.2))
+    (println ^:unsafe ^int (cast 1.2))
     (println (subs "hello" 2))
     (println (subs "hello" 1 3))
 
