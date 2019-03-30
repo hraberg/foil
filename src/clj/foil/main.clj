@@ -78,8 +78,8 @@
                           & &
                           * *})
 
-(def ^:private unary-inc-dec-op '{inc +
-                                  dec -})
+(def ^:private unary-inc-dec-op '{++ ++
+                                  -- --})
 
 (def ^:private binary-op '{+ +
                            - -
@@ -179,9 +179,9 @@
 
       (and (contains? unary-inc-dec-op f)
            (= 1 (count args)))
-      (do (print "(")
+      (do (print (str "(" (get unary-inc-dec-op f)))
           (emit-expression (first args))
-          (print (str " " (get unary-inc-dec-op f) " 1)")))
+          (print ")"))
 
       (contains? binary-op f)
       (do (assert (>= (count args) 2) "Requires minimum two operands.")
@@ -371,9 +371,9 @@
 (defmethod foil-macroexpand :loop [[_ bindings & body :as form]]
   (let [bindings (partition 2 bindings)]
     (with-meta
-      `((~'fn ~(vec (for [[var] bindings]
-                      (cond-> var
-                        (not (string? var)) (vary-meta assoc :mut true))))
+      `((~'fn ^:ref ~(vec (for [[var] bindings]
+                            (cond-> var
+                              (not (string? var)) (vary-meta assoc :mut true))))
          ~@body)
         ~@(map second bindings))
       (meta form))))

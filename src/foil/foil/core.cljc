@@ -53,6 +53,12 @@
   ([x]
    ^:unsafe (* x)))
 
+(defn inc [n]
+  (+ n 1))
+
+(defn dec [n]
+  (- n 1))
+
 (defstruct Cons ^{:tpl [T]}
   [^T car
    ^std::shared_ptr<Cons<T>> cdr])
@@ -265,12 +271,6 @@
   ([coll]
    (.back coll)))
 
-(defn inc [n]
-  (+ n 1))
-
-(defn dec [n]
-  (- n 1))
-
 (defn constantly [x]
   (fn [^auto... _] x))
 
@@ -457,7 +457,7 @@
          (do
            ^:unsafe
            (conj! acc (f @c1-b @c2-b))
-           (recur ($ "++c1_b") ($ "++c2_b") acc))
+           (recur (++ c1-b) (++ c2-b) acc))
          acc)))))
 
 (defn map-indexed ^{:tpl [F C]} [^F f ^C coll]
