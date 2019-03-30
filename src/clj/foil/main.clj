@@ -154,8 +154,7 @@
     (vary-meta p assoc :ref (not (:val (meta p))))))
 
 (defn- maybe-template-params [form]
-  (let [tag (str (cond-> (form->tag form nil)
-                   (:ptr (meta form)) (str "*")))]
+  (let [tag (str (form->tag form nil))]
     (when (seq tag)
       (str/replace (str tag) "|" ","))))
 
