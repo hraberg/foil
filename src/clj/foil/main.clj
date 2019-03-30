@@ -154,9 +154,8 @@
     (vary-meta p assoc :ref (not (:val (meta p))))))
 
 (defn- maybe-template-params [form]
-  (let [tag (str (form->tag form nil))]
-    (when (seq tag)
-      (str/replace (str tag) "|" ","))))
+  (when-let [tag (form->tag form nil)]
+    (str/replace (str tag) "|" ",")))
 
 (defn- check-unsafe [[f :as form]]
   (assert (or *unsafe?* (not (contains? unsafe-ops f)))
