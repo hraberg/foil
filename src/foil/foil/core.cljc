@@ -57,7 +57,9 @@
   [^T car
    ^std::shared_ptr<Cons<T>> cdr])
 
-(defstruct ConsIterator ^{:tpl [T]}
+(defstruct ConsIterator ^{:tpl [T]
+                          :using [[value_type T]
+                                  [iterator_tag std::input_iterator_tag]]}
   [^:mut ^std::shared_ptr<Cons<T>> next]
 
   (operator* []
