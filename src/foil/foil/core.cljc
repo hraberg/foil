@@ -59,11 +59,17 @@
 
 (defstruct ConsIterator ^{:tpl [T]
                           :using [[value_type T]
-                                  [iterator_tag std::input_iterator_tag]]}
+                                  [pointer T*]
+                                  [reference T&]
+                                  [difference_type std::ptrdiff_t]
+                                  [iterator_category std::input_iterator_tag]]}
   [^:mut ^std::shared_ptr<Cons<T>> next]
 
   (operator* []
              ^:unsafe (.-car @next))
+
+  (operator== [^ConsIterator<T> x]
+              (= (.get next) (.get (.-next x))))
 
   (operator!= [^ConsIterator<T> x]
               (not= (.get next) (.get (.-next x))))
@@ -75,6 +81,9 @@
 
 (defstruct ConsList ^{:tpl [T]
                       :using [[value_type T]
+                              [pointer T*]
+                              [reference T&]
+                              [difference_type std::ptrdiff_t]
                               [size_type std::size_t]
                               [iterator ConsIterator<value_type>]]}
   [^:mut ^std::shared_ptr<Cons<T>> head
@@ -108,14 +117,7 @@
      ^T (ConsList. (.-cdr @(.-head coll)) (dec (.-count coll))))))
 
 (defmethod operator== ^{:tpl [T]} ^bool [^ConsList<T> x ^ConsList<T> y]
-  (or (= (.-head x)
-         (.-head y))
-      (and (not (empty? x))
-           (not (empty? y))
-           (= (first x)
-              (first y))
-           (= (next x)
-              (next y)))))
+  (std::equal (.begin x) (.end x) (.begin y)))
 
 (defn cons
   ([car cdr]
