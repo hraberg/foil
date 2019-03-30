@@ -776,7 +776,7 @@
     (println (str "struct " (munge-name name)) " {")
     (binding [*indent* (str *indent* default-indent)]
       (doseq [[name type] (:using (meta fields))]
-        (print (str *indent* "using " (munge-name name) " = " (munge-name type) ";")))
+        (print (str *indent* "using " (munge-name name) " = " type ";")))
       (doseq [[tn field] (map vector field-template-names fields)]
         (print *indent*)
         (emit-var-declaration (maybe-add-template-name field tn))
