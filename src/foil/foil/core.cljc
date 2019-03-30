@@ -49,9 +49,10 @@
 (defstruct ConsIterator ^{:tpl [T]}
   [^:mut ^std::shared_ptr<Cons<T>> next])
 
-(defstruct ConsList ^{:tpl [T] :using [[value_type T]
-                                       [size_type std::size_t]
-                                       [iterator ConsIterator<value_type>]]}
+(defstruct ConsList ^{:tpl [T]
+                      :using [[value_type T]
+                              [size_type std::size_t]
+                              [iterator ConsIterator<value_type>]]}
   [^:mut ^std::shared_ptr<Cons<T>> head
    ^:mut ^std::size_t size])
 
