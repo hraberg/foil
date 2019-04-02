@@ -355,8 +355,9 @@
       (if (= 'do (first maybe-expanded))
         (emit-expression maybe-expanded)
         (do (print (str *indent* "return "))
-            (binding [*expr?* true]
-              (emit-expression value))
+            (when-not (nil? value)
+              (binding [*expr?* true]
+                (emit-expression value)))
             (println ";"))))))
 
 (defmethod foil-macroexpand :recur [[_ & expressions :as form]]
@@ -554,6 +555,19 @@
    (fn [x ys]
      (concat ys [x]))
    x forms))
+
+(defmethod foil-macroexpand :deftest [[_ name & body]]
+  (let [test-sym (gensym "__test")]
+    `(~'def ~name ((~'fn []
+                    (~'let [~test-sym (~'fn []
+                                       ~@body
+                                       (return))]
+                     (~'conj! ~'*test-vars*
+                      ~(with-meta (list 'static_cast test-sym) {:tag "void(*)()" }))
+                     ~test-sym))))))
+
+(defmethod foil-macroexpand :is [[_ expr]]
+  `(~'assert ~expr))
 
 (defmethod foil-macroexpand :default [form]
   form)
@@ -837,6 +851,8 @@
            (emit-headers form))
     (include require) (emit-include form)
     def (emit-var-definition form)
+    do (doseq [form (rest form)]
+         (emit-top-level form))
     defn (do (when (= '-main (second form))
                (reset! main form))
              (emit-function form))

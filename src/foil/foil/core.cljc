@@ -1,6 +1,7 @@
 (ns foil.core
   (:require [algorithm]
             [atomic]
+            [cassert]
             [chrono]
             [functional]
             [iostream]
@@ -19,6 +20,8 @@
 
 (def ^:mut ^std::vector<std::string> *command-line-args*)
 (def *foil-version* "0.1.0-SNAPSHOT")
+
+(def ^:mut *test-vars* ^"void(*)()" (std::vector.))
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
@@ -613,3 +616,7 @@
      (.str out)))
   (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (+ (str arg) (str args...))))
+
+(defn run-all-tests []
+  (doseq [f *test-vars*]
+    (f)))
