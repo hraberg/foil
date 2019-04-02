@@ -249,6 +249,75 @@ Nothing done here yet.
 
 Foil still only compiles to C++.
 
+## Reflections After Third Week
+
+### Changes
+
+This week was quite slow, the main thing is that I've ditched
+`std::forward_list` for `foil::core::ConsList` which is a normal cons
+list implemented in Foil itself. This lead to allowing for usage of a
+few more C++ constructs so one could express the iterators etc.
+directly in Foil. This list uses `std::shared_ptr` to allow for
+sharing of tails.
+
+I've added `:unsafe` meta data which is necessary to use to compile
+operations using raw pointers.
+
+I've also added the start of a small set of testing utilities, with
+the aim to refactor `example.cljc` into `tests.cljc` and group it into
+reasonable tests.
+
+`doseq` and `for` now support the expected directives like `:let`,
+`:while` and `:when`.
+
+Allowing `|` to represent `,` in tags which removes the need for most
+(but not all) use of string tags.
+
+### Outlook
+
+At this point Foil is quite complete for what it is. Many library
+functions could be added (and potentially tranducers etc.), but the
+semantics of the language is now quite clear. It fully embraces RIAA
+and use of smart pointers, and compiles down to quite readable C++.
+
+The compiler is still single pass, and I've let the formatting slide a
+bit, as that's actually one of the harder things to keep track of
+while generating the output.
+
+My next steps will mainly involve cleaning up the tests and then
+decide what to do next. I've started to read about region based memory
+management and doing more research again, and there are several ways
+from here that could be taken:
+
+1. Evolve Foil as is and just add more features (see above).
+2. Try to add custom region based allocators and do more analysis when
+   compiling to aim for memory safety.
+3. Decouple the compiler front end better from the code generator.
+4. Redo the entire thing and target Rust instead of C++. Rust doesn't
+   have templates the same way C++ has, so the compilation strategy
+   (or language semantics) likely must change a bit. My impression is
+   that generating the correct lifetimes will be quite hard, but this
+   would potentially still be easier than the next option.
+5. Retarget to something simpler, like C+libc or WASM+WASI. This
+   requires more work in the compiler, but gives full control over the
+   semantics. This requires doing proper type and lifetime analysis /
+   inference.
+6. Consider Truffle/JVM.
+7. Back to the drawing board.
+
+As it stands, Foil isn't very portable, as it's heavily tied to C++,
+RIAA and STL. Some analysis what one wants to achieve is needed before
+pushing further. There are two slightly conflicting goals at play,
+creating a small non-GC Lisp that allows for systems programming, and
+creating a small Lisp that can be ported easily to different targets.
+
+One implicit goal here is to tease out the minimal useable subset of
+Clojure one wants to have available in this core. If this subset is
+small enough, and coupled with a portable test suite, reuse might not
+be that necessary as it's potentially easy to rewrite it for each
+target. More advanced features can then be built on and share the
+core.
+
 ## Name
 
 Unknown to me, turns out there are (at least) a few things called
