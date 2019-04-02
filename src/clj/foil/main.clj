@@ -76,6 +76,7 @@
                           bit-not "~"
                           - -
                           & &
+                          address-of &
                           * *})
 
 (def ^:private unary-inc-dec-op '{inc! ++
@@ -108,7 +109,7 @@
                            bit-shift-right >>
                            >> >>})
 
-(def ^:private unsafe-ops '#{& * aget aset clojure.core/deref deref cast})
+(def ^:private unsafe-ops '#{& address-of * aget aset clojure.core/deref deref cast})
 
 (def ^:private fn-replacements '{clojure.core/deref deref})
 
