@@ -607,6 +607,12 @@
 (defn- emit-code [[op & body]]
   (print (str/join body)))
 
+(defn- retain-unsafe-meta [form macro-expansion]
+  (vary-meta
+   macro-expansion
+   update :unsafe (fn [x]
+                    (or x (:unsafe (meta form)))))  )
+
 (defn- emit-expression [form]
   (binding [*unsafe?* (or (:unsafe (meta form)) *unsafe?*)]
     (let [needs-return? (and *tail?*
@@ -647,10 +653,7 @@
                                (seq? form)
                                (= 'fn (first form)))
                       (print "return "))
-                    (emit-expression (vary-meta
-                                      macro-expansion
-                                      update :unsafe (fn [x]
-                                                       (or x (:unsafe (meta macro-expansion)))))))))))))))
+                    (emit-expression (retain-unsafe-meta form macro-expansion)))))))))))
 
 (def ^:dynamic ^:private *file-name* nil)
 
@@ -825,6 +828,28 @@
 
 ;; (literal, variable, call, lambda, if, and set!)
 
+(defn- emit-top-level [ns main [top-level :as form]]
+  (case top-level
+    ns (do (assert (nil? @ns) "Only one namespace supported.")
+           (reset! ns (second form))
+           (when-not (= 'foil.core @ns)
+             (emit-using ['use 'foil.core]))
+           (emit-headers form))
+    (include require) (emit-include form)
+    def (emit-var-definition form)
+    defn (do (when (= '-main (second form))
+               (reset! main form))
+             (emit-function form))
+    defmethod (emit-function-arities form)
+    (defrecord defstruct) (emit-struct form)
+    ($code $) (do (print *indent*)
+                  (emit-code form)
+                  (println)
+                  (println))
+    (let [macro-expansion (foil-macroexpand form)]
+      (assert (not= macro-expansion form))
+      (recur ns main (retain-unsafe-meta form macro-expansion)))))
+
 (defn- emit-source [in out]
   (binding [*out* out]
     (let [ns (atom nil)
@@ -838,23 +863,7 @@
         (binding [*indent* (if @ns
                              default-indent
                              "")]
-          (case top-level
-            ns (do (assert (nil? @ns) "Only one namespace supported.")
-                   (reset! ns (second form))
-                   (when-not (= 'foil.core @ns)
-                     (emit-using ['use 'foil.core]))
-                   (emit-headers form))
-            (include require) (emit-include form)
-            def (emit-var-definition form)
-            defn (do (when (= '-main (second form))
-                       (reset! main form))
-                     (emit-function form))
-            defmethod (emit-function-arities form)
-            (defrecord defstruct) (emit-struct form)
-            ($code $) (do (print *indent*)
-                          (emit-code form)
-                          (println)
-                          (println)))))
+          (emit-top-level ns main form)))
       (when-let [ns @ns]
         (println (str/join " " (repeat (count (ns->ns-parts ns)) "}"))))
       (emit-main @ns @main)

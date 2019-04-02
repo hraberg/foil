@@ -17,8 +17,8 @@
 (def ^:dynamic ^:ptr ^std::ostream *err* ^:unsafe (& (<< std::cerr std::boolalpha)))
 (def ^:dynamic ^:ptr ^std::istream *in* ^:unsafe (& std::cin))
 
-(def ^:dynamic ^std::vector<std::string> *command-line-args*)
-(def ^:dynamic *foil-version* "0.1.0-SNAPSHOT")
+(def ^:mut ^std::vector<std::string> *command-line-args*)
+(def *foil-version* "0.1.0-SNAPSHOT")
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
