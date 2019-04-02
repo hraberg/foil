@@ -144,7 +144,7 @@
   ([car cdr]
    (std::make_pair car cdr))
   (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
-   ^T (ConsList. (rc car cdr) 1))
+   ^T (ConsList. ^Cons<T> (rc ^T (Cons. car cdr)) 1))
   (^{:tpl [T]} [^T car ^ConsList<T> cdr]
    ^T (ConsList. ^Cons<T> (rc ^T (Cons. car (.-head cdr))) (inc (.-count cdr))))
   (^{:tpl [T]} [^T&& car ^ConsList<T>&& cdr]
