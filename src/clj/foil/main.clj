@@ -563,7 +563,7 @@
                                        ~@body
                                        (return))]
                      (~'conj! ~'*test-vars*
-                      ~(with-meta (list 'static_cast test-sym) {:tag "void(*)()" }))
+                      ~(with-meta (list (symbol "std::function.") test-sym) {:tag "void()" }))
                      ~test-sym))))))
 
 (defmethod foil-macroexpand :is [[_ expr]]

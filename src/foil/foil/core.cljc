@@ -21,7 +21,7 @@
 (def ^:mut ^std::vector<std::string> *command-line-args*)
 (def *foil-version* "0.1.0-SNAPSHOT")
 
-(def ^:mut *test-vars* ^"void(*)()" (std::vector.))
+(def ^:mut *test-vars* ^"std::function<void()>" (std::vector.))
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
