@@ -14,9 +14,9 @@
             [vector]
             [experimental/optional]))
 
-(def ^:dynamic ^:ptr ^std::ostream *out* ^:unsafe (& (<< std::cout std::boolalpha)))
-(def ^:dynamic ^:ptr ^std::ostream *err* ^:unsafe (& (<< std::cerr std::boolalpha)))
-(def ^:dynamic ^:ptr ^std::istream *in* ^:unsafe (& std::cin))
+(def ^:dynamic ^:ptr ^std::ostream *out* ^:unsafe (address-of (<< std::cout std::boolalpha)))
+(def ^:dynamic ^:ptr ^std::ostream *err* ^:unsafe (address-of (<< std::cerr std::boolalpha)))
+(def ^:dynamic ^:ptr ^std::istream *in* ^:unsafe (address-of std::cin))
 
 (def ^:mut ^std::vector<std::string> *command-line-args*)
 (def *foil-version* "0.1.0-SNAPSHOT")
@@ -86,7 +86,7 @@
   (operator++ ^:mut []
               ^:unsafe
               (do (set! next (.-cdr @next))
-                  (* this))))
+                  @this)))
 
 (defstruct ConsList ^{:tpl [T]
                       :using [[value_type T]
