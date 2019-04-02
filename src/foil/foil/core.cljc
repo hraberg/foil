@@ -62,6 +62,18 @@
 (defn dec [n]
   (- n 1))
 
+(defn box ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::make_unique ^Args ^:... (std::forward args)))
+
+(defn rc ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
+  ^T (std::make_shared ^Args ^:... (std::forward args)))
+
+(defn weak
+  (^{:tpl [T]} [^T x]
+   ^"typename T::element_type" (std::weak_ptr. x))
+  (^{:tpl [T]} [^:mut ^T&& x]
+   ^"typename T::element_type" (std::weak_ptr. ^T (std::forward x))))
+
 (defstruct Cons ^{:tpl [T]}
   [^T car
    ^std::shared_ptr<Cons<T>> cdr])
@@ -132,11 +144,11 @@
   ([car cdr]
    (std::make_pair car cdr))
   (^{:tpl [T]} [^T car ^std::nullptr_t cdr]
-   ^T (ConsList. (std::make_shared car cdr) 1))
+   ^T (ConsList. (rc car cdr) 1))
   (^{:tpl [T]} [^T car ^ConsList<T> cdr]
-   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr))) (inc (.-count cdr))))
+   ^T (ConsList. ^Cons<T> (rc ^T (Cons. car (.-head cdr))) (inc (.-count cdr))))
   (^{:tpl [T]} [^T&& car ^ConsList<T>&& cdr]
-   ^T (ConsList. ^Cons<T> (std::make_shared ^T (Cons. car (.-head cdr))) (inc (.-count cdr)))))
+   ^T (ConsList. ^Cons<T> (rc ^T (Cons. car (.-head cdr))) (inc (.-count cdr)))))
 
 (defn optional
   (^{:tpl [T]} []
@@ -570,18 +582,6 @@
 
 (defn vals [m]
   (map val m))
-
-(defn box ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
-  ^T (std::make_unique ^Args ^:... (std::forward args)))
-
-(defn rc ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
-  ^T (std::make_shared ^Args ^:... (std::forward args)))
-
-(defn weak
-  (^{:tpl [T]} [^T x]
-   ^"typename T::element_type" (std::weak_ptr. x))
-  (^{:tpl [T]} [^:mut ^T&& x]
-   ^"typename T::element_type" (std::weak_ptr. ^T (std::forward x))))
 
 (defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
   ^:unsafe (.store (* atom) x)
