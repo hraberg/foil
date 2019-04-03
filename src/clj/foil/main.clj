@@ -20,10 +20,14 @@
 
 (def ^:private default-tag 'auto)
 
+(declare munge-ns)
+
 (defn- munge-name [n]
-  (if (str/starts-with? n "operator")
-    n
-    (str/replace (munge n) "_COLON_" ":")))
+  (if-let [ns (and (symbol? n) (namespace n))]
+    (str (munge-ns ns) "::" (munge-name (name n)))
+    (if (str/starts-with? n "operator")
+      n
+      (str/replace (munge n) "_COLON_" ":"))))
 
 (defn- munge-ns [n]
   (munge-name (str/replace n "." "::")))
@@ -841,17 +845,19 @@
   (when main
     (let [[_ _ main-args] main
           tag (form->tag main-args)]
-      (println)
-      (println "int main(int argc, char** argv) {")
-      (println (str default-indent (munge-name '*command-line-args*)
-                    " = std::vector<std::string>(argv + 1, argv + argc);"))
-      (println (str default-indent (str (when (= 'int tag)
-                                          "return ")
-                                        (munge-ns ns)
-                                        "::_main();")))
-      (when (not= 'int tag)
-        (println (str default-indent "return 0;")))
-      (println "}"))))
+      (emit-function-arities
+       `(~'defmethod ~'main ~(with-meta [(with-meta (symbol "argc") {:tag 'int :val true})
+                                         (with-meta (symbol "argv") {:tag "char**" :val true})]
+                               {:tag 'int})
+         (~'set! ~'*command-line-args* ~(with-meta
+                                          `(~(symbol "std::vector.")
+                                            (~'inc ~'argv) (~'+ ~'argv ~'argc))
+                                          {:tag "std::string"}))
+         ~(if (= 'int tag)
+            `(~(symbol (str ns) "-main"))
+            `(~'do
+              (~(symbol (str ns) "-main"))
+              0)))))))
 
 ;; (literal, variable, call, lambda, if, and set!)
 
