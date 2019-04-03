@@ -4,5 +4,5 @@
   (is (= 6 ((partial + 2) 4)))
   (is (= -6 ((comp (fn [x] (- x)) (partial + 2)) 4))))
 
-(defn -main []
+(defn -main ^int []
   (run-all-tests))

@@ -21,9 +21,6 @@
 (def ^:mut ^std::vector<std::string> *command-line-args*)
 (def *foil-version* "0.1.0-SNAPSHOT")
 
-(def ^:mut *test-vars* ^"std::function<void()>" (std::vector.))
-(def ^:dynamic *testing-contexts* "")
-
 (def ^std::plus<> +)
 (def ^std::minus<> -)
 (def ^std::multiplies<> *)
@@ -621,19 +618,34 @@
   (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (+ (str arg) (str args...))))
 
+(def ^:mut *test-vars* ^"std::function<void()>" [])
+(def ^:dynamic *testing-contexts* "")
+(def ^:mut *report-counters* ^std::string|int {:pass 0 :fail 0})
+
 (defn run-all-tests []
   (doseq [f *test-vars*]
-    (f)))
+    (f))
+  ^:unsafe
+  (<< @*err*
+      "\nRan " (count *test-vars*) " tests containing "
+      (+ (get *report-counters* :pass)
+         (get *report-counters* :fail)) " assertions.\n")
+  ^:unsafe
+  (<< @*err* (get *report-counters* :fail) " failures.\n")
+  (if (pos? (get *report-counters* :fail))
+    1
+    0))
 
 (defn register-test! [^"std::function<void()>" test]
   (conj! *test-vars* test)
   test)
 
 (defn assert-predicate ^void [msg expected actual actual-str]
-  ^:unsafe (when-not actual
-             (<< @*err* msg)
-             (<< @*err* *testing-contexts* "\n")
-             (<< @*err* "expected: " expected "\n")
-             (<< @*err* "  actual: " actual-str "\n")
-             (<< @*err* actual "\n")
-             (exit 1)))
+  ^:unsafe (if actual
+             (update! *report-counters* :pass inc)
+             (do (<< @*err* msg)
+                 (<< @*err* *testing-contexts* "\n")
+                 (<< @*err* "expected: " expected "\n")
+                 (<< @*err* "  actual: " actual-str "\n")
+                 (<< @*err* actual "\n")
+                 (update! *report-counters* :fail inc))))
