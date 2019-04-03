@@ -8,7 +8,7 @@
   (:gen-class))
 
 (defn- read-source [in]
-  (let [r (rt/indexing-push-back-reader in 2)]
+  (let [r (rt/indexing-push-back-reader in)]
     (binding [r/*read-eval* false]
       (->> (repeatedly #(r/read {:read-cond :allow
                                  :features #{:foil
