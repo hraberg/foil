@@ -574,7 +574,7 @@
         syms (repeatedly (count args) #(gensym "__is"))]
     `(~'let ~(vec (interleave syms args))
       (~'assert-predicate
-       ~(str "\nFAIL in (" *file-name* ":" (:line (meta form)) ")\n" (cond-> msg msg (str msg "\n")))
+       ~(str "FAIL in (" *file-name* ":" (:line (meta form)) ")\n" (cond-> msg msg (str msg "\n")))
        ~expected
        (~f ~@syms)
        ~(if pred?

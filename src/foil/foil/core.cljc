@@ -625,16 +625,15 @@
 (defn run-all-tests []
   (doseq [f *test-vars*]
     (f))
-  ^:unsafe
-  (<< @*err*
-      "\nRan " (count *test-vars*) " tests containing "
-      (+ (get *report-counters* :pass)
-         (get *report-counters* :fail)) " assertions.\n")
-  ^:unsafe
-  (<< @*err* (get *report-counters* :fail) " failures.\n")
-  (if (pos? (get *report-counters* :fail))
-    1
-    0))
+  (binding [*out* *err*]
+    (println)
+    (println "Ran" (count *test-vars*) "tests containing"
+             (+ (get *report-counters* :pass)
+                (get *report-counters* :fail)) "assertions.")
+    (println (get *report-counters* :fail) "failures.")
+    (if (pos? (get *report-counters* :fail))
+      1
+      0)))
 
 (defn register-test! [^"std::function<void()>" test]
   (conj! *test-vars* test)
@@ -643,9 +642,11 @@
 (defn assert-predicate ^void [msg expected actual actual-str]
   ^:unsafe (if actual
              (update! *report-counters* :pass inc)
-             (do (<< @*err* msg)
-                 (<< @*err* *testing-contexts* "\n")
-                 (<< @*err* "expected: " expected "\n")
-                 (<< @*err* "  actual: " actual-str "\n")
-                 (<< @*err* actual "\n")
-                 (update! *report-counters* :fail inc))))
+             (binding [*out* *err*]
+               (println)
+               (print msg)
+               (println *testing-contexts*)
+               (println "expected:" expected)
+               (println "  actual: " actual-str)
+               (println actual)
+               (update! *report-counters* :fail inc))))
