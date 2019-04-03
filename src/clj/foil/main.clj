@@ -567,11 +567,19 @@
                    ~@body)))))
 
 (defmethod foil-macroexpand :is [[_ expr msg :as form]]
-  (let [expected (pr-str expr)]
-    `(~'assert-predicate
-      ~(str "FAIL in (" *file-name* ":" (:line (meta form)) ")\n" (cond-> msg msg (str msg "\n")))
-      ~expected
-      ~expr)))
+  (let [expected (pr-str expr)
+        pred? (seq? expr)
+        [f & args] (cond->> expr
+                     (not pred?) (list 'identity))
+        syms (repeatedly (count args) #(gensym "__is"))]
+    `(~'let ~(vec (interleave syms args))
+      (~'assert-predicate
+       ~(str "FAIL in (" *file-name* ":" (:line (meta form)) ")\n" (cond-> msg msg (str msg "\n")))
+       ~expected
+       (~f ~@syms)
+       ~(if pred?
+          `(~'str "(not (" ~(str f) " " ~@(interpose " " syms) "))")
+          `(~'str ~(first syms)))))))
 
 (defmethod foil-macroexpand :default [form]
   form)

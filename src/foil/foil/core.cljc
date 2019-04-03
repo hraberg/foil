@@ -629,11 +629,11 @@
   (conj! *test-vars* test)
   test)
 
-(defn assert-predicate ^void [msg expected actual]
+(defn assert-predicate ^void [msg expected actual actual-str]
   ^:unsafe (when-not actual
              (<< @*err* msg)
              (<< @*err* *testing-contexts* "\n")
              (<< @*err* "expected: " expected "\n")
-             (<< @*err* "  actual: " actual "\n")
+             (<< @*err* "  actual: " actual-str "\n")
              (<< @*err* actual "\n")
              (exit 1)))
