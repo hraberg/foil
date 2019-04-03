@@ -565,9 +565,14 @@
                      ~test-sym))))))
 
 (defmethod foil-macroexpand :is [[_ expr msg]]
-  (if msg
-    `(~'assert (~'&& ~expr ~msg))
-    `(~'assert ~expr)))
+  (let [msg (cond-> (pr-str expr)
+              msg (str ": " msg))]
+    (with-meta
+      `(~'let [expr# ~expr]
+        (~'when-not expr#
+         (~'<< @~'*err* ~msg "\n")
+         (~'exit 1)))
+      {:unsafe true})))
 
 (defmethod foil-macroexpand :default [form]
   form)
