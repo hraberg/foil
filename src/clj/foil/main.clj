@@ -559,7 +559,8 @@
 (defmethod foil-macroexpand :deftest [[_ name & body]]
   `(~'def ~name (~'register-test!
                  (~'fn ~(with-meta [] {:tag 'void})
-                  ~@body))))
+                  (~'binding [~'*testing-contexts* (~'str ~(str name) " " ~'*testing-contexts*)]
+                   ~@body)))))
 
 (defmethod foil-macroexpand :is [[_ expr msg :as form]]
   (let [expected (pr-str expr)]

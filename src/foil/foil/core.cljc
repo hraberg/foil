@@ -22,6 +22,7 @@
 (def *foil-version* "0.1.0-SNAPSHOT")
 
 (def ^:mut *test-vars* ^"std::function<void()>" (std::vector.))
+(def ^:dynamic *testing-contexts* "")
 
 (def ^std::plus<> +)
 (def ^std::minus<> -)
@@ -631,6 +632,7 @@
 (defn assert-predicate ^void [msg expected actual]
   ^:unsafe (when-not actual
              (<< @*err* msg)
+             (<< @*err* *testing-contexts* "\n")
              (<< @*err* "expected: " expected "\n")
              (<< @*err* "  actual: " actual "\n")
              (<< @*err* actual "\n")
