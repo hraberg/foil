@@ -204,10 +204,6 @@
           (print " = ")
           (emit-expression (last args)))
 
-      (and (keyword? f)
-           (= 1 (count args)))
-      (emit-array-access [(first args) f])
-
       (and (field-access? f)
            (= 1 (count args)))
       (do (emit-expression (first args))
