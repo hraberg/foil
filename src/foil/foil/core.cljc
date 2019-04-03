@@ -1,7 +1,6 @@
 (ns foil.core
   (:require [algorithm]
             [atomic]
-            [cassert]
             [chrono]
             [functional]
             [iostream]

@@ -16,7 +16,6 @@
    (println x)))
 
 (defn -main []
-  (run-all-tests)
   (let [^:mut x 0
         pt ^int (Point. -1 2)
         t 3
