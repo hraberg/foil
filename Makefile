@@ -20,10 +20,10 @@ clean:
 $(TARGET)/%.cpp: test/foil/%.cljc $(UBERJAR)
 	java -jar $(UBERJAR) $< $@
 
-$(TARGET)/foil/%.hpp: src/foil/foil/%.cljc $(UBERJAR)
+$(TARGET)/%.hpp: src/foil/%.cljc $(UBERJAR)
 	java -jar $(UBERJAR) $< $@
 
-$(TARGET)/foil/%.hpp.ghc: $(TARGET)/foil/%.hpp
+$(TARGET)/%.hpp.ghc: $(TARGET)/%.hpp
 	$(CXX) $< $(CXXFLAGS) -o $@
 
 $(TARGET)/%.s: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
