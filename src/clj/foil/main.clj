@@ -567,8 +567,10 @@
                       ~(with-meta (list (symbol "std::function.") test-sym) {:tag "void()" }))
                      ~test-sym))))))
 
-(defmethod foil-macroexpand :is [[_ expr]]
-  `(~'assert ~expr))
+(defmethod foil-macroexpand :is [[_ expr msg]]
+  (if msg
+    `(~'assert (~'&& ~expr ~msg))
+    `(~'assert ~expr)))
 
 (defmethod foil-macroexpand :default [form]
   form)
