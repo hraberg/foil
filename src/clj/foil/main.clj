@@ -847,7 +847,7 @@
           tag (form->tag main-args)]
       (emit-function-arities
        `(~'defmethod ~'main ~(with-meta [(with-meta (symbol "argc") {:tag 'int :val true})
-                                         (with-meta (symbol "argv") {:tag "char**" :val true})]
+                                         (with-meta (symbol "argv") {:tag 'char* :ptr true})]
                                {:tag 'int})
          (~'set! ~'*command-line-args* ~(with-meta
                                           `(~(symbol "std::vector.")
