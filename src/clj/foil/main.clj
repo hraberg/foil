@@ -8,13 +8,13 @@
   (:gen-class))
 
 (defn- read-source [in]
-  (let [r (rt/indexing-push-back-reader in)]
+  (let [in (rt/indexing-push-back-reader in)]
     (binding [r/*read-eval* false]
       (->> (repeatedly #(r/read {:read-cond :allow
                                  :features #{:foil
                                              :c++}
                                  :eof ::eof}
-                                r))
+                                in))
            (take-while #(not= ::eof %))
            (vec)))))
 
