@@ -623,3 +623,15 @@
 (defn run-all-tests []
   (doseq [f *test-vars*]
     (f)))
+
+(defn register-test! [^"std::function<void()>" test]
+  (conj! *test-vars* test)
+  test)
+
+(defn assert-predicate ^void [msg expected actual]
+  ^:unsafe (when-not actual
+             (<< @*err* msg)
+             (<< @*err* "expected: " expected "\n")
+             (<< @*err* "  actual: " actual "\n")
+             (<< @*err* actual "\n")
+             (exit 1)))

@@ -67,6 +67,8 @@
 (def ^:private default-indent "    ")
 (def ^:dynamic ^:private *indent* "")
 
+(def ^:dynamic ^:private *file-name* nil)
+
 (def ^:dynamic ^:private *tail?* false)
 (def ^:dynamic ^:private *expr?* false)
 (def ^:dynamic ^:private *unsafe?* false)
@@ -555,24 +557,16 @@
    x forms))
 
 (defmethod foil-macroexpand :deftest [[_ name & body]]
-  (let [test-sym (gensym "__test")]
-    `(~'def ~name ((~'fn []
-                    (~'let [~test-sym (~'fn []
-                                       ~@body
-                                       (return))]
-                     (~'conj! ~'*test-vars*
-                      ~(with-meta (list (symbol "std::function.") test-sym) {:tag "void()" }))
-                     ~test-sym))))))
+  `(~'def ~name (~'register-test!
+                 (~'fn ~(with-meta [] {:tag 'void})
+                  ~@body))))
 
-(defmethod foil-macroexpand :is [[_ expr msg]]
-  (let [msg (cond-> (pr-str expr)
-              msg (str ": " msg))]
-    (with-meta
-      `(~'let [expr# ~expr]
-        (~'when-not expr#
-         (~'<< @~'*err* ~msg "\n")
-         (~'exit 1)))
-      {:unsafe true})))
+(defmethod foil-macroexpand :is [[_ expr msg :as form]]
+  (let [expected (pr-str expr)]
+    `(~'assert-predicate
+      ~(str "FAIL in (" *file-name* ":" (:line (meta form)) ")\n" (cond-> msg msg (str msg "\n")))
+      ~expected
+      ~expr)))
 
 (defmethod foil-macroexpand :default [form]
   form)
@@ -676,8 +670,6 @@
                                (= 'fn (first form)))
                       (print "return "))
                     (emit-expression (retain-unsafe-meta form macro-expansion)))))))))))
-
-(def ^:dynamic ^:private *file-name* nil)
 
 (defn- emit-line [form]
   (when-let [line (:line (meta form))]
