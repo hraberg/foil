@@ -859,8 +859,6 @@
               (~(symbol (str ns) "-main"))
               0)))))))
 
-;; (literal, variable, call, lambda, if, and set!)
-
 (defn- emit-top-level [ns main [top-level :as form]]
   (case top-level
     ns (do (assert (nil? @ns) "Only one namespace supported.")
