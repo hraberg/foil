@@ -556,10 +556,14 @@
      (concat ys [x]))
    x forms))
 
+(defmethod foil-macroexpand :testing [[_ name & body]]
+  `(~'binding [~'*testing-contexts* (~'str ~'*testing-contexts* ~(str name) " ")]
+    ~@body))
+
 (defmethod foil-macroexpand :deftest [[_ name & body]]
   `(~'def ~name (~'register-test!
                  (~'fn ~(with-meta [] {:tag 'void})
-                  (~'binding [~'*testing-contexts* (~'str ~(str name) " " ~'*testing-contexts*)]
+                  (~'testing ~name
                    ~@body)))))
 
 (defmethod foil-macroexpand :is [[_ expr msg :as form]]
