@@ -601,6 +601,9 @@
 (defn re-pattern [s]
   (std::regex. s))
 
+(defn inst-ms [d]
+  (.count (.time_since_epoch ^std::chrono::milliseconds (std::chrono::time_point_cast d))))
+
 (defn subs
   ([s start]
    (.substr s start))

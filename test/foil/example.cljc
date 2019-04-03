@@ -33,6 +33,8 @@
     (println ((comp (fn [x] (- x)) (partial + 2)) 4))
     (println)
 
+    (println (inst-ms d))
+
     (doseq [x (sort ss)]
       (println x))
 

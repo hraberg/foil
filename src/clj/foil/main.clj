@@ -595,7 +595,10 @@
       (emit-application `(~'re-pattern ~(str form)))
 
       (inst? form)
-      (print (str "std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(" (inst-ms form) "))"))
+      (emit-application (with-meta
+                          `(~(symbol "std::chrono::time_point")
+                            (~(symbol "std::chrono::milliseconds") ~(inst-ms form)))
+                          {:tag (symbol "std::chrono::system_clock")}))
 
       (map? form)
       (emit-application (with-meta
