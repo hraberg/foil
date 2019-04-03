@@ -896,6 +896,7 @@
         (binding [*file-name* (first args)]
           (emit-source in *out*)))
     2 (with-open [in (io/reader (io/file (first args)))
-                  out (io/writer (io/file (second args)))]
+                  out (io/writer (doto (io/file (second args))
+                                   (io/make-parents)))]
         (binding [*file-name* (first args)]
           (emit-source in out)))))

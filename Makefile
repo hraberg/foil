@@ -21,7 +21,6 @@ $(TARGET)/%.cpp: test/foil/%.cljc $(UBERJAR)
 	java -jar $(UBERJAR) $< $@
 
 $(TARGET)/foil/%.hpp: src/foil/foil/%.cljc $(UBERJAR)
-	mkdir -p `dirname $@`
 	java -jar $(UBERJAR) $< $@
 
 $(TARGET)/foil/%.hpp.ghc: $(TARGET)/foil/%.hpp
