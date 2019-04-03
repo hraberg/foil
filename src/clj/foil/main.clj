@@ -847,7 +847,7 @@
                     " = std::vector<std::string>(argv + 1, argv + argc);"))
       (println (str default-indent (str (when (= 'int tag)
                                           "return ")
-                                        (some-> (munge-ns ns))
+                                        (munge-ns ns)
                                         "::_main();")))
       (when (not= 'int tag)
         (println (str default-indent "return 0;")))
