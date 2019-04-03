@@ -13,7 +13,8 @@
       (->> (repeatedly #(r/read {:read-cond :allow
                                  :features #{:foil
                                              :c++}
-                                 :eof ::eof} r))
+                                 :eof ::eof}
+                                r))
            (take-while #(not= ::eof %))
            (vec)))))
 
