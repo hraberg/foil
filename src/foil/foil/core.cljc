@@ -610,16 +610,6 @@
   ([s start end]
    (.substr s start (- end start))))
 
-(defn str
-  ([]
-   "")
-  ([x]
-   (let [^:mut out (std::ostringstream.)]
-     (<< out std::boolalpha x)
-     (.str out)))
-  (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
-   (+ (str arg) (str args...))))
-
 (defn print-container [^:mut ^std::ostream out coll]
   (let [^:mut first? true]
     (doseq [x coll]
@@ -657,6 +647,17 @@
   (<< out "{")
   (print-container out map)
   (<< out "}"))
+
+(defn str
+  ([]
+   "")
+  (^{:tpl [Arg]} [^:mut ^Arg&& arg]
+   (let [^:mut out (std::ostringstream.)]
+     (<< out std::boolalpha ^Arg (std::forward arg))
+     (.str out)))
+  (^{:tpl [Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
+   (+ (str ^Arg (std::forward arg))
+      (str ^Args ^:... (std::forward args)))))
 
 (def ^:mut *test-vars* ^"std::function<void()>" [])
 (def ^:dynamic *testing-contexts* "")
