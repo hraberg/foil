@@ -618,10 +618,21 @@
         (<< out " "))
       (<< out x))))
 
+(defn print-map [^:mut ^std::ostream out map]
+  (let [^:mut first? true]
+    (doseq [kv map]
+      (if first?
+        (set! first? false)
+        (<< out " "))
+      (<< out (key kv) " " (val kv)))))
+
 (defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^ConsList<T> list]
   (<< out "(")
   (print-container out list)
   (<< out ")"))
+
+(defmethod operator<< ^{:tpl [T1 T2]} [^:mut ^std::ostream out ^std::pair<T1|T2> pair]
+  (<< out "(" (first pair)  " . " (second pair) ")"))
 
 (defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::vector<T> vector]
   (<< out "[")
@@ -640,12 +651,12 @@
 
 (defmethod operator<< ^{:tpl [K V]} [^:mut ^std::ostream out ^std::unordered_map<K|V> map]
   (<< out "{")
-  (print-container out map)
+  (print-map out map)
   (<< out "}"))
 
 (defmethod operator<< ^{:tpl [K V]} [^:mut ^std::ostream out ^std::map<K|V> map]
   (<< out "{")
-  (print-container out map)
+  (print-map out map)
   (<< out "}"))
 
 (defn str
