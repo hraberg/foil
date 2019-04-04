@@ -164,10 +164,39 @@
 
     (is (= ^int [7 15] (reductions + 0 l)))
 
-    (is (= ^int '[14 16] (map + l l)))
+    (is (= ^int [14 16] (map + l l)))
 
-    (is (= ^int '[7 8 8 9] (mapcat (fn [x]
-                                     ^int [x (inc x)]) l)))))
+    (is (= ^int [7 8 8 9] (mapcat (fn [x]
+                                    ^int [x (inc x)]) l)))
+
+    (is (= ^int [0 1] (map-indexed
+                       (fn [idx _]
+                         ^:unsafe
+                         ^int (cast idx))
+                       l)))))
+
+(deftest test-seq-fns
+  (let [l ^int '(7 8)
+        s ^int #{1 2}]
+    (is (= 4 (count (concat l s))))
+    (is (= ^int '(8 7) (reverse l)))
+
+    (is (true? (every? pos? l)))
+    (is (false? (every? neg? l)))
+    (is (= ^int [8] (drop 1 l)))
+    (is (= ^int [7] (take 1 l)))
+
+    (is (= ^int [8] (get (group-by even? l) true)))
+    (is (= ^int [7] (get (group-by even? l) false)))))
+
+(deftest test-empty
+  (let [^:mut xs ^int [7]]
+    (is (zero? (count (empty! xs))))
+    (is (zero? (count xs))))
+
+  (let [xs ^int [7]]
+    (is (zero? (count (empty xs))))
+    (is (= 1 (count xs)))))
 
 (deftest test-repeat-repeatedly
   (is (= 3 (count (repeat 3 42))))

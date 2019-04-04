@@ -45,29 +45,6 @@
 
     (my-fun x)
 
-    (println (count (concat l s)))
-    (println (= ^int '(8 7) (reverse l)))
-
-    (println (every? pos? l))
-    (println (every? neg? l))
-    (println (= ^int [8] (drop 1 l)))
-    (println (= ^int [7] (take 1 l)))
-
-    (let [^:mut xs ^int [7]]
-      (println (count (empty! xs)))
-      (println (count xs)))
-
-    (println (= ^int '[8] (get (group-by even? l) true)))
-    (println (= ^int '[7] (get (group-by even? l) false)))
-
-    (let [xs ^int [7]]
-      (println (count (empty xs)))
-      (println (count xs)))
-
-    (doseq [x (map-indexed (fn [idx _]
-                             idx) l)]
-      (println x))
-
     (println (count ^std::size_t (for [x (map-indexed (fn [idx _]
                                                         idx) l)
                                        :when (even? x)]
