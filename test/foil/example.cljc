@@ -26,7 +26,7 @@
         r #"\n"
         d #inst "1980"
         my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))
-        ^:mut ss ^int [2 3 1]]
+        ss ^int [2 3 1]]
 
     (println ((partial + 2) 4))
     (println ((comp (fn [x] (- x)) (partial + 2)) 4))

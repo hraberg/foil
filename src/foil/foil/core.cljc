@@ -135,7 +135,10 @@
      ^T (ConsList. (.-cdr @(.-head coll)) (dec (.-count coll))))))
 
 (defmethod operator== ^{:tpl [T]} ^bool [^ConsList<T> x ^ConsList<T> y]
-  (std::equal (.begin x) (.end x) (.begin y)))
+  (std::equal (.begin x) (.end x) (.begin y) (.end y)))
+
+(defmethod operator!= ^{:tpl [T]} ^bool [^ConsList<T> x ^ConsList<T> y]
+  (not (= x y)))
 
 (defn cons
   ([car cdr]
@@ -327,8 +330,8 @@
 
 (defn max [x y]
   (if (< x y)
-    x
-    y))
+    y
+    x))
 
 (defn true? [x]
   (= true x))
@@ -616,6 +619,44 @@
      (.str out)))
   (^{:tpl [Arg ...Args]} [^Arg arg ^Args&... args]
    (+ (str arg) (str args...))))
+
+(defn print-container [^:mut ^std::ostream out coll]
+  (let [^:mut first? true]
+    (doseq [x coll]
+      (if first?
+        (set! first? false)
+        (<< out " "))
+      (<< out x))))
+
+(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^ConsList<T> list]
+  (<< out "(")
+  (print-container out list)
+  (<< out ")"))
+
+(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::vector<T> vector]
+  (<< out "[")
+  (print-container out vector)
+  (<< out "]"))
+
+(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::unordered_set<T> set]
+  (<< out "#{")
+  (print-container out set)
+  (<< out "}"))
+
+(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::set<T> set]
+  (<< out "#{")
+  (print-container out set)
+  (<< out "}"))
+
+(defmethod operator<< ^{:tpl [K V]} [^:mut ^std::ostream out ^std::unordered_map<K|V> map]
+  (<< out "{")
+  (print-container out map)
+  (<< out "}"))
+
+(defmethod operator<< ^{:tpl [K V]} [^:mut ^std::ostream out ^std::map<K|V> map]
+  (<< out "{")
+  (print-container out map)
+  (<< out "}"))
 
 (def ^:mut *test-vars* ^"std::function<void()>" [])
 (def ^:dynamic *testing-contexts* "")
