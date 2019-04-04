@@ -24,63 +24,9 @@
         s ^int #{1 2}
         l ^int (list 7 8)
         r #"\n"
-        d #inst "1980"
-        my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))
-        ss ^int [2 3 1]]
-
-    (println ((partial + 2) 4))
-    (println ((comp (fn [x] (- x)) (partial + 2)) 4))
-    (println)
-
-    (println (inst-ms d))
-
-    (doseq [x (sort ss)]
-      (println x))
-
-    ^:unsafe
-    (let [sp1 ^std::vector<int> (rc ^int [1 2])
-          sp2 (identity sp1)
-          w (weak sp2)]
-      (weak w)
-      (weak (weak sp2))
-      (println (aget @sp1 0))
-      (aset (* sp1) 0 0)
-      (println (= @sp2 @sp1))
-      (aset (* sp2) 1 3)
-      (println (= @sp2 @sp1))
-      (println (.use_count sp1)))
-
-    (println (identity 5))
-
-    (println (min 3 2))
-
-    (println (first (next l)))
-    (println (first l))
-    (println (second l))
-    (println (count l))
-    (println (first (cons 6 l)))
-    (println (= l ^int '(7 8)))
-    (println (= l (cons 6 l)))
-    (println (count (next l)))
-    (println (count (next (next l))))
-    (println (count (next (next (next l)))))
-
-    (println (second (cons 1 2)))
+        my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))]
 
     (println (= ^int '[14 16] (map + l l)))
-
-    (let [c (cons 10 (cons 20 ^int ()))]
-      (doseq [x c]
-        (println x)))
-
-    ^:unsafe
-    (when-let [f (first-opt l)]
-      (println @f))
-    (when-not (first-opt ^int ())
-      (println false))
-
-    (println (nth ^std::string ["hello" "world"] 1 "?"))
-    (println (nth ^std::string ["hello" "world"] 3 "?"))
 
     ^:unsafe (aset a 0 4)
     ^:unsafe (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (get m :foo)) foo (contains? s 1) (contains? s 3))
@@ -185,8 +131,6 @@
       (test-println s))
 
     (test-println (first l))
-
-    (test-println (sin *pi*))
 
     (test-println (loop [n 0]
                     (if (< n 3)
