@@ -26,8 +26,6 @@
         r #"\n"
         my-fun (fn [x] (printf (.c_str "hello, world %d\n") x))]
 
-    (println (= ^int '[14 16] (map + l l)))
-
     ^:unsafe (aset a 0 4)
     ^:unsafe (printf (.c_str "%d %d %s %.2f %lu %lu\n") (.-x pt) (aget a 0) (.c_str (get m :foo)) foo (contains? s 1) (contains? s 3))
 
@@ -76,9 +74,6 @@
                                                         idx) l)
                                        :when (even? x)]
                                    x)))
-
-    (println (= ^int '[7 8 8 9] (mapcat (fn [x]
-                                          ^int [x (inc x)]) l)))
 
     (println (count (repeat 3 42)))
     (println (first (repeat 3 42)))

@@ -149,7 +149,8 @@
       (is (= ^int [4] zz)))))
 
 (deftest test-map-filter-reduce
-  (let [a ^int [4 3]
+  (let [l ^int '(7 8)
+        a ^int [4 3]
         xs (map inc a)]
 
     (is (= ^int [5 4] xs))
@@ -158,7 +159,12 @@
 
     (is (= ^int [4] (->> a
                          (map inc)
-                         (filter #(= (mod % 2) 0)))))))
+                         (filter #(= (mod % 2) 0)))))
+
+    (is (= ^int '[14 16] (map + l l)))
+
+    (is (= ^int '[7 8 8 9] (mapcat (fn [x]
+                                     ^int [x (inc x)]) l)))))
 
 (defn -main ^int []
   (run-all-tests))
