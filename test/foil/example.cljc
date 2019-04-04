@@ -77,7 +77,6 @@
     (println (first (repeat 3 42)))
 
     (println (= ^int '[42 42 42] (repeatedly 3 (constantly 42))))
-    (println ((constantly 42) 1 2))
 
     (println (empty? ^int (hash-set)))
     (println (empty? ^std::string|std::string (hash-map)))

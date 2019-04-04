@@ -1,9 +1,10 @@
 (ns foil.core-test)
 
-(deftest test-partial-and-comp-and-identity
+(deftest test-partial-comp-identity-constantly
   (is (= 6 ((partial + 2) 4)))
   (is (= -6 ((comp (fn [x] (- x)) (partial + 2)) 4)))
-  (is (= 5 (identity 5))))
+  (is (= 5 (identity 5)))
+  (is (= 42 ((constantly 42) 1 2))))
 
 (deftest test-dates
   (let [d #inst "1980"]
