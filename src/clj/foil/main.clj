@@ -77,6 +77,7 @@
 (def ^:dynamic ^:private *expr?* false)
 (def ^:dynamic ^:private *unsafe?* false)
 (def ^:dynamic ^:private *return-type* default-tag)
+(def ^:dynamic ^:private *current-fn*)
 
 (def ^:private unary-op '{not !
                           ! !
@@ -234,10 +235,15 @@
                                                  (emit-expression %)) (rest args))) ")")))
 
       :else
-      (let [f (get fn-replacements f f)]
+      (let [f (get fn-replacements f f)
+            tag (maybe-template-params form)]
         (check-unsafe form)
-        (emit-expression f)
-        (when-let [tag (maybe-template-params form)]
+        (if (= f *current-fn*)
+          (do (print "(*this)")
+              (when-not tag
+                (print ".operator()")))
+          (emit-expression f))
+        (when tag
           (when-not (or (re-find #"::" (str f))
                         (contains? builtins f))
             (print ".operator()"))
@@ -758,7 +764,8 @@
     (vary-meta p assoc :tag (form->tag p tn))))
 
 (defn- emit-function-arity [[op f args & body :as form]]
-  (binding [*return-type* (form->tag args)]
+  (binding [*return-type* (form->tag args)
+            *current-fn* f]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))]
       (emit-template args arg-template-names)
@@ -794,7 +801,6 @@
     (println)
     (do (println (str *indent* "struct " fn-type " {"))
         (binding [*indent* (str default-indent *indent*)]
-          (println (str *indent* "const static " fn-type " " (munge-name f) ";")) ;
           (emit-function-arities form))
         (println (str *indent* "};"))
         (println (str *indent* "const " fn-type " " (munge-name f) ";")))))
