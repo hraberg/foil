@@ -169,5 +169,10 @@
     (is (= ^int '[7 8 8 9] (mapcat (fn [x]
                                      ^int [x (inc x)]) l)))))
 
+(deftest test-repeat-repeatedly
+  (is (= 3 (count (repeat 3 42))))
+  (is (= 42 (first (repeat 3 42))))
+  (is (= ^int [42 42 42] (repeatedly 3 (constantly 42)))))
+
 (defn -main ^int []
   (run-all-tests))
