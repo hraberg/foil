@@ -98,5 +98,28 @@
     (reset! at 4)
     (is (= 4 @at))))
 
+(deftest test-stl-algorithms
+  (let [a ^int [4 3]
+        ^:mut x ^int []]
+
+    (std::transform (.begin a)
+                    (.end a)
+                    (std::back_inserter x)
+                    inc)
+
+    (is (= ^int [5 4] x))
+
+    (is (= 9 (std::accumulate (.begin x)
+                              (.end x)
+                              0
+                              +)))
+
+    (let [^:mut zz ^int []]
+      (std::copy_if (.begin x)
+                    (.end x)
+                    (std::back_inserter zz)
+                    #(= (mod % 2) 0))
+      (is (= ^int [4] zz)))))
+
 (defn -main ^int []
   (run-all-tests))

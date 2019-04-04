@@ -16,7 +16,7 @@
    (println x)))
 
 (defn -main []
-  (let [^:mut x 0
+  (let [x 10
         pt ^int (Point. -1 2)
         t 3
         ^:mut a ^int [2 t]
@@ -37,9 +37,6 @@
 
     (doseq [x (keys m)]
       (println x))
-
-    (while (< x 10)
-      (set! x (+ x 1)))
 
     (doseq [x s
             y a]
@@ -136,31 +133,6 @@
                     (if (< n 3)
                       (recur (inc n))
                       n)))
-
-    (let [^:mut x ^int []
-          ^:mut z ^int []]
-
-      (std::transform (.begin a)
-                      (.end a)
-                      (std::back_inserter x)
-                      inc)
-
-      (std::for_each (.begin x)
-                     (.end x)
-                     test-println)
-
-      (test-println (std::accumulate (.begin x)
-                                     (.end x)
-                                     0
-                                     +))
-
-      (let [^:mut zz ^int []]
-        (std::copy_if (.begin x)
-                      (.end x)
-                      (std::back_inserter zz)
-                      #(= (mod % 2) 0))
-        (doseq [x zz]
-          (test-println x))))
 
     (let [xs (map inc a)]
       (doseq [x xs]
