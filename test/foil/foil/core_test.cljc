@@ -79,6 +79,25 @@
       (set! x (+ x 1)))
     (is (= 10 x))))
 
+(deftest test-loop
+  (is (= 3 (loop [n 0]
+             (if (< n 3)
+               (recur (inc n))
+               n)))))
+
+(deftest test-if-cond
+  (let [x 10]
+    (is (= "ten" (if (= 10 x)
+                   "ten"
+                   "not ten")))
+
+    (is (= "ten" (cond
+                   (= 10 x)
+                   "ten"
+
+                   (= 20 x)
+                   "not ten")))))
+
 (deftest test-string
   (is (= "llo"(subs "hello" 2)))
   (is (= "el" (subs "hello" 1 3)))
@@ -120,6 +139,18 @@
                     (std::back_inserter zz)
                     #(= (mod % 2) 0))
       (is (= ^int [4] zz)))))
+
+(deftest test-map-filter-reduce
+  (let [a ^int [4 3]
+        xs (map inc a)]
+
+    (is (= ^int [5 4] xs))
+
+    (is (= 9 (reduce + xs)))
+
+    (is (= ^int [4] (->> a
+                         (map inc)
+                         (filter #(= (mod % 2) 0)))))))
 
 (defn -main ^int []
   (run-all-tests))

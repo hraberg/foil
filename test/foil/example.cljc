@@ -111,38 +111,4 @@
       (test-println *pi*))
     (test-println *pi*)
 
-    (test-println (if (= 10 x)
-                    "ten"
-                    "not ten"))
-
-    (test-println (cond
-                    (= 10 x)
-                    "ten"
-
-                    (= 20 x)
-                    "not ten"))
-
-    (test-println 42)
-
-    (let [s "foo"]
-      (test-println s))
-
-    (test-println (first l))
-
-    (test-println (loop [n 0]
-                    (if (< n 3)
-                      (recur (inc n))
-                      n)))
-
-    (let [xs (map inc a)]
-      (doseq [x xs]
-        (test-println x))
-
-      (test-println (reduce + xs))
-
-      (doseq [x (->> a
-                     (map inc)
-                     (filter #(= (mod % 2) 0)))]
-        (test-println x)))
-
     0))
