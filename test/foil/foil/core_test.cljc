@@ -58,5 +58,18 @@
   (is (= "world" (nth ^std::string ["hello" "world"] 1 "?")))
   (is (= "?" (nth ^std::string ["hello" "world"] 3 "?"))))
 
+(defrecord Point ^{:tpl "<typename X = int>"} [^X x ^int y])
+
+(deftest test-c-interop
+  (let [pt ^int (Point. -1 2)
+        t 3
+        ^:mut a ^int [2 t]]
+    (is (= -1 (.-x pt)))
+    ^:unsafe
+    (aset a 0 4)
+    ^:unsafe
+    (is (= 4 (aget a 0)))
+    (is (= "0.00159265" (str (sin 3.14))))))
+
 (defn -main ^int []
   (run-all-tests))
