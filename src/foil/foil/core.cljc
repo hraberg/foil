@@ -651,6 +651,8 @@
 (defn str
   ([]
    "")
+  ([^std::string arg]
+   arg)
   (^{:tpl [Arg]} [^:mut ^Arg&& arg]
    (let [^:mut out (std::ostringstream.)]
      (<< out std::boolalpha ^Arg (std::forward arg))
