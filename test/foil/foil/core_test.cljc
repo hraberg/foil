@@ -43,7 +43,8 @@
     ;; (is (= 1 (count (next l))))
     ;; (is (zero? (count (next (next l)))))
     ;; (is (zero? (count (next (next (next l))))))
-    (is (= 2 (second (cons 1 2))))))
+    (is (= 2 (second (cons 1 2))))
+    (is (= ^int '(10 20) (cons 10 (cons 20 ^int ()))))))
 
 (defn -main ^int []
   (run-all-tests))
