@@ -50,9 +50,6 @@
                                        :when (even? x)]
                                    x)))
 
-    (println (empty? ^int (hash-set)))
-    (println (empty? ^std::string|std::string (hash-map)))
-
     (println (contains? (set l) 7))
     (doseq [x ^int (sorted-set 8 7)]
       (println x))

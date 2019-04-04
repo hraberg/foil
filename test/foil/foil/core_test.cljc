@@ -196,7 +196,10 @@
 
   (let [xs ^int [7]]
     (is (zero? (count (empty xs))))
-    (is (= 1 (count xs)))))
+    (is (= 1 (count xs))))
+
+  (is (empty? ^int (hash-set)))
+  (is (empty? ^std::string|std::string (hash-map))))
 
 (deftest test-repeat-repeatedly
   (is (= 3 (count (repeat 3 42))))
