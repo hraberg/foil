@@ -71,5 +71,11 @@
     (is (= 4 (aget a 0)))
     (is (= "0.00159265" (str (sin 3.14))))))
 
+(deftest test-while
+  (let [^:mut x 0]
+    (while (< x 10)
+      (set! x (+ x 1)))
+    (is (= 10 x))))
+
 (defn -main ^int []
   (run-all-tests))
