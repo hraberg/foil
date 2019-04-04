@@ -69,7 +69,9 @@
     (aset a 0 4)
     ^:unsafe
     (is (= 4 (aget a 0)))
-    (is (= "0.00159265" (str (sin 3.14))))))
+    (is (= "0.00159265" (str (sin 3.14))))
+    ^:unsafe
+    (is (= 1 ^int (cast 1.2)))))
 
 (deftest test-while
   (let [^:mut x 0]
@@ -86,6 +88,15 @@
   (is (= "42 true" (with-out-str
                      (print 42 true))))
   (is (= 5 (count (str 42 "foo")))))
+
+(deftest test-atom
+  ^:unsafe
+  (let [^:mut at (atom 2)]
+    (is (= 2 @at))
+    (swap! at + 3)
+    (is (= 5 @at))
+    (reset! at 4)
+    (is (= 4 @at))))
 
 (defn -main ^int []
   (run-all-tests))

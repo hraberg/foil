@@ -173,14 +173,4 @@
                      (filter #(= (mod % 2) 0)))]
         (test-println x)))
 
-    ^:unsafe
-    (let [^:mut at (atom 2)]
-      (println @at)
-      (swap! at + 3)
-      (println @at)
-      (reset! at 4)
-      (println @at))
-
-    (println ^:unsafe ^int (cast 1.2))
-
     0))
