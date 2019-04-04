@@ -161,6 +161,8 @@
                          (map inc)
                          (filter #(= (mod % 2) 0)))))
 
+    (is (= ^int [7 15] (reductions + 0 l)))
+
     (is (= ^int '[14 16] (map + l l)))
 
     (is (= ^int '[7 8 8 9] (mapcat (fn [x]

@@ -60,8 +60,6 @@
     (println (= ^int '[8] (get (group-by even? l) true)))
     (println (= ^int '[7] (get (group-by even? l) false)))
 
-    (println (= ^int [7 15] (reductions + 0 l)))
-
     (let [xs ^int [7]]
       (println (count (empty xs)))
       (println (count xs)))
