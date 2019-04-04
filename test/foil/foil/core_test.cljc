@@ -77,5 +77,15 @@
       (set! x (+ x 1)))
     (is (= 10 x))))
 
+(deftest test-string
+  (is (= "llo"(subs "hello" 2)))
+  (is (= "el" (subs "hello" 1 3)))
+
+  (is (= "2.2falsefoo" (str 2.2 false "foo")))
+
+  (is (= "42 true" (with-out-str
+                     (print 42 true))))
+  (is (= 5 (count (str 42 "foo")))))
+
 (defn -main ^int []
   (run-all-tests))

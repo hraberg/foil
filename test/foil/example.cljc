@@ -182,13 +182,5 @@
       (println @at))
 
     (println ^:unsafe ^int (cast 1.2))
-    (println (subs "hello" 2))
-    (println (subs "hello" 1 3))
-
-    (println (str 2.2 false "foo"))
-
-    (println (with-out-str
-               (print 42 true)))
-    (println (count (str 42 "foo")))
 
     0))
