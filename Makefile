@@ -7,7 +7,7 @@ CXXFLAGS = -std=c++14 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2 -I
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE=$(TARGET)/foilc
 
-.PHONY: all uberjar clean check native-image
+.PHONY: all uberjar clean run-example run-tests check native-image
 
 all: $(UBERJAR)
 
@@ -35,8 +35,13 @@ $(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 $(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp.ghc
 	$(CXX) $< $(CXXFLAGS) -fsanitize=address -o $@
 
-check: $(TARGET)/example $(TARGET)/example.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
+run-example: $(TARGET)/example $(TARGET)/example.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
 	$< | (diff -u test/foil/example.out - && echo "Tests PASSED")
+
+run-tests: $(TARGET)/foil/core_test $(TARGET)/foil/core_test.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
+	$<
+
+check: run-example run-tests
 
 $(NATIVE_IMAGE): $(UBERJAR)
 	$(GRAAL_HOME)/bin/native-image --no-server -H:+ReportExceptionStackTraces --report-unsupported-elements-at-runtime -jar $(UBERJAR) $(NATIVE_IMAGE)
