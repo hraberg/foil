@@ -107,6 +107,26 @@
                    (= 20 x)
                    "not ten")))))
 
+(deftest test-dotimes
+  (let [^:mut x 0]
+    (dotimes [n 3]
+      (set! x (+ n x)))
+    (is (= 3 x))))
+
+(deftest test-doseq
+  (let [a ^int [4 3]
+        s ^int #{1 2}]
+    (is (= "2 4\n2 3\n1 4\n1 3\n"
+           (with-out-str
+             (doseq [x s
+                     y a]
+               (println x y)))))))
+
+(deftest test-for
+  (is (= 1 (count ^int (for [x ^int '(7 8)
+                             :when (even? x)]
+                         x)))))
+
 (deftest test-string
   (is (= "llo"(subs "hello" 2)))
   (is (= "el" (subs "hello" 1 3)))
