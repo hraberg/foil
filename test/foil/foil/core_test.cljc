@@ -46,5 +46,13 @@
     (is (= 2 (second (cons 1 2))))
     (is (= ^int '(10 20) (cons 10 (cons 20 ^int ()))))))
 
+(deftest test-optional
+  ^:unsafe
+  (let [l ^int '(7 8)
+        f (first-opt l)]
+    (is (true? (boolean f)))
+    (is (= 7 @f))
+    (is (false? (boolean (first-opt ^int ()))))))
+
 (defn -main ^int []
   (run-all-tests))
