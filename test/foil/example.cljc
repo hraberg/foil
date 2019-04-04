@@ -106,9 +106,4 @@
       (println (key x))
       (println (val x)))
 
-    (test-println *pi*)
-    (binding [*pi* -1]
-      (test-println *pi*))
-    (test-println *pi*)
-
     0))

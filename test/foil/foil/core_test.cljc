@@ -85,6 +85,14 @@
                (recur (inc n))
                n)))))
 
+(def ^:dynamic *pi* 3.14)
+
+(deftest test-binding
+  (is (= "3.14" (str *pi*)))
+  (binding [*pi* -1]
+    (is (= "-1" (str *pi*))))
+  (is (= "3.14" (str *pi*))))
+
 (deftest test-if-cond
   (let [x 10]
     (is (= "ten" (if (= 10 x)
