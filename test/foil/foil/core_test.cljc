@@ -54,5 +54,9 @@
     (is (= 7 @f))
     (is (false? (boolean (first-opt ^int ()))))))
 
+(deftest test-nth
+  (is (= "world" (nth ^std::string ["hello" "world"] 1 "?")))
+  (is (= "?" (nth ^std::string ["hello" "world"] 3 "?"))))
+
 (defn -main ^int []
   (run-all-tests))
