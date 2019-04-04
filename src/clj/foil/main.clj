@@ -765,7 +765,8 @@
 
 (defn- emit-function-arity [[op f args & body :as form]]
   (binding [*return-type* (form->tag args)
-            *current-fn* f]
+            *current-fn* (when (= 'defn op)
+                           f)]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))]
       (emit-template args arg-template-names)
