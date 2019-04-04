@@ -94,6 +94,43 @@
     (is (= "-1" (str *pi*))))
   (is (= "3.14" (str *pi*))))
 
+(deftest test-maps
+  (let [m ^std::string|std::string {:foo "bar"}]
+
+    (doseq [x m]
+      (is (= :foo (key x)))
+      (is (= "bar" (val x))))
+
+    (is (= ^std::string [:foo]
+           ^std::string (for [x (keys m)]
+                          x)))
+
+    (let [^:mut xs ^std::string []]
+      (doseq [x ^std::string|std::string (hash-map ^std::string ["foo" "bar"])]
+        (conj! xs (key x))
+        (conj! xs (val x)))
+      (is (= ^std::string ["foo" "bar"] xs)))
+
+    (is (= "3\n4\n1\n2\n"
+           (with-out-str
+             (doseq [x ^"int,int" (sorted-map-by >
+                                                 ^int [1 2]
+                                                 ^int [3 4])]
+               (println (key x))
+               (println (val x))))))))
+
+(deftest test-sets
+  (let [s ^int #{1 2}
+        l ^int (list 7 8)]
+
+    (is (not (contains? s 7)))
+    (is (contains? (set l) 7))
+    (is (= ^int [7 8] ^int (for [x ^int (sorted-set 8 7)]
+                             x)))
+
+    (is (= ^int [8 7] ^int (for [x ^int (sorted-set-by > 8 7)]
+                             x)))))
+
 (deftest test-if-cond
   (let [x 10]
     (is (= "ten" (if (= 10 x)
