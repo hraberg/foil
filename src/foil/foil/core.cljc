@@ -567,6 +567,16 @@
 (defn not-any? [pred coll]
   (not (every? pred coll)))
 
+(defn interpose ^{:tpl [T C]} [^T sep ^C coll]
+  (let [^:mut first? true
+        ^:mut acc ^T []]
+    (doseq [x coll]
+      (if first?
+        (set! first? false)
+        (conj! acc sep))
+      (conj! acc x))
+    acc))
+
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
     (.reserve acc n)
