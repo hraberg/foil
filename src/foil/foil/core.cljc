@@ -603,6 +603,18 @@
       (set! idx (inc idx)))
     acc))
 
+(defn zipmap ^{:tpl [K V]} [^K keys ^V vals]
+  (let [^:mut acc ^"typename K::value_type,typename V::value_type" {}
+        ^:mut k-it (.begin keys)
+        ^:mut v-it (.begin vals)]
+    ^:unsafe
+    (while (not (or (= k-it (.end keys))
+                    (= v-it (.end vals))))
+      (assoc! acc @k-it @v-it)
+      (inc! k-it)
+      (inc! v-it))
+    acc))
+
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
     (.reserve acc n)

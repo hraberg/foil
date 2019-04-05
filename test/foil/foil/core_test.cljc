@@ -250,7 +250,9 @@
     (is (= ^int [7 1 8 2] (interleave l ^int [1 2])))
 
     (is (= ^std::vector<int> [^int [1 2] ^int [3 4]] (partition 2 ^int [1 2 3 4])))
-    (is (= ^std::vector<int> [^int [1 2]] (partition 2 ^int [1 2 3])))))
+    (is (= ^std::vector<int> [^int [1 2]] (partition 2 ^int [1 2 3])))
+
+    (is (= ^std::string|int {:foo 1 :bar 2} (zipmap ^std::string [:foo :bar] ^int [1 2])))))
 
 (deftest test-empty
   (let [^:mut xs ^int [7]]
