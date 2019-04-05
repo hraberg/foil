@@ -246,7 +246,8 @@
     (is (= ^int [8] (get (group-by even? l) true)))
     (is (= ^int [7] (get (group-by even? l) false)))
 
-    (is (= ^int [7 1 8] (interpose 1 l)))))
+    (is (= ^int [7 1 8] (interpose 1 l)))
+    (is (= ^int [7 1 8 2] (interleave l ^int [1 2])))))
 
 (deftest test-empty
   (let [^:mut xs ^int [7]]

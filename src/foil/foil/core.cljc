@@ -577,6 +577,20 @@
       (conj! acc x))
     acc))
 
+(defn interleave ^{:tpl [C1 C2]} [^C1 c1 ^C2 c2]
+  (let [^:mut acc ^"typename C1::value_type" []
+        ^:mut c1-it (.begin c1)
+        ^:mut c2-it (.begin c2)]
+    (.reserve acc (+ (count c1) (count c2)))
+    ^:unsafe
+    (while (not (or (= c1-it (.end c1))
+                    (= c2-it (.end c2))))
+      (conj! acc @c1-it)
+      (conj! acc @c2-it)
+      (inc! c1-it)
+      (inc! c2-it))
+    acc))
+
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
     (.reserve acc n)
