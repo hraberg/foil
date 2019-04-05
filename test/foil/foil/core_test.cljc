@@ -219,6 +219,8 @@
                          (map inc)
                          (filter #(= (mod % 2) 0)))))
 
+    (is (= ^int [5] (foil.core/remove even? xs)))
+
     (is (= ^int [7 15] (reductions + 0 l)))
 
     (is (= ^int [14 16] (map + l l)))

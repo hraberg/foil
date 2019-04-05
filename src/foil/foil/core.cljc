@@ -495,6 +495,12 @@
         :when (pred x)]
     x))
 
+(defn remove ^{:tpl [P C]} [^P pred ^C coll]
+  ^"typename C::value_type"
+  (for [x coll
+        :when (not (pred x))]
+    x))
+
 (defn reductions
   (^{:tpl [F C]} [^F f ^C coll]
    (let [^:mut accs ^"typename C::value_type" []
