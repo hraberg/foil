@@ -591,6 +591,18 @@
       (inc! c2-it))
     acc))
 
+(defn partition ^{:tpl [C]} [^std::size_t n ^C coll]
+  (let [^:mut idx 0
+        ^:mut acc ^"std::vector<typename C::value_type>" []
+        ^:mut current ^"typename C::value_type" []]
+    (doseq [x coll]
+      (conj! current x)
+      (when (mod idx n)
+        (conj! acc current)
+        (set! current ^"typename C::value_type" []))
+      (set! idx (inc idx)))
+    acc))
+
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
     (.reserve acc n)

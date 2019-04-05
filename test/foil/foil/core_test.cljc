@@ -247,7 +247,10 @@
     (is (= ^int [7] (get (group-by even? l) false)))
 
     (is (= ^int [7 1 8] (interpose 1 l)))
-    (is (= ^int [7 1 8 2] (interleave l ^int [1 2])))))
+    (is (= ^int [7 1 8 2] (interleave l ^int [1 2])))
+
+    (is (= ^std::vector<int> [^int [1 2] ^int [3 4]] (partition 2 ^int [1 2 3 4])))
+    (is (= ^std::vector<int> [^int [1 2]] (partition 2 ^int [1 2 3])))))
 
 (deftest test-empty
   (let [^:mut xs ^int [7]]
