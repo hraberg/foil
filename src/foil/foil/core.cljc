@@ -208,6 +208,7 @@
      (aset key val))))
 
 (defn conj!
+  ([coll] coll)
   (^{:tpl [T]} [^:mut ^std::vector<T> coll ^T x]
    (doto coll
      (.push_back x)))
@@ -225,6 +226,7 @@
    (assoc! map (first x) (second x))))
 
 (defn disj!
+  ([set] set)
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
    (doto set
      (.erase x)))
@@ -233,6 +235,7 @@
      (.erase x))))
 
 (defn dissoc!
+  ([map] map)
   (^{:tpl [K V]} [^:mut ^std::unordered_map<K|V> map ^K key]
    (doto map
      (.erase key)))
@@ -451,8 +454,10 @@
 (defn vec ^{:tpl [T]} [^T coll]
   (into! ^"typename T::value_type" [] coll))
 
-(defn concat [x y]
-  (into! (vec x) y))
+(defn concat
+  ([x] x)
+  ([x y]
+   (into! (vec x) y)))
 
 (defn map
   (^{:tpl [F C]} [^F f ^C coll]
