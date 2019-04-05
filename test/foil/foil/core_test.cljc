@@ -261,8 +261,9 @@
   (is (= ^int [8 9] (transduce (map-xform inc) conj! ^int [] ^int [7 8])))
   (is (= ^int [8] (transduce (filter-xform even?) conj! ^int [] ^int [7 8])))
 
-  (is (= ^int [9] (transduce (comp (filter-xform even?)
-                                   (map-xform inc)) conj! ^int [] ^int [7 8]))))
+  (let [^:mut acc ^int []]
+    (is (= ^int [9] (transduce (comp (filter-xform even?)
+                                     (map-xform inc)) conj! acc ^int [7 8])))))
 
 (deftest test-empty
   (let [^:mut xs ^int [7]]

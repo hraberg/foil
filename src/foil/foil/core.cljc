@@ -401,8 +401,6 @@
    val))
 
 (defn into!
-  (^{:tpl [T F]} ^T [^:mut ^T to ^F from]
-   (reduce conj! to from))
   (^{:tpl [T F]} ^T [^:mut ^T&& to ^F from]
    (reduce conj! to from)))
 
@@ -473,7 +471,7 @@
         s))))
 
 (defn transduce
-  (^{:tpl [XF F I C]} [^XF xform ^F f ^:mut ^I&& init ^C&& coll]
+  (^{:tpl [XF F I C]} [^XF xform ^F f ^:mut ^I&& init ^C coll]
    (let [rf (xform f)]
      (reduce
       (fn [^:mut acc x]
