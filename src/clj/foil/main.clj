@@ -77,7 +77,6 @@
 (def ^:dynamic ^:private *expr?* false)
 (def ^:dynamic ^:private *unsafe?* false)
 (def ^:dynamic ^:private *return-type* default-tag)
-(def ^:dynamic ^:private *current-fn*)
 
 (def ^:private unary-op '{not !
                           ! !
@@ -237,9 +236,7 @@
       :else
       (let [f (get fn-replacements f f)]
         (check-unsafe form)
-        (if (= f *current-fn*)
-          (print "(*this)")
-          (emit-expression f))
+        (emit-expression f)
         (when-let [tag (maybe-template-params form)]
           (when-not (or (re-find #"::" (str f))
                         (contains? builtins f))
@@ -254,14 +251,14 @@
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (let [{:keys [const dynamic val ref & mut ! ptr]} (meta var)
+   (let [{:keys [const dynamic val ref & mut ! ptr unused]} (meta var)
          tag (form->tag var default-tag)
          tag (maybe-reintroduce-commas tag)
          ref? (and (or ref &)
                    (not val)
                    (not ptr)
                    (not (re-find #"\&" (str tag))))
-         unused? (= '_ var)]
+         unused? (or (= '_ var) unused)]
      (when unused?
        (print "__attribute__((unused)) "))
      (when (or const (not (or mut ! dynamic)))
@@ -279,7 +276,7 @@
                          (vector? var)
                          (str "[" (str/join ", " (mapv munge-name var)) "]")
 
-                         unused?
+                         (= '_ var)
                          (gensym "__")
 
                          :else
@@ -761,9 +758,7 @@
     (vary-meta p assoc :tag (form->tag p tn))))
 
 (defn- emit-function-arity [[op f args & body :as form]]
-  (binding [*return-type* (form->tag args)
-            *current-fn* (when (= 'defn op)
-                           f)]
+  (binding [*return-type* (form->tag args)]
     (let [arg-template-names (for [arg args]
                                (symbol (munge-name (str "__T_" arg))))]
       (emit-template args arg-template-names)
@@ -784,6 +779,10 @@
                                       (and (= 'defmember op)
                                            (not (:mut (meta args)))))
                               "const ") "{")))
+      (when (= 'defn op)
+        (println)
+        (binding [*indent* (str default-indent *indent*)]
+          (emit-var-definition ['def (vary-meta f assoc :unused true) ($code #(print "(*this)"))])))
       (emit-function-body f args body)
       (println (str *indent* "}")))))
 
@@ -795,7 +794,7 @@
 
 (defn- emit-function [[op f args? :as form]]
   (let [fn-name (str "__" (munge-name f))
-        fn-type (str "__T_"(munge-name f))]
+        fn-type (str "__Fn_"(munge-name f))]
     (println)
     (do (println (str *indent* "struct " fn-type " {"))
         (binding [*indent* (str default-indent *indent*)]
