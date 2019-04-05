@@ -621,6 +621,13 @@
       (inc! v-it))
     acc))
 
+(defn select-keys ^{:tpl [M K]} [^M m ^K keys]
+  (let [^:mut acc ^"typename M::key_type,typename M::mapped_type" {}]
+    (doseq [k keys
+            :when (contains? m k)]
+      (assoc! acc k (get m k)))
+    acc))
+
 (defn repeatedly ^{:tpl [F]} [^std::size_t n ^F f]
   (let [^:mut acc ^"decltype(f())" []]
     (.reserve acc n)

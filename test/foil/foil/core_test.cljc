@@ -254,7 +254,8 @@
     (is (= ^std::vector<int> [^int [1 2] ^int [3 4]] (partition 2 ^int [1 2 3 4])))
     (is (= ^std::vector<int> [^int [1 2]] (partition 2 ^int [1 2 3])))
 
-    (is (= ^std::string|int {:foo 1 :bar 2} (zipmap ^std::string [:foo :bar] ^int [1 2])))))
+    (is (= ^std::string|int {:foo 1 :bar 2} (zipmap ^std::string [:foo :bar] ^int [1 2])))
+    (is (= ^std::string|int {:foo 1} (select-keys ^std::string|int {:foo 1 :bar 2} ^std::string [:foo])))))
 
 (deftest test-empty
   (let [^:mut xs ^int [7]]
