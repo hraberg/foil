@@ -257,6 +257,13 @@
     (is (= ^std::string|int {:foo 1 :bar 2} (zipmap ^std::string [:foo :bar] ^int [1 2])))
     (is (= ^std::string|int {:foo 1} (select-keys ^std::string|int {:foo 1 :bar 2} ^std::string [:foo])))))
 
+(deftest test-transducers
+  (is (= ^int [8 9] (transduce (map-xform inc) conj! ^int [] ^int [7 8])))
+  (is (= ^int [8] (transduce (filter-xform even?) conj! ^int [] ^int [7 8])))
+
+  (is (= ^int [9] (transduce (comp (filter-xform even?)
+                                   (map-xform inc)) conj! ^int [] ^int [7 8]))))
+
 (deftest test-empty
   (let [^:mut xs ^int [7]]
     (is (zero? (count (empty! xs))))

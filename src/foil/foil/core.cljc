@@ -208,7 +208,8 @@
      (aset key val))))
 
 (defn conj!
-  ([coll] coll)
+  (^{:tpl [T]} [] ^T (std::vector.))
+  (^{:tpl [T]} [^std::vector<T> coll] coll)
   (^{:tpl [T]} [^:mut ^std::vector<T> coll ^T x]
    (doto coll
      (.push_back x)))
@@ -458,6 +459,26 @@
   ([x] x)
   ([x y]
    (into! (vec x) y)))
+
+(defn map-xform [f]
+  (fn [step]
+    (fn [^:mut s ^auto... ins]
+      (step s (f ins...)))))
+
+(defn filter-xform [pred]
+  (fn [step]
+    (fn [^:mut s ^auto... ins]
+      (if (pred ins...)
+        (step s ins...)
+        s))))
+
+(defn transduce
+  (^{:tpl [XF F I C]} [^XF xform ^F f ^:mut ^I&& init ^C&& coll]
+   (let [rf (xform f)]
+     (reduce
+      (fn [^:mut acc x]
+        (rf acc x))
+      init coll))))
 
 (defn map
   (^{:tpl [F C]} [^F f ^C coll]
