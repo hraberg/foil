@@ -235,15 +235,12 @@
                                                  (emit-expression %)) (rest args))) ")")))
 
       :else
-      (let [f (get fn-replacements f f)
-            tag (maybe-template-params form)]
+      (let [f (get fn-replacements f f)]
         (check-unsafe form)
         (if (= f *current-fn*)
-          (do (print "(*this)")
-              (when-not tag
-                (print ".operator()")))
+          (print "(*this)")
           (emit-expression f))
-        (when tag
+        (when-let [tag (maybe-template-params form)]
           (when-not (or (re-find #"::" (str f))
                         (contains? builtins f))
             (print ".operator()"))
