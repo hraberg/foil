@@ -375,6 +375,8 @@ https://rust-unofficial.github.io/too-many-lists/third-final.html
 https://github.com/ericniebler/range-v3
 https://github.com/nrc/r4cppp
 https://github.com/densh/scala-offheap
+https://www.youtube.com/watch?v=bNWTRdAlwUs
+https://arxiv.org/pdf/1902.00525v1.pdf
 
 ## License
 
