@@ -404,6 +404,8 @@
    val))
 
 (defn into!
+  (^{:tpl [T F]} ^T [^:mut ^T to ^F from]
+   (reduce conj! to from))
   (^{:tpl [T F]} ^T [^:mut ^T&& to ^F from]
    (reduce conj! to from)))
 
