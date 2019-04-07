@@ -55,7 +55,7 @@
     (is (= 2 (second (cons 1 2))))
     (is (= ^int '(10 20) (cons 10 (cons 20 ^int ()))))))
 
-(defn create-vector-with-point ^std::vector<Point<int>> []
+(defn create-vector-with-point ^:val []
   (let [x ^int (Point. 10 20)]
     (conj! ^Point<int> [] x)))
 
