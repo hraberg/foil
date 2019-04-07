@@ -318,6 +318,28 @@ be that necessary as it's potentially easy to rewrite it for each
 target. More advanced features can then be built on and share the
 core.
 
+## Reflections After Fourth Week
+
+The biggest change was porting the tests to the new testing framework
+which is a small subset of `clojure.test`. I also tweaked how
+recursive function calls are done from using a static field in the
+function struct to a local variable pointing to itself. This was due
+to various template issues and simply worked better.
+
+I've added several more of the normal sequence functions, and I also
+added a small spike of how transducers could look, but this is far
+from finished. I did another spike (in embedded C++) allowing keywords
+to be used like functions. This worked, but backed it out as it would
+have required a lot of extra features to be added to be possible to be
+expressed directly in Foil.
+
+In general, as mentioned last week, I see phase one of Foil now being
+complete, and it's time to take a step back and reflect. So the
+outlook above still stands, but let me add a retrospective and some
+open questions.
+
+### Retrospective and Questions
+
 ## Name
 
 Unknown to me, turns out there are (at least) a few things called
