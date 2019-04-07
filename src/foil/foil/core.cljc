@@ -415,31 +415,31 @@
 
 (defn sorted-set-by
   (^{:tpl [T C]} [^C comp]
-   ^"T,C" (std::set. comp))
+   ^T|C (std::set. comp))
   (^{:tpl [T C ...Args]} [^C comp ^Args&... args]
    (let [^:mut xs args...]
-     ^"T,C" (std::set. xs comp))))
+     ^T|C (std::set. xs comp))))
 
 (defn hash-map
   (^{:tpl [K V]} []
-   ^"K,V" (std::unordered_map.))
+   ^K|V (std::unordered_map.))
   (^{:tpl [K V ...Args]} [^Args&... args]
    (let [xs args...]
-     (into! ^"K,V" (std::unordered_map.) xs))))
+     (into! ^K|V (std::unordered_map.) xs))))
 
 (defn sorted-map
   (^{:tpl [K V]} []
-   ^"K,V" (std::map.))
+   ^K|V (std::map.))
   (^{:tpl [K V ...Args]} [^Args&... args]
    (let [xs args...]
-     (into! ^"K,V" (std::map.) xs))))
+     (into! ^K|V (std::map.) xs))))
 
 (defn sorted-map-by
   (^{:tpl [K V C]} [^C comp]
-   ^"K,V" (std::map. comp))
+   ^K|V (std::map. comp))
   (^{:tpl [K V C ...Args]} [^C comp ^Args&... args]
    (let [xs args...]
-     (into! ^"K,V,C" (std::map. comp) xs))))
+     (into! ^K|V|C (std::map. comp) xs))))
 
 (defn vector ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
   ^T (std::vector. ^Args ^:... (std::forward args)))
