@@ -331,14 +331,38 @@ added a small spike of how transducers could look, but this is far
 from finished. I did another spike (in embedded C++) allowing keywords
 to be used like functions. This worked, but backed it out as it would
 have required a lot of extra features to be added to be possible to be
-expressed directly in Foil.
+expressed directly in Foil. I did add `:val` support for returns as
+well, as there are times where one wants to enforce this to ensure one
+doesn't accidentally return a local reference.
 
 In general, as mentioned last week, I see phase one of Foil now being
-complete, and it's time to take a step back and reflect. So the
-outlook above still stands, but let me add a retrospective and some
-open questions.
+more or less complete, and it's time to take a step back and
+reflect. So the outlook above still stands, but let me add a
+retrospective and some open questions.
 
 ### Retrospective and Questions
+
+#### Memory Management
+
+The idea in Foil is to use the stack as much as possible, and only
+return references that were given as parameters, this is usually done
+in functions that modify its input, like `conj!` and to allow
+chaining. The assumption is the return value optimisation in C++ will
+make creating and returning values cheap enough.
+
+Sometimes this pattern leads to undefined behaviour though, as
+functions like `conj!` mentioned above might return a reference to a
+local variable in a way one didn't intend, and which might then get
+returned again from the enclosing function by mistake.
+
+C++ distinctions between lvalues and rvalues also complicates things
+and can also lead to undefined (or at least unexpected) behaviour, as
+well as leading to duplication as one has to ensure there are
+overloads taking universal references available in some cases.
+
+The way move and copy assignment works in C++ is also somewhat
+confusing, as coming from Java or Clojure, local variables don't
+always behave as one expect.
 
 ## Name
 
