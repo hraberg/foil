@@ -213,6 +213,9 @@
   (^{:tpl [T]} [^:mut ^std::vector<T> coll ^T x]
    (doto coll
      (.push_back x)))
+  (^{:tpl [T]} [^:mut ^std::vector<T>&& coll ^T x]
+   (doto coll
+     (.push_back x)))
   (^{:tpl [T]} [^ConsList<T> coll ^T x]
    (cons x coll))
   (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]

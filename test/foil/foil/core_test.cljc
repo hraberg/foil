@@ -32,6 +32,14 @@
     (is (= @sp2 @sp1))
     (is (= 2 (.use_count sp1)))))
 
+(defrecord Point ^{:tpl "<typename X = int>"} [^X x ^int y]
+  (operator== [^Point other]
+    (= (and x (.-x other))
+       (and y (.-y other)))))
+
+(defmethod operator<< ^{:tpl [X]} [^:mut ^std::ostream out ^Point<X> pt]
+  (<< out "Point{" (.-x pt) (.-y pt) "}"))
+
 (deftest test-cons
   (let [l ^int '(7 8)]
     (is (= 8 (first (next l))))
@@ -47,6 +55,23 @@
     (is (= 2 (second (cons 1 2))))
     (is (= ^int '(10 20) (cons 10 (cons 20 ^int ()))))))
 
+(defn create-vector-with-point ^std::vector<Point<int>> []
+  (let [x ^int (Point. 10 20)]
+    (conj! ^Point<int> [] x)))
+
+(deftest test-memory-scope
+  (is (= 10 (first
+             (let [x 10]
+               (conj! ^int () x)))))
+
+  (is (= ^int (Point. 10 20)
+         (first
+          (let [x ^int (Point. 10 20)]
+            (conj! ^Point<int> () x)))))
+
+  (is (= ^Point<int> [^int (Point. 10 20)]
+         (create-vector-with-point))))
+
 (deftest test-optional
   ^:unsafe
   (let [l ^int '(7 8)
@@ -58,8 +83,6 @@
 (deftest test-nth
   (is (= "world" (nth ^std::string ["hello" "world"] 1 "?")))
   (is (= "?" (nth ^std::string ["hello" "world"] 3 "?"))))
-
-(defrecord Point ^{:tpl "<typename X = int>"} [^X x ^int y])
 
 (deftest test-c-interop
   (let [pt ^int (Point. -1 2)
