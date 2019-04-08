@@ -918,10 +918,12 @@
 (defn -main [& args]
   (case (count args)
     0 (emit-source *in* *out*)
-    1 (with-open [in (io/reader (io/file (first args)))]
+    1 (with-open [in (io/reader (or (io/resource (first args))
+                                    (io/file (first args))))]
         (binding [*file-name* (first args)]
           (emit-source in *out*)))
-    2 (with-open [in (io/reader (io/file (first args)))
+    2 (with-open [in (io/reader (or (io/resource (first args))
+                                    (io/file (first args))))
                   out (io/writer (doto (io/file (second args))
                                    (io/make-parents)))]
         (binding [*file-name* (first args)]
