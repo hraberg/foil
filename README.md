@@ -359,7 +359,8 @@ make creating and returning values cheap enough.
 Sometimes this pattern leads to undefined behaviour though, as
 functions like `conj!` mentioned above might return a reference to a
 local variable in a way one didn't intend, and which might then get
-returned again from the enclosing function by mistake.
+returned again from the enclosing function by mistake. I've changed
+the default to return by value to avoid this as much as possible.
 
 C++ distinctions between lvalues and rvalues also complicates things
 and can also lead to undefined (or at least unexpected) behaviour, as
