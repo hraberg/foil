@@ -9,6 +9,8 @@ NATIVE_IMAGE = $(TARGET)/foilc
 
 .PHONY: all clean check native-image
 
+.PRECIOUS: $(TARGET)/%.cpp $(TARGET)/%.hpp $(TARGET)/%.hpp.ghc
+
 all: $(UBERJAR)
 
 $(UBERJAR): src/clj/*
@@ -35,7 +37,7 @@ $(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
 $(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp.ghc
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fsanitize=address -o $@
 
-check: $(TARGET)/foil/core_test $(TARGET)/foil/core_test.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
+check: $(TARGET)/foil/core_test
 	$<
 
 $(NATIVE_IMAGE): $(UBERJAR)
