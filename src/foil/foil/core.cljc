@@ -92,7 +92,7 @@
   (operator!= [^ConsIterator<T> x]
               (not= (.get next) (.get (.-next x))))
 
-  (operator++ ^:mut []
+  (operator++ ^:mut ^:ref []
               ^:unsafe
               (do (set! next (.-cdr @next))
                   @this)))
@@ -121,10 +121,10 @@
    (.empty coll)))
 
 (defn first
-  (^{:tpl [T1 T2]} [^std::pair<T1|T2> coll]
+  (^{:tpl [T1 T2]} ^:ref [^std::pair<T1|T2> coll]
    (let [^:mut x (.-first coll)]
      x))
-  ([coll]
+  (^:ref [coll]
    (.front coll)))
 
 (defn next
@@ -157,7 +157,7 @@
    (std::experimental::fundamentals_v1::make_optional ^T (std::forward x))))
 
 (defn cast
-  (^{:tpl [C T]} [^:mut ^T&& x]
+  (^{:tpl [C T]} ^:ref [^:mut ^T&& x]
    ^C (static_cast ^T (std::forward x))))
 
 (defn boolean [x]
@@ -165,7 +165,7 @@
     true
     false))
 
-(defn empty! [^:mut coll]
+(defn empty! ^:ref [^:mut coll]
   (doto coll
     (.clear)))
 
@@ -173,13 +173,13 @@
   (let [^:mut xs coll]
     (empty! xs)))
 
-(defn get [map key]
+(defn get ^:ref [map key]
   (.at map key))
 
-(defn ffirst [coll]
+(defn ffirst ^:ref [coll]
   (first (first coll)))
 
-(defn first-opt ^{:tpl [T]} [^T coll]
+(defn first-opt ^{:tpl [T]} ^:ref [^T coll]
   (if (empty? coll)
     ^"typename T::value_type" (optional)
     (optional (first coll))))
@@ -187,70 +187,70 @@
 (def key first)
 
 (defn second
-  (^{:tpl [T]} [^ConsList<T> coll]
+  (^{:tpl [T]} ^:ref [^ConsList<T> coll]
    (first (next coll)))
-  (^{:tpl [T1 T2]} [^std::pair<T1|T2> coll]
+  (^{:tpl [T1 T2]} ^:ref [^std::pair<T1|T2> coll]
    (let [^:mut x (.-second coll)]
      x))
-  ([x]
+  (^:ref [x]
    (get x 1)))
 
 (def val second)
 
 (defn assoc!
-  (^{:tpl [K V]} [^:mut ^std::unordered_map<K|V> map ^K key ^V val]
+  (^{:tpl [K V]} ^:ref [^:mut ^std::unordered_map<K|V> map ^K key ^V val]
    ^:unsafe
    (doto map
      (aset key val)))
-  (^{:tpl [K V C]} [^:mut ^std::map<K|V|C> map ^K key ^V val]
+  (^{:tpl [K V C]} ^:ref [^:mut ^std::map<K|V|C> map ^K key ^V val]
    ^:unsafe
    (doto map
      (aset key val))))
 
 (defn conj!
   (^{:tpl [T]} [] ^T (std::vector.))
-  (^{:tpl [T]} [^std::vector<T> coll] coll)
-  (^{:tpl [T]} [^:mut ^std::vector<T> coll ^T x]
+  (^{:tpl [T]} ^:ref [^std::vector<T> coll] coll)
+  (^{:tpl [T]} ^:ref [^:mut ^std::vector<T> coll ^T x]
    (doto coll
      (.push_back x)))
-  (^{:tpl [T]} [^:mut ^std::vector<T>&& coll ^T x]
+  (^{:tpl [T]} ^:ref [^:mut ^std::vector<T>&& coll ^T x]
    (doto coll
      (.push_back x)))
   (^{:tpl [T]} [^ConsList<T> coll ^T x]
    (cons x coll))
-  (^{:tpl [T]} [^:mut ^std::unordered_set<T> coll ^T x]
+  (^{:tpl [T]} ^:ref [^:mut ^std::unordered_set<T> coll ^T x]
    (doto coll
      (.insert x)))
-  (^{:tpl [T C]} [^:mut ^std::set<T|C> coll ^T x]
+  (^{:tpl [T C]} ^:ref [^:mut ^std::set<T|C> coll ^T x]
    (doto coll
      (.insert x)))
-  (^{:tpl [K V T]} [^:mut ^std::unordered_map<K|V> map ^T x]
+  (^{:tpl [K V T]} ^:ref [^:mut ^std::unordered_map<K|V> map ^T x]
    (assoc! map (first x) (second x)))
-  (^{:tpl [K V C T]} [^:mut ^std::map<K|V|C> map ^T x]
+  (^{:tpl [K V C T]} ^:ref [^:mut ^std::map<K|V|C> map ^T x]
    (assoc! map (first x) (second x))))
 
 (defn disj!
   ([set] set)
-  (^{:tpl [T]} [^:mut ^std::unordered_set<T> set ^T x]
+  (^{:tpl [T]} ^:ref [^:mut ^std::unordered_set<T> set ^T x]
    (doto set
      (.erase x)))
-  (^{:tpl [T C]} [^:mut ^std::set<T|C> set ^T x]
+  (^{:tpl [T C]} ^:ref [^:mut ^std::set<T|C> set ^T x]
    (doto set
      (.erase x))))
 
 (defn dissoc!
   ([map] map)
-  (^{:tpl [K V]} [^:mut ^std::unordered_map<K|V> map ^K key]
+  (^{:tpl [K V]} ^:ref [^:mut ^std::unordered_map<K|V> map ^K key]
    (doto map
      (.erase key)))
-  (^{:tpl [K V C]} [^:mut ^std::map<K|V|C> map ^K key]
+  (^{:tpl [K V C]} ^:ref [^:mut ^std::map<K|V|C> map ^K key]
    (doto map
      (.erase key))))
 
 (defn update!
-  (^{:tpl [K V F ...Args]} [^:mut ^std::unordered_map<K|V> m ^K k ^F f ^:mut ^Args&&... args]
+  (^{:tpl [K V F ...Args]} ^:ref [^:mut ^std::unordered_map<K|V> m ^K k ^F f ^:mut ^Args&&... args]
    (assoc! m k (f (get m k) ^Args ^:... (std::forward args))))
-  (^{:tpl [K V C F ...Args]} [^:mut ^std::map<K|V|C> m ^K k ^F f ^:mut ^Args&&... args]
+  (^{:tpl [K V C F ...Args]} ^:ref [^:mut ^std::map<K|V|C> m ^K k ^F f ^:mut ^Args&&... args]
    (assoc! m k (f (get m k) ^Args ^:... (std::forward args)))))
 
 (defn contains?
@@ -272,11 +272,11 @@
    (.size coll)))
 
 (defn nth
-  (^{:tpl [T]} [^std::vector<T> coll ^std::size_t index ^T not-found]
+  (^{:tpl [T]} ^:ref [^std::vector<T> coll ^std::size_t index ^T not-found]
    (if (>= (count coll) index)
      not-found
      (get coll index)))
-  ([coll index not-found]
+  (^:ref [coll index not-found]
    (let [^:mut n 0]
      (doseq [x coll]
        (if (= n index)
@@ -285,12 +285,12 @@
      not-found)))
 
 (defn last
-  (^{:tpl [T]} [^ConsList<T> coll]
+  (^{:tpl [T]} ^:ref [^ConsList<T> coll]
    (let [tail (next coll)]
      (if (empty? tail)
        (first coll)
        (recur tail))))
-  ([coll]
+  (^:ref [coll]
    (.back coll)))
 
 (defn constantly [x]
@@ -347,9 +347,9 @@
   (= false x))
 
 (defn sort!
-  ([^:mut coll]
+  (^:ref [^:mut coll]
    (sort! < coll))
-  ([comp ^:mut coll]
+  (^:ref [comp ^:mut coll]
    (std::sort (.begin coll) (.end coll) comp)
    coll))
 
@@ -398,15 +398,15 @@
          (set! first? false)
          (set! acc (f acc x))))
      acc))
-  ([f ^:mut val coll]
+  (^:ref [f ^:mut val coll]
    (doseq [x coll]
      (set! val (f val x)))
    val))
 
 (defn into!
-  (^{:tpl [T F]} ^T [^:mut ^T to ^F from]
+  (^{:tpl [T F]} ^:ref ^T [^:mut ^T to ^F from]
    (reduce conj! to from))
-  (^{:tpl [T F]} ^T [^:mut ^T&& to ^F from]
+  (^{:tpl [T F]} ^:ref ^T [^:mut ^T&& to ^F from]
    (reduce conj! to from)))
 
 (defn hash-set ^{:tpl [T ...Args]} [^:mut ^Args&&... args]
@@ -673,7 +673,7 @@
 (defn vals [m]
   (map val m))
 
-(defn reset! ^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> atom ^T x]
+(defn reset! ^{:tpl [T]} ^:ref [^std::unique_ptr<std::atomic<T>> atom ^T x]
   ^:unsafe (.store (* atom) x)
   x)
 
@@ -695,9 +695,9 @@
   (.count (.time_since_epoch ^std::chrono::milliseconds (std::chrono::time_point_cast d))))
 
 (defn subs
-  ([s start]
+  (^:ref [s start]
    (.substr s start))
-  ([s start end]
+  (^:ref [s start end]
    (.substr s start (- end start))))
 
 (defn print-container [^:mut ^std::ostream out coll]
