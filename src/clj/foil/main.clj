@@ -772,9 +772,9 @@
       (emit-template args arg-template-names)
       (print (str *indent*
                   (if (= 'auto *return-type*)
-                    (if (:val (meta args))
-                      "auto"
-                      "decltype(auto)")
+                    (if (ref? args 'auto)
+                      "decltype(auto)"
+                      "auto")
                     *return-type*)
                   " "
                   (if (= 'defn op)

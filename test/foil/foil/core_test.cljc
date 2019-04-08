@@ -37,7 +37,7 @@
     (= (and x (.-x other))
        (and y (.-y other)))))
 
-(defmethod operator<< ^{:tpl [X]} [^:mut ^std::ostream out ^Point<X> pt]
+(defmethod operator<< ^{:tpl [X]} ^:ref [^:mut ^std::ostream out ^Point<X> pt]
   (<< out "Point{" (.-x pt) (.-y pt) "}"))
 
 (deftest test-cons
@@ -55,7 +55,7 @@
     (is (= 2 (second (cons 1 2))))
     (is (= ^int '(10 20) (cons 10 (cons 20 ^int ()))))))
 
-(defn create-vector-with-point ^:val []
+(defn create-vector-with-point []
   (let [x ^int (Point. 10 20)]
     (conj! ^Point<int> [] x)))
 

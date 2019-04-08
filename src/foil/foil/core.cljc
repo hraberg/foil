@@ -46,11 +46,11 @@
   (= nullptr x))
 
 (defn deref
-  (^{:tpl [T]} [^std::atomic<T> x]
+  (^{:tpl [T]} ^:ref [^std::atomic<T> x]
    (.load x))
-  (^{:tpl [T]} [^std::unique_ptr<std::atomic<T>> x]
+  (^{:tpl [T]} ^:ref [^std::unique_ptr<std::atomic<T>> x]
    ^:unsafe (deref (* x)))
-  ([x]
+  (^:ref [x]
    ^:unsafe (* x)))
 
 (defn inc [n]
@@ -369,23 +369,23 @@
            (comp (keyfn a) (keyfn b))) coll)))
 
 (defn print
-  (^{:tpl [Arg]} [^:mut ^Arg&& arg]
+  (^{:tpl [Arg]} ^:ref [^:mut ^Arg&& arg]
    ^:unsafe (<< @*out* ^Arg (std::forward arg)))
-  (^{:tpl [Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
+  (^{:tpl [Arg ...Args]} ^:ref [^:mut ^Arg&& arg ^:mut ^Args&&... args]
    (print ^Arg (std::forward arg))
    (print " ")
    (print ^Args ^:... (std::forward args))))
 
-(defn flush []
+(defn flush ^:ref []
   ^:unsafe (.flush @*out*))
 
-(defn newline []
+(defn newline ^:ref []
   (print "\n"))
 
 (defn println
-  ([]
+  (^:ref []
    (newline))
-  (^{:tpl [Arg ...Args]} [^:mut ^Arg&& arg ^:mut ^Args&&... args]
+  (^{:tpl [Arg ...Args]} ^:ref [^:mut ^Arg&& arg ^:mut ^Args&&... args]
    (print ^Arg (std::forward arg) ^Args ^:... (std::forward args))
    (println)))
 
@@ -716,35 +716,35 @@
         (<< out " "))
       (<< out (key kv) " " (val kv)))))
 
-(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^ConsList<T> list]
+(defmethod operator<< ^{:tpl [T]} ^:ref [^:mut ^std::ostream out ^ConsList<T> list]
   (<< out "(")
   (print-container out list)
   (<< out ")"))
 
-(defmethod operator<< ^{:tpl [T1 T2]} [^:mut ^std::ostream out ^std::pair<T1|T2> pair]
+(defmethod operator<< ^{:tpl [T1 T2]} ^:ref [^:mut ^std::ostream out ^std::pair<T1|T2> pair]
   (<< out "(" (first pair)  " . " (second pair) ")"))
 
-(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::vector<T> vector]
+(defmethod operator<< ^{:tpl [T]} ^:ref [^:mut ^std::ostream out ^std::vector<T> vector]
   (<< out "[")
   (print-container out vector)
   (<< out "]"))
 
-(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::unordered_set<T> set]
+(defmethod operator<< ^{:tpl [T]} ^:ref [^:mut ^std::ostream out ^std::unordered_set<T> set]
   (<< out "#{")
   (print-container out set)
   (<< out "}"))
 
-(defmethod operator<< ^{:tpl [T]} [^:mut ^std::ostream out ^std::set<T> set]
+(defmethod operator<< ^{:tpl [T]} ^:ref [^:mut ^std::ostream out ^std::set<T> set]
   (<< out "#{")
   (print-container out set)
   (<< out "}"))
 
-(defmethod operator<< ^{:tpl [K V]} [^:mut ^std::ostream out ^std::unordered_map<K|V> map]
+(defmethod operator<< ^{:tpl [K V]} ^:ref [^:mut ^std::ostream out ^std::unordered_map<K|V> map]
   (<< out "{")
   (print-map out map)
   (<< out "}"))
 
-(defmethod operator<< ^{:tpl [K V]} [^:mut ^std::ostream out ^std::map<K|V> map]
+(defmethod operator<< ^{:tpl [K V]} ^:ref [^:mut ^std::ostream out ^std::map<K|V> map]
   (<< out "{")
   (print-map out map)
   (<< out "}"))
