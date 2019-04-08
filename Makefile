@@ -7,6 +7,8 @@ CXXFLAGS ?= -std=c++14 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2 -
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE = $(TARGET)/foilc
 
+FOIL_CORE = $(TARGET)/foil/core.hpp
+
 .PHONY: all clean check native-image
 
 .PRECIOUS: $(TARGET)/%.cpp $(TARGET)/%.hpp $(TARGET)/%.hpp.ghc
@@ -28,13 +30,13 @@ $(TARGET)/%.hpp: src/foil/%.cljc $(UBERJAR)
 $(TARGET)/%.hpp.ghc: $(TARGET)/%.hpp
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -o $@
 
-$(TARGET)/%.s: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
+$(TARGET)/%.s: $(TARGET)/%.cpp $(FOIL_CORE)
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
 
-$(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
+$(TARGET)/%.lst: $(TARGET)/%.cpp $(FOIL_CORE)
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
-$(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp.ghc
+$(TARGET)/%: $(TARGET)/%.cpp $(FOIL_CORE).ghc
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fsanitize=address -o $@
 
 check: $(TARGET)/foil/core_test
