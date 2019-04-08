@@ -32,11 +32,18 @@
 (defn- munge-ns [n]
   (munge-name (str/replace n "." "::")))
 
+(defn- maybe-reintroduce-commas [tag]
+  (if (string? tag)
+    tag
+    (str/replace (str tag) "|" ",")))
+
 (defn- form->tag
   ([form]
    (form->tag form default-tag))
   ([form default]
-   (:tag (meta form) default)))
+   (some-> (:tag (meta form) default)
+           (maybe-reintroduce-commas)
+           (symbol))))
 
 (defn- ns->ns-parts [ns]
   (str/split (str ns) #"\."))
@@ -161,14 +168,8 @@
     p
     (vary-meta p assoc :ref (not (:val (meta p))))))
 
-(defn- maybe-reintroduce-commas [tag]
-  (if (string? tag)
-    tag
-    (str/replace (str tag) "|" ",")))
-
 (defn- maybe-template-params [form]
-  (when-let [tag (form->tag form nil)]
-    (maybe-reintroduce-commas tag)))
+  (form->tag form nil))
 
 (defn- check-unsafe [[f :as form]]
   (assert (or *unsafe?* (not (contains? unsafe-ops f)))
@@ -247,21 +248,24 @@
         (when (:... (meta form))
           (print "..."))))))
 
+(defn ref? [form tag]
+  (let [{:keys [val ref ptr]} (meta form)]
+    (and ref
+         (not val)
+         (not ptr)
+         (not (re-find #"\&(?:\.\.\.)?$" (str tag))))))
+
 (defn- emit-var-declaration
   ([var]
    (emit-var-declaration var default-tag))
   ([var default-tag]
-   (let [{:keys [const dynamic val ref & mut ! ptr unused]} (meta var)
+   (let [{:keys [const dynamic val ref mut ptr unused]} (meta var)
          tag (form->tag var default-tag)
-         tag (maybe-reintroduce-commas tag)
-         ref? (and (or ref &)
-                   (not val)
-                   (not ptr)
-                   (not (re-find #"\&" (str tag))))
+         ref? (ref? var tag)
          unused? (or (= '_ var) unused)]
      (when unused?
        (print "__attribute__((unused)) "))
-     (when (or const (not (or mut ! dynamic)))
+     (when (or const (not (or mut dynamic)))
        (print "const "))
      (when dynamic
        (print "thread_local "))
@@ -270,7 +274,7 @@
               (str tag
                    (when ref?
                      "&")
-                   (when (or ptr (:* (meta var)))
+                   (when ptr
                      "*")
                    " " (cond
                          (vector? var)
