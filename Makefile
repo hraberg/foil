@@ -8,6 +8,7 @@ UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE = $(TARGET)/foilc
 
 FOIL_CORE = $(TARGET)/foil/core.hpp
+TESTS = $(shell find test/foil -name *_test\.cljc | sed s/^test.foil.// | sed s/\.cljc$$// )
 
 .PHONY: all clean check native-image
 
@@ -39,8 +40,8 @@ $(TARGET)/%.lst: $(TARGET)/%.cpp $(FOIL_CORE)
 $(TARGET)/%: $(TARGET)/%.cpp $(FOIL_CORE).ghc
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fsanitize=address -o $@
 
-check: $(TARGET)/foil/core_test
-	$<
+check: $(foreach TEST, $(TESTS), $(TARGET)/$(TEST))
+	@for TEST in $^; do ./$$TEST; done
 
 $(NATIVE_IMAGE): $(UBERJAR)
 	$(GRAAL_HOME)/bin/native-image --no-server -H:+ReportExceptionStackTraces --report-unsupported-elements-at-runtime -jar $(UBERJAR) $(NATIVE_IMAGE)
