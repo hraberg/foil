@@ -8,6 +8,7 @@
   :profiles {:uberjar {:jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.compile-asserts=false"
                                   "-Dclojure.spec.skip-macros=true"]}}
+  :resource-paths ["resources" "src/foil"]
   :source-paths ["src/clj"]
   :test-paths ["test/clj"]
   :global-vars {*warn-on-reflection* true}

@@ -17,7 +17,7 @@ TESTS = $(shell find test/foil -name *_test\.cljc | sed s/^test.foil.// | sed s/
 
 all: $(UBERJAR)
 
-$(UBERJAR): src/clj/*
+$(UBERJAR): project.clj src/clj/*
 	lein uberjar
 
 clean:
