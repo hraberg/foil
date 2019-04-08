@@ -3,6 +3,7 @@ VERSION = $(shell head project.clj -n1 | awk '{ print $$3 }' | sed s/\"//g )
 TARGET = ./target
 
 CXXFLAGS ?= -std=c++14 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2 -I$(TARGET)
+SANITIZE_FLAGS ?= -fsanitize=address
 
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE = $(TARGET)/foilc
@@ -38,7 +39,7 @@ $(TARGET)/%.lst: $(TARGET)/%.cpp $(FOIL_CORE)
 	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
 $(TARGET)/%: $(TARGET)/%.cpp $(FOIL_CORE).ghc
-	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fsanitize=address -o $@
+	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) $(SANITIZE_FLAGS) -o $@
 
 check: $(foreach TEST, $(TESTS), $(TARGET)/$(TEST))
 	@for TEST in $^; do ./$$TEST; done
