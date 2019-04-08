@@ -7,7 +7,7 @@ CXXFLAGS = -std=c++14 -pedantic-errors -Wall -Wextra -Werror -Wconversion -O2 -I
 UBERJAR = $(TARGET)/$(PROJECT)-$(VERSION)-standalone.jar
 NATIVE_IMAGE=$(TARGET)/foilc
 
-.PHONY: all uberjar clean check native-image
+.PHONY: all clean check native-image
 
 all: $(UBERJAR)
 
