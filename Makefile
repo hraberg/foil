@@ -24,16 +24,16 @@ $(TARGET)/%.hpp: src/foil/%.cljc $(UBERJAR)
 	java -jar $(UBERJAR) $< $@
 
 $(TARGET)/%.hpp.ghc: $(TARGET)/%.hpp
-	$(CXX) $< $(CXXFLAGS) -o $@
+	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -o $@
 
 $(TARGET)/%.s: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
-	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
+	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -S -o- | c++filt > $@
 
 $(TARGET)/%.lst: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp
-	$(CXX) $< $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
+	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fno-exceptions -fno-asynchronous-unwind-tables -fno-rtti -g -c -Wa,-adhln -o /dev/null | c++filt > $@
 
 $(TARGET)/%: $(TARGET)/%.cpp $(TARGET)/foil/core.hpp.ghc
-	$(CXX) $< $(CXXFLAGS) -fsanitize=address -o $@
+	$(CXX) $< $(CPPFLAGS) $(CXXFLAGS) -fsanitize=address -o $@
 
 check: $(TARGET)/foil/core_test $(TARGET)/foil/core_test.cpp $(TARGET)/foil/core.hpp $(TARGET)/foil/core.hpp.ghc
 	$<
