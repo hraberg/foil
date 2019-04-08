@@ -331,9 +331,15 @@ added a small spike of how transducers could look, but this is far
 from finished. I did another spike (in embedded C++) allowing keywords
 to be used like functions. This worked, but backed it out as it would
 have required a lot of extra features to be added to be possible to be
-expressed directly in Foil. I did add `:val` support for returns as
-well, as there are times where one wants to enforce this to ensure one
-doesn't accidentally return a local reference.
+expressed directly in Foil.
+
+I did add `:ref` for returns and made `:val` the implicit default, to
+avoid one doesn't accidentally return a local reference. This means
+`auto` is the default in C++, which will return the raw type, while
+`:ref` depends on `decltype(auto)` to maintain potential reference
+qualifiers. I'm not 100% about this, but the basics seems to work. The
+general idea is that you should only ever return a reference if it was
+given to you as an argument.
 
 In general, as mentioned last week, I see phase one of Foil now being
 more or less complete, and it's time to take a step back and
