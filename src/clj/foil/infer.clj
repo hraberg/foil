@@ -55,7 +55,10 @@
                    (infer env then)
                    (unify (infer env then)
                           (infer env else)))))
-       do (last (mapv (partial infer env) (rest form)))
+       do (let [[_ & body] form]
+            (if body
+              (last (mapv (partial infer env) (rest form)))
+              'void))
        let (let [[_ bindings & body] form
                  env (infer-binding-pairs env (partition 2 bindings))]
              (infer env (cons 'do body)))
@@ -81,7 +84,7 @@
                            return-t
 
                            :else
-                           'void)]
+                           actual-return)]
             (with-meta (list return-t '(*) (map env args)) {:fn form
                                                             :env env}))
        set! (let [[_ var value] form]
