@@ -52,7 +52,7 @@
      (seq? form)
      (case (first form)
        if (let [[_  cond then else] form]
-            (and (unify 'boolean (infer env cond))
+            (and (unify 'bool (infer env cond))
                  (if (nil? else)
                    (infer env then)
                    (unify (infer env then)
