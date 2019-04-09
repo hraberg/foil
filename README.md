@@ -396,6 +396,7 @@ http://whiley.org/about/overview/
 http://okmij.org/ftp/ML/generalization.html
 https://github.com/tomprimozic/type-systems
 https://github.com/alehander42/Airtight/blob/master/airtight/hindley_milner_ast.py
+http://dev.stephendiehl.com/fun/006_hindley_milner.html
 https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
 https://www.youtube.com/watch?v=Bp89aBm9tGU&feature=youtu.be
 http://matt.might.net/articles/c++-template-meta-programming-with-lambda-calculus/
