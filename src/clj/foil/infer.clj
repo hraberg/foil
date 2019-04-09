@@ -63,9 +63,9 @@
                 env (reduce
                      (fn [env arg]
                        (assoc env arg (or (:tag (meta arg))
-                                          (gensym "?arg_"))))
+                                          (gensym "?T"))))
                      env args)
-                return (or (:tag (meta args)) (gensym "?return_"))
+                return (or (:tag (meta args)) (gensym "?R"))
                 return (if (seq body)
                          (unify return (infer env (cons 'do body)))
                          return)]
