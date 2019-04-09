@@ -2,15 +2,15 @@
   (:require [clojure.string :as str]))
 
 (def ^:private replacements
-  {java.lang.Byte 'int8_t
-   java.lang.Short 'int16_t
-   java.lang.Integer 'int32_t
-   java.lang.Long 'int64_t
-   java.lang.Character 'char
-   java.lang.Float 'float
-   java.lang.Double 'double
-   java.lang.Boolean 'bool
-   java.lang.String 'char*
+  {Byte 'int8_t
+   Short 'int16_t
+   Integer 'int32_t
+   Long 'int64_t
+   Character 'char
+   Float 'float
+   Double 'double
+   Boolean 'bool
+   String 'char*
    nil 'void})
 
 (defn- logic-var? [x]
