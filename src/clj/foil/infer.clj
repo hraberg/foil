@@ -72,7 +72,8 @@
                 actual-return (infer env (cons 'do body))
                 env (into {} (for [[k v] env]
                                (cond
-                                 (= actual-return v)
+                                 (and (logic-var? v)
+                                      (= actual-return v))
                                  [k return-t]
 
                                  (= return-t v)
