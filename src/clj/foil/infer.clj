@@ -65,12 +65,19 @@
                        (assoc env arg (or (:tag (meta arg))
                                           (gensym "?T"))))
                      env args)
-                return (or (:tag (meta args)) (gensym "?R"))
-                return (if (seq body)
-                         (unify return (infer env (cons 'do body)))
-                         return)]
-            (with-meta (list return '(*) (map env args)) {:fn form
-                                                          :env env}))
+                return-t (or (:tag (meta args)) (gensym "?R"))
+                actual-return (infer env (cons 'do body))
+                env (if (logic-var? actual-return)
+                      (into {} (for [[k v] env]
+                                 (if (= actual-return v)
+                                   [k return-t]
+                                   [k v])))
+                      env)
+                return-t (if (seq body)
+                           (unify return-t actual-return)
+                           return-t)]
+            (with-meta (list return-t '(*) (map env args)) {:fn form
+                                                            :env env}))
        set! (let [[_ var value] form]
               (unify (infer env var) (infer env value)))
        (let [f (infer env (first form))
