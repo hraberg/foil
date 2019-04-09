@@ -74,7 +74,7 @@
                                    [k v])))
                       env)
                 return-t (if (seq body)
-                           (unify return-t actual-return)
+                           (unify actual-return return-t)
                            return-t)]
             (with-meta (list return-t '(*) (map env args)) {:fn form
                                                             :env env}))
