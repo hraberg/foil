@@ -70,12 +70,16 @@
                      env args)
                 return-t (or (:tag (meta args)) (gensym "?R"))
                 actual-return (infer env (cons 'do body))
-                env (if (logic-var? actual-return)
-                      (into {} (for [[k v] env]
-                                 (if (= actual-return v)
-                                   [k return-t]
-                                   [k v])))
-                      env)
+                env (into {} (for [[k v] env]
+                               (cond
+                                 (= actual-return v)
+                                 [k return-t]
+
+                                 (= return-t v)
+                                 [k actual-return]
+
+                                 :else
+                                 [k v])))
                 return-t (cond
                            (seq body)
                            (unify actual-return return-t)
@@ -85,8 +89,14 @@
 
                            :else
                            actual-return)]
-            (with-meta (list return-t '(*) (map env args)) {:fn form
-                                                            :env env}))
+            (with-meta
+              (list return-t '(*) (map env args))
+              {:fn (concat (list 'fn (vary-meta
+                                      (for [arg args]
+                                        (vary-meta arg assoc :tag (get env arg)))
+                                      assoc :tag return-t))
+                           body)
+               :env env}))
        set! (let [[_ var value] form]
               (unify (infer env var) (infer env value)))
        (let [f (infer env (first form))
@@ -125,6 +135,6 @@
        (get replacements t t)))))
 
 (def ^:dynamic *default-env*
-  {'+ (infer {} '(fn ^?t [^?t x ^?t y]))
-   '- (infer {} '(fn ^?t [^?t x ^?t y]))
-   '= (infer {} '(fn ^bool [^?t x ^?t y]))})
+  {'+ (infer {} '(fn ^?t [^?t x ^?t y] x))
+   '- (infer {} '(fn ^?t [^?t x ^?t y] x))
+   '= (infer {} '(fn ^bool [^?t x ^?t y] true))})
