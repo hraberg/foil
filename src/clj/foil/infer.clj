@@ -69,7 +69,8 @@
                 return (if (seq body)
                          (unify return (infer env (cons 'do body)))
                          return)]
-            (with-meta (list return '(*) (map env args)) {:fn form}))
+            (with-meta (list return '(*) (map env args)) {:fn form
+                                                          :env env}))
        set! (let [[_ var value] form]
               (unify (infer env var) (infer env value)))
        (let [f (infer env (first form))
