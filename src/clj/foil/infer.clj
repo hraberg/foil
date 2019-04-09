@@ -30,6 +30,8 @@
                 (str x " != " y))
         x)))
 
+(declare infer)
+
 (defn- infer-binding-pairs [env binding-pairs]
   (reduce
    (fn [env [var binding]]
