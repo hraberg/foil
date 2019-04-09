@@ -73,9 +73,15 @@
                                    [k return-t]
                                    [k v])))
                       env)
-                return-t (if (seq body)
+                return-t (cond
+                           (seq body)
                            (unify actual-return return-t)
-                           return-t)]
+
+                           (not (logic-var? return-t))
+                           return-t
+
+                           :else
+                           'void)]
             (with-meta (list return-t '(*) (map env args)) {:fn form
                                                             :env env}))
        set! (let [[_ var value] form]
