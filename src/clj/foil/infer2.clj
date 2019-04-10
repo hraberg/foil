@@ -38,6 +38,8 @@
                       [cond then else])
                  fn (let [[_ args & body] form]
                       (concat args body))
+                 let (let [[_ bindings & body] form]
+                       (concat bindings body))
                  form))
        ctx))))
 
@@ -60,6 +62,17 @@
             [[(get ctx form)
               (list (map ctx args) '-> (get ctx (last body)))
               form]]))
+      let (let [[_ bindings & body] form
+                bindings (partition 2 bindings)]
+            (concat
+             (->> (for [x (concat (map second bindings) body)]
+                    (generate-equations ctx x))
+                  (apply concat))
+             (for [[var binding :as form] bindings]
+               [(get ctx var) (get ctx binding) (cons 'set! form)])
+             [[(get ctx form)
+               (get ctx (last body))
+               form]]))
       (let [[f & args] form]
         (concat
          (->> (for [x form]
@@ -91,7 +104,7 @@
          (map vector (first x) (first y)))))
 
     :else
-    nil))
+    (assert false (str x " != " y))))
 
 (defn unify-all [equations]
   (reduce
