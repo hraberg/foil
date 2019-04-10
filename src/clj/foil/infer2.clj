@@ -1,4 +1,5 @@
 (ns foil.infer2
+  (:require [clojure.walk :as w])
   (:import [clojure.lang IObj]))
 
 ;; https://eli.thegreenplace.net/2018/type-inference/
@@ -16,6 +17,8 @@
    Boolean 'bool
    String 'char*
    nil 'void})
+
+(def ^:private known-types (set (vals replacements)))
 
 (defn assign-types
   ([form]
@@ -64,16 +67,51 @@
               (apply concat))
          [[(get ctx f)
            (list (map ctx args) '-> (get ctx form))
-           form]])))
+           f]])))
     []))
+
+(defn unify [acc x y]
+  (cond
+    (= x y)
+    acc
+
+    (and (symbol? x) (not (contains? known-types x)))
+    (assoc acc (get acc x x) y)
+
+    (and (symbol? y) (not (contains? known-types y)))
+    (assoc acc (get acc y y) x)
+
+    (and (seq? x) (seq? y))
+    (let [acc (unify acc (last x) (last y))]
+      (when (= (count (first x)) (count (first y)))
+        (reduce
+         (fn [acc [x y]]
+           (unify acc x y))
+         acc
+         (map vector (first x) (first y)))))
+
+    :else
+    nil))
+
+(defn unify-all [equations]
+  (reduce
+   (fn [acc [x y]]
+     (when acc
+       (unify acc x y)))
+   {} equations))
+
+(defn apply-unifier [subst form]
+  (let [form-new (w/postwalk-replace subst form)]
+    (if (= form-new form)
+      form
+      (recur subst form-new))))
 
 (comment
   (let [form '(fn [f g x]
                 (if (f (= x 1))
                   (g x)
                   20))
-        env (foil.infer2/assign-types form)]
-    [env
-     (foil.infer2/generate-equations
-      env
-      form)]))
+        env (foil.infer2/assign-types form)
+        eqs (foil.infer2/generate-equations env form)
+        subst (foil.infer2/unify-all eqs)]
+    (foil.infer2/apply-unifier subst (get env form))))
