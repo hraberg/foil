@@ -31,15 +31,47 @@
      (if (seq? form)
        (reduce assign-types ctx
                (case (first form)
-                 if (rest form)
-                 fn (concat (second form)
-                            (next (next form)))
+                 if (let [[_ cond then else] form]
+                      [cond then else])
+                 fn (let [[_ args & body] form]
+                      (concat args body))
                  form))
        ctx))))
 
+(defn generate-equations [ctx form]
+  (if (seq? form)
+    (case (first form)
+      if (let [[_ cond then else] form]
+           (concat
+            (generate-equations ctx cond)
+            (generate-equations ctx then)
+            (generate-equations ctx else)
+            [['bool (get ctx cond)]
+             [(get ctx form) (get ctx then)]
+             [(get ctx form) (get ctx else)]]))
+      fn (let [[_ args & body] form]
+           (concat
+            (->> (for [x body]
+                   (generate-equations ctx x))
+                 (apply concat))
+            [[(get ctx form)
+              (list (map ctx args) '-> (get ctx (last body)))]]))
+      (let [[f & args] form]
+        (concat
+         (->> (for [x form]
+                (generate-equations ctx x))
+              (apply concat))
+         [[(get ctx f)
+           (list (map ctx args) '-> (get ctx form))]])))
+    []))
+
 (comment
-  (assign-types
-   '(fn [f g x]
-      (if (f (= x 1))
-        (g x)
-        20))))
+  (let [form '(fn [f g x]
+                (if (f (= x 1))
+                  (g x)
+                  20))
+        env (foil.infer2/assign-types form)]
+    [env
+     (foil.infer2/generate-equations
+      env
+      form)]))
