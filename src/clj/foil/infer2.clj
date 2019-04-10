@@ -89,16 +89,21 @@
     (= x y)
     acc
 
-    (and (symbol? x) (not (contains? known-types x)))
-    (assoc acc (get acc x x) y)
+    (and (symbol? x)
+         (not (contains? known-types x)))
+    (assoc acc (get acc x x) (get acc y y))
 
-    (and (symbol? y) (not (contains? known-types y)))
-    (assoc acc (get acc y y) x)
+    (and (symbol? y)
+         (not (contains? known-types y)))
+    (assoc acc (get acc y y) (get acc x x))
 
     (and (seq? x) (seq? y))
     (let [acc (unify acc (last x) (last y))]
       (assert (= (count (first x))
-                 (count (first y))))
+                 (count (first y)))
+              (str (count (first x))
+                   " != "
+                   (count (first y))))
       (reduce
        (fn [acc [x y]]
          (unify acc x y))
@@ -106,7 +111,7 @@
        (map vector (first x) (first y))))
 
     :else
-    (assert false (str x " != " y))))
+    (assert false (str (get acc x x) " != " (get acc y y)))))
 
 (defn unify-all [equations]
   (reduce
