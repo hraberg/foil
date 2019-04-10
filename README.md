@@ -7,22 +7,22 @@ A layered programming language.
 In rough order of importance:
 
 * Layered Design.
-** Small Core. (Scheme, Shen, C)
+  * Small Core. (Scheme, Shen, C)
 * Gradual Regions -> GC. (Rust, Ada)
-** Memory Safety.
+  * Memory Safety.
 * Gradual Static -> Dynamic Typing. (Clojure, Typescript)
-** Hindley-Milner Type Inference (OCaml, Rust, Typescript)
+  * Hindley-Milner Type Inference (OCaml, Rust, Typescript)
 * Easy C (or host) Interop. (C, Rust, Graal)
-** Predictable Performance.
-** SIMD Intrinsics.
-** Safe libc Wrapper.
+  * Predictable Performance.
+  * SIMD Intrinsics.
+  * Safe libc Wrapper.
 * Lisp Syntax. (Clojure, Scheme)
-** Standard library inspired by Clojure / Scheme R7RS + libc.
-** Macros.
-** REPL: Preferable but Not Key.
+  * Standard library inspired by Clojure / Scheme R7RS + libc.
+  * Macros.
+  * REPL: Preferable but Not Key.
 * Gradual Purely Functional -> Systems Programming. (Clojure, OCaml, Rust)
-** Persistent Data Structures.
-** Eager By Default, Lazy Possible.
+  * Persistent Data Structures.
+  * Eager By Default, Lazy Possible.
 * Verified Design by Contract. (Ada/SPARK)
 * Gradual Systems Programming -> WebAssembly (Rust, Graal)
 
@@ -32,20 +32,20 @@ Dependencies to use should be kept at minimum. So the idea of just
 depending on GCC for usage is quite tempting. Should be fast.
 
 * Bootstrap (alternatives)
-** Clojure / native image?
-** Possible self-hosting later on preferable.
+  * Clojure / native image?
+  * Possible self-hosting later on preferable.
 
 * Compilation (alternatives)
-** C (or C++) via GCC or Clang.
-** Ada via FSF (or GPL) GNAT.
-** Rust via rustc.
-** LLVM.
-** GraalVM for both native image and JVM.
+  * C (or C++) via GCC or Clang.
+  * Ada via FSF (or GPL) GNAT.
+  * Rust via rustc.
+  * LLVM.
+  * GraalVM for both native image and JVM.
 
 * Dependency Management (alternatives)
-** deps.edn.
-** Cargo
-** Pure git
+  * deps.edn.
+  * Cargo
+  * Pure git
 
 ## Inspirations
 
