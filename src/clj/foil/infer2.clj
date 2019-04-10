@@ -21,66 +21,78 @@
 (def ^:private known-types (set (vals replacements)))
 (def ^:dynamic *built-ins* '{= ((t t) -> bool)})
 
+(defn- gen-type [ctx form]
+  (or (get ctx form)
+      (:tag (meta form))
+      (gensym "t")))
+
 (defn assign-types
   ([form]
    (assign-types *built-ins* form))
   ([ctx form]
-   (let [t (or (get ctx form)
-               (:tag (meta form))
-               (get replacements (class form))
-               (gensym "t"))
-         ctx (assoc ctx (if (instance? IObj form)
-                          (vary-meta form assoc :tag t)
-                          form) t)]
-     (if (seq? form)
-       (reduce assign-types ctx
-               (case (first form)
-                 if (let [[_ cond then else] form]
-                      [cond then else])
-                 fn (let [[_ args & body] form]
-                      (concat args body))
-                 let (let [[_ bindings & body] form]
-                       (concat bindings body))
-                 form))
-       ctx))))
+   (if (instance? IObj form)
+     (let [t (gen-type ctx form)
+           form (if (seq? form)
+                  (case (first form)
+                    if (let [[_ cond then else] form]
+                         (list 'if
+                               (assign-types ctx cond)
+                               (assign-types ctx then)
+                               (assign-types ctx else)))
+                    fn (let [[_ args & body] form
+                             arg-ts (mapv (partial gen-type ctx) args)
+                             ctx (merge ctx (zipmap args arg-ts))]
+                         (concat
+                          (list 'fn
+                                (mapv (partial assign-types ctx) args))
+                          (map (partial assign-types ctx) body)))
+                    let (let [[_ bindings & body] form
+                              vars (map first (partition 2 bindings))
+                              var-ts (mapv (partial gen-type ctx) vars)
+                              ctx (merge ctx (zipmap vars var-ts))]
+                          (concat
+                           (list 'let
+                                 (mapv (partial assign-types ctx) bindings))
+                           (map (partial assign-types ctx) body)))
+                    (map (partial assign-types ctx) form))
+                  form)]
+       (vary-meta form assoc :tag t))
+     form)))
 
-(defn generate-equations [ctx form]
+(defn- tag [form]
+  (:tag (meta form) (get replacements (class form) form)))
+
+(defn generate-equations [form]
   (if (seq? form)
     (case (first form)
       if (let [[_ cond then else] form]
            (concat
-            (generate-equations ctx cond)
-            (generate-equations ctx then)
-            (generate-equations ctx else)
-            [['bool (get ctx cond) cond]
-             [(get ctx form) (get ctx then) then]
-             [(get ctx form) (get ctx else) else]]))
+            (generate-equations cond)
+            (generate-equations then)
+            (generate-equations else)
+            [['bool (tag cond) cond]
+             [(tag form) (tag then) then]
+             [(tag form) (tag else) else]]))
       fn (let [[_ args & body] form]
            (concat
-            (->> (for [x body]
-                   (generate-equations ctx x))
-                 (apply concat))
-            [[(get ctx form)
-              (list (map ctx args) '-> (get ctx (last body)))
+            (mapcat generate-equations body)
+            [[(tag form)
+              (list (map tag args) '-> (tag (last body)))
               form]]))
       let (let [[_ bindings & body] form
                 bindings (partition 2 bindings)]
             (concat
-             (->> (for [x (concat (map second bindings) body)]
-                    (generate-equations ctx x))
-                  (apply concat))
+             (mapcat generate-equations (concat (map second bindings) body))
              (for [[var binding :as form] bindings]
-               [(get ctx var) (get ctx binding) (cons 'set! form)])
-             [[(get ctx form)
-               (get ctx (last body))
+               [(tag var) (tag binding) (cons 'set! form)])
+             [[(tag form)
+               (tag (last body))
                form]]))
       (let [[f & args] form]
         (concat
-         (->> (for [x form]
-                (generate-equations ctx x))
-              (apply concat))
-         [[(get ctx f)
-           (list (map ctx args) '-> (get ctx form))
+         (mapcat generate-equations form)
+         [[(tag f)
+           (list (map tag args) '-> (tag form))
            f]])))
     []))
 
@@ -124,18 +136,21 @@
        (unify acc x y)))
    {} (reverse equations)))
 
+(defn apply-unifier* [subst t]
+  (let [t-new (w/postwalk-replace subst t)]
+    (if (= t-new t)
+      t
+      (recur subst t-new))))
+
 (defn apply-unifier [subst form]
-  (let [form-new (w/postwalk-replace subst form)]
-    (if (= form-new form)
-      form
-      (recur subst form-new))))
+  (apply-unifier* subst (tag form)))
 
 (comment
   (let [form '(fn [f g x]
                 (if (f (= x 1))
                   (g x)
                   20))
-        env (foil.infer2/assign-types form)
-        eqs (foil.infer2/generate-equations env form)
+        form (foil.infer2/assign-types form)
+        eqs (foil.infer2/generate-equations form)
         subst (foil.infer2/unify-all eqs)]
-    (foil.infer2/apply-unifier subst (get env form))))
+    (foil.infer2/apply-unifier subst form)))
