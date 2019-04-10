@@ -96,12 +96,13 @@
 
     (and (seq? x) (seq? y))
     (let [acc (unify acc (last x) (last y))]
-      (when (= (count (first x)) (count (first y)))
-        (reduce
-         (fn [acc [x y]]
-           (unify acc x y))
-         acc
-         (map vector (first x) (first y)))))
+      (assert (= (count (first x))
+                 (count (first y))))
+      (reduce
+       (fn [acc [x y]]
+         (unify acc x y))
+       acc
+       (map vector (first x) (first y))))
 
     :else
     (assert false (str x " != " y))))
