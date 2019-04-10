@@ -143,6 +143,24 @@
        acc
        (map vector (first x) (first y))))
 
+    (and (vector? x) (seq? y))
+    (let [fail (atom nil)]
+      (or (some #(try
+                   (unify acc % y msg)
+                   (catch AssertionError e
+                     (reset! fail e)
+                     nil)) x)
+          (throw @fail)))
+
+    (and (seq? x) (vector? y))
+    (let [fail (atom nil)]
+      (or (some #(try
+                   (unify acc x % msg)
+                   (catch AssertionError e
+                     (reset! fail e)
+                     nil)) y)
+          (throw @fail)))
+
     :else
     (assert false (str x " != " y " " @msg))))
 
