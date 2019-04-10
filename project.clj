@@ -1,5 +1,5 @@
 (defproject foil "0.1.0-SNAPSHOT"
-  :description "A layered programming language"
+  :description "A small compiled and statically typed Lisp"
   :url "https://github.com/hraberg/foil"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
