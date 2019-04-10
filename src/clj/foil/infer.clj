@@ -1,5 +1,10 @@
 (ns foil.infer
-  (:require [clojure.string :as str]))
+  (:require [clojure.walk :as w])
+  (:import [clojure.lang IObj]))
+
+;; https://eli.thegreenplace.net/2018/type-inference/
+;; https://github.com/prakhar1989/type-inference/blob/master/infer.ml
+;; http://dev.stephendiehl.com/fun/006_hindley_milner.html
 
 (def ^:private replacements
   {Byte 'int8_t
@@ -13,133 +18,149 @@
    String 'char*
    nil 'void})
 
-(defn- logic-var? [x]
-  (and (symbol? x)
-       (str/starts-with? (str x) "?")))
+(def ^:private known-types (set (vals replacements)))
+(def ^:dynamic *built-ins* '{= ((t t) -> bool)})
 
-(defn- unify [x y]
+(defn- gen-type [ctx form]
+  (or (get ctx form)
+      (:tag (meta form))
+      (gensym "t")))
+
+(defn assign-types
+  ([form]
+   (assign-types *built-ins* form))
+  ([ctx form]
+   (if (instance? IObj form)
+     (let [t (gen-type ctx form)
+           form (if (seq? form)
+                  (case (first form)
+                    if (let [[_ cond then else] form]
+                         (list 'if
+                               (assign-types ctx cond)
+                               (assign-types ctx then)
+                               (assign-types ctx else)))
+                    fn (let [[_ args & body] form
+                             arg-ts (mapv (partial gen-type ctx) args)
+                             ctx (merge ctx (zipmap args arg-ts))]
+                         (concat
+                          (list 'fn
+                                (mapv (partial assign-types ctx) args))
+                          (map (partial assign-types ctx) body)))
+                    let (let [[_ bindings & body] form
+                              vars (map first (partition 2 bindings))
+                              var-ts (mapv (partial gen-type ctx) vars)
+                              ctx (merge ctx (zipmap vars var-ts))]
+                          (concat
+                           (list 'let
+                                 (mapv (partial assign-types ctx) bindings))
+                           (map (partial assign-types ctx) body)))
+                    set! (let [[_ var value] form]
+                           (list 'set! (assign-types ctx var) (assign-types value)))
+                    (map (partial assign-types ctx) form))
+                  form)]
+       (vary-meta form assoc :tag t))
+     form)))
+
+(defn- tag [form]
+  (:tag (meta form) (get replacements (class form) form)))
+
+(defn generate-equations [form]
+  (if (seq? form)
+    (case (first form)
+      if (let [[_ cond then else] form]
+           (concat
+            (generate-equations cond)
+            (generate-equations then)
+            (generate-equations else)
+            [['bool (tag cond) cond]
+             [(tag form) (tag then) then]
+             [(tag form) (tag else) else]]))
+      fn (let [[_ args & body] form]
+           (concat
+            (mapcat generate-equations body)
+            [[(tag form)
+              (list (map tag args) '-> (tag (last body)))
+              form]]))
+      let (let [[_ bindings & body] form
+                bindings (partition 2 bindings)]
+            (concat
+             (mapcat generate-equations (concat (map second bindings) body))
+             (for [[var binding :as form] bindings]
+               [(tag var) (tag binding) (cons 'set! form)])
+             [[(tag form)
+               (tag (last body))
+               form]]))
+      set! (let [[_ var value] form]
+             (concat
+              (generate-equations var)
+              (generate-equations value)
+              [[(tag var) (tag value) form]]))
+      (let [[f & args] form]
+        (concat
+         (mapcat generate-equations form)
+         [[(tag f)
+           (list (map tag args) '-> (tag form))
+           form]])))
+    []))
+
+(defn unify [acc x y msg]
   (cond
-    (logic-var? x)
-    (or y x)
+    (= x y)
+    acc
 
-    (logic-var? y)
-    (or x y)
+    (and (symbol? x)
+         (not (contains? known-types x)))
+    (if (contains? acc x)
+      (unify acc (get acc x) y msg)
+      (assoc acc x y))
+
+    (and (symbol? y)
+         (not (contains? known-types y)))
+    (if (contains? acc y)
+      (unify acc (get acc y) x msg)
+      (assoc acc y x))
+
+    (and (seq? x) (seq? y))
+    (let [acc (unify acc (last x) (last y) msg)]
+      (assert (= (count (first x))
+                 (count (first y)))
+              (str (count (first x))
+                   " != "
+                   (count (first y))
+                   " "
+                   @msg))
+      (reduce
+       (fn [acc [x y]]
+         (unify acc x y msg))
+       acc
+       (map vector (first x) (first y))))
 
     :else
-    (do (assert (= x y)
-                (str x " != " y))
-        x)))
+    (assert false (str x " != " y " " @msg))))
 
-(declare infer)
+(defn apply-unifier* [subst t]
+  (let [t-new (w/postwalk-replace subst t)]
+    (if (= t-new t)
+      t
+      (recur subst t-new))))
 
-(defn- infer-binding-pairs [env binding-pairs]
+(defn unify-all [equations]
   (reduce
-   (fn [env [var binding]]
-     (let [t (infer env binding)
-           t (if-let [tag (:tag (meta var))]
-               (unify tag t)
-               t)]
-       (assoc env var t)))
-   env binding-pairs))
+   (fn [acc [x y form]]
+     (unify acc x y (delay (pr-str (apply-unifier* acc x)
+                                   (apply-unifier* acc y)
+                                   form))))
+   {} (reverse equations)))
 
-(declare ^:dynamic *default-env*)
+(defn apply-unifier [subst form]
+  (apply-unifier* subst (tag form)))
 
-(defn infer
-  ([form]
-   (infer *default-env* form))
-  ([env form]
-   (cond
-     (seq? form)
-     (case (first form)
-       if (let [[_  cond then else] form]
-            (and (unify 'bool (infer env cond))
-                 (if (nil? else)
-                   (infer env then)
-                   (unify (infer env then)
-                          (infer env else)))))
-       do (let [[_ & body] form]
-            (if body
-              (last (mapv (partial infer env) (rest form)))
-              'void))
-       let (let [[_ bindings & body] form
-                 env (infer-binding-pairs env (partition 2 bindings))]
-             (infer env (cons 'do body)))
-       fn (let [[_ args & body] form
-                env (reduce
-                     (fn [env arg]
-                       (assoc env arg (or (:tag (meta arg))
-                                          (gensym "?T"))))
-                     env args)
-                return-t (or (:tag (meta args)) (gensym "?R"))
-                actual-return (infer env (cons 'do body))
-                env (into {} (for [[k v] env]
-                               (cond
-                                 (and (logic-var? v)
-                                      (= actual-return v))
-                                 [k return-t]
-
-                                 (= return-t v)
-                                 [k actual-return]
-
-                                 :else
-                                 [k v])))
-                return-t (cond
-                           (seq body)
-                           (unify actual-return return-t)
-
-                           (not (logic-var? return-t))
-                           return-t
-
-                           :else
-                           actual-return)]
-            (with-meta
-              (list return-t '(*) (map env args))
-              {:fn (concat (list 'fn (vary-meta
-                                      (for [arg args]
-                                        (vary-meta arg assoc :tag (get env arg)))
-                                      assoc :tag return-t))
-                           body)
-               :env env}))
-       set! (let [[_ var value] form]
-              (unify (infer env var) (infer env value)))
-       (let [f (infer env (first form))
-             actual-args (rest form)
-             [return-t _ arg-ts] (if (seq? f)
-                                   f
-                                   [(gensym "?R") '(*) (repeatedly (count actual-args) #(gensym "?T"))])]
-         (assert (= (count arg-ts) (count actual-args))
-                 (str "arity: "(count arg-ts) " != "(count actual-args)))
-         (let [[_ args & body] (:fn (meta f))
-               env (infer-binding-pairs env (map vector args actual-args))
-               bound-arg-ts (reduce
-                             (fn [acc [arg t]]
-                               (if (logic-var? t)
-                                 (let [candidate (infer env (unify arg t))]
-                                   (when-let [b (get acc t)]
-                                     (unify b candidate))
-                                   (assoc acc t candidate))
-                                 acc))
-                             {}
-                             (zipmap args arg-ts))
-               return-t (get bound-arg-ts return-t return-t)]
-           (if (seq body)
-             (unify return-t (infer env (cons 'do body)))
-             return-t))))
-
-     (logic-var? form)
-     (get env form form)
-
-     (symbol? form)
-     (do (assert (get env form)
-                 (str "unknown var: " form))
-         (get env form))
-
-     :else
-     (let [t (or (:tag (meta form))
-                 (class form))]
-       (get replacements t t)))))
-
-(def ^:dynamic *default-env*
-  {'+ (infer {} '(fn ^?t [^?t x ^?t y] x))
-   '- (infer {} '(fn ^?t [^?t x ^?t y] x))
-   '= (infer {} '(fn ^bool [^?t x ^?t y] true))})
+(comment
+  (let [form '(fn [f g x]
+                (if (f (= x 1))
+                  (g x)
+                  20))
+        form (foil.infer/assign-types form)
+        eqs (foil.infer/generate-equations form)
+        subst (foil.infer/unify-all eqs)]
+    (foil.infer/apply-unifier subst form)))
