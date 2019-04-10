@@ -33,7 +33,8 @@
                              - ((t t) -> t)
                              * ((t t) -> t)
                              / ((t t) -> t)
-                             mod ((t t) -> t)})
+                             mod ((t t) -> t)
+                             set! ((t t) -> t)})
 
 (defn- gen-type [ctx form]
   (or (get ctx form)
@@ -68,8 +69,6 @@
                            (list 'let
                                  (mapv (partial assign-types ctx) bindings))
                            (map (partial assign-types ctx) body)))
-                    set! (let [[_ var value] form]
-                           (list 'set! (assign-types ctx var) (assign-types value)))
                     (map (partial assign-types ctx) form))
                   form)]
        (vary-meta form assoc :tag t))
@@ -104,11 +103,6 @@
              [[(tag form)
                (tag (last body))
                form]]))
-      set! (let [[_ var value] form]
-             (concat
-              (generate-equations var)
-              (generate-equations value)
-              [[(tag var) (tag value) form]]))
       (let [[f & args] form]
         (concat
          (mapcat generate-equations form)
