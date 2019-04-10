@@ -93,10 +93,10 @@
          (mapcat generate-equations form)
          [[(tag f)
            (list (map tag args) '-> (tag form))
-           f]])))
+           form]])))
     []))
 
-(defn unify [acc x y]
+(defn unify [acc x y msg]
   (cond
     (= x y)
     acc
@@ -104,43 +104,46 @@
     (and (symbol? x)
          (not (contains? known-types x)))
     (if (contains? acc x)
-      (unify acc (get acc x) y)
+      (unify acc (get acc x) y msg)
       (assoc acc x y))
 
     (and (symbol? y)
          (not (contains? known-types y)))
     (if (contains? acc y)
-      (unify acc (get acc y) x)
+      (unify acc (get acc y) x msg)
       (assoc acc y x))
 
     (and (seq? x) (seq? y))
-    (let [acc (unify acc (last x) (last y))]
+    (let [acc (unify acc (last x) (last y) msg)]
       (assert (= (count (first x))
                  (count (first y)))
               (str (count (first x))
                    " != "
-                   (count (first y))))
+                   (count (first y))
+                   " "
+                   @msg))
       (reduce
        (fn [acc [x y]]
-         (unify acc x y))
+         (unify acc x y msg))
        acc
        (map vector (first x) (first y))))
 
     :else
-    (assert false (str x " != " y))))
-
-(defn unify-all [equations]
-  (reduce
-   (fn [acc [x y]]
-     (when acc
-       (unify acc x y)))
-   {} (reverse equations)))
+    (assert false (str x " != " y " " @msg))))
 
 (defn apply-unifier* [subst t]
   (let [t-new (w/postwalk-replace subst t)]
     (if (= t-new t)
       t
       (recur subst t-new))))
+
+(defn unify-all [equations]
+  (reduce
+   (fn [acc [x y form]]
+     (unify acc x y (delay (pr-str (apply-unifier* acc x)
+                                   (apply-unifier* acc y)
+                                   form))))
+   {} (reverse equations)))
 
 (defn apply-unifier [subst form]
   (apply-unifier* subst (tag form)))
