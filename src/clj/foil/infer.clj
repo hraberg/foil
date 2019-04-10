@@ -19,7 +19,21 @@
    nil 'void})
 
 (def ^:private known-types (set (vals replacements)))
-(def ^:dynamic *built-ins* '{= ((t t) -> bool)})
+(def ^:dynamic *built-ins* '{= ((t t) -> bool)
+                             < ((t t) -> bool)
+                             <= ((t t) -> bool)
+                             > ((t t) -> bool)
+                             >= ((t t) -> bool)
+                             or ((bool bool) -> bool)
+                             and ((bool bool) -> bool)
+                             not ((bool) -> bool)
+                             inc ((t) -> t)
+                             dec ((t) -> t)
+                             + ((t t) -> t)
+                             - ((t t) -> t)
+                             * ((t t) -> t)
+                             / ((t t) -> t)
+                             mod ((t t) -> t)})
 
 (defn- gen-type [ctx form]
   (or (get ctx form)
