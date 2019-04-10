@@ -103,8 +103,10 @@
        set! (let [[_ var value] form]
               (unify (infer env var) (infer env value)))
        (let [f (infer env (first form))
-             [return-t _ arg-ts] f
-             actual-args (rest form)]
+             actual-args (rest form)
+             [return-t _ arg-ts] (if (seq? f)
+                                   f
+                                   [(gensym "?R") '(*) (repeatedly (count actual-args) #(gensym "?T"))])]
          (assert (= (count arg-ts) (count actual-args))
                  (str "arity: "(count arg-ts) " != "(count actual-args)))
          (let [[_ args & body] (:fn (meta f))
