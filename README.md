@@ -349,21 +349,23 @@ retrospective and some open questions.
 ### Retrospective and Questions
 
 1. How much is actually copied? I don't fully understand the C++ move
-   semantics and references. Java and C are both clear, but C++ feels
-   more complex.
+   semantics, containers and references. Java and C are both clear,
+   but C++ feels more complex.
 2. But C++ and templates gives us a lot. That said, the amount of C++
    and template parameters that are necessary in `foil.core` makes it
-   hard to reuse anything or impose your own style. This isn't
-   necessarily a problem, but the question then becomes how much one
-   should embrace C++. One is often forced to create more overloads of
-   a function than one wants to deal with universal references.
+   hard to reuse things for different targets, or impose your own
+   style. This isn't necessarily a problem, but the question then
+   becomes how much one should embrace C++. One is often forced to
+   create more overloads of a function than one wants to deal with
+   universal references.
 3. Template errors aren't necessarily complicated to fix, but often
    extremely verbose, so it can be hard to figure out what the actual
    problem is.
 4. The confusion over values, references and RIAA makes it hard to
    make any firm statements on what semantics the language actually
    has. This might not be an issue and can likely be incrementally
-   improved.
+   improved. Working a bit with someone who knows C++ well to do a
+   review would be useful.
 5. Related to the above, it makes it hard to know if it's worth the
    effort to try to get region based memory management into the C++
    version. C++ has its own allocator concept. But it feels hard to do
@@ -373,10 +375,11 @@ I'm happy where Foil ended up, and think the current version has
 promise. But that said, I'm parking it for a bit to explore the
 problem from a different angle. I'm going back to the original C
 roots, and started working on Hindley Milner type inference and hope
-to compile this with lambdas but without closures (for now) to C, and
-then explore adding region inference on the same language. Doing the
-C++ version of Foil first, which has been easier to add features to
-and explore, will help guide the next phase.
+to compile this to a small Lisp with lambdas but without closures (for
+now) to C, and then explore adding region inference into the same
+language, using similar tree walking analysis. Doing the C++ version
+of Foil first, which has been easier to add features to and explore,
+will help guide the next phase.
 
 #### Memory Management
 
