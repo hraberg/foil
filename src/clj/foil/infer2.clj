@@ -91,11 +91,15 @@
 
     (and (symbol? x)
          (not (contains? known-types x)))
-    (assoc acc (get acc x x) (get acc y y))
+    (if (contains? acc x)
+      (unify acc (get acc x) y)
+      (assoc acc x y))
 
     (and (symbol? y)
          (not (contains? known-types y)))
-    (assoc acc (get acc y y) (get acc x x))
+    (if (contains? acc y)
+      (unify acc (get acc y) x)
+      (assoc acc y x))
 
     (and (seq? x) (seq? y))
     (let [acc (unify acc (last x) (last y))]
@@ -111,14 +115,14 @@
        (map vector (first x) (first y))))
 
     :else
-    (assert false (str (get acc x x) " != " (get acc y y)))))
+    (assert false (str x " != " y))))
 
 (defn unify-all [equations]
   (reduce
    (fn [acc [x y]]
      (when acc
        (unify acc x y)))
-   {} equations))
+   {} (reverse equations)))
 
 (defn apply-unifier [subst form]
   (let [form-new (w/postwalk-replace subst form)]
