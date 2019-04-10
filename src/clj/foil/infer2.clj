@@ -1,5 +1,5 @@
 (ns foil.infer2
-  (:require [clojure.string :as str]))
+  (:import [clojure.lang IObj]))
 
 ;; https://eli.thegreenplace.net/2018/type-inference/
 ;; https://github.com/prakhar1989/type-inference/blob/master/infer.ml
@@ -25,7 +25,9 @@
                (:tag (meta form))
                (get replacements (class form))
                (gensym "t"))
-         ctx (assoc ctx form t)]
+         ctx (assoc ctx (if (instance? IObj form)
+                          (vary-meta form assoc :tag t)
+                          form) t)]
      (if (seq? form)
        (reduce assign-types ctx
                (case (first form)
