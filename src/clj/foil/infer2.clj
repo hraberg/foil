@@ -46,23 +46,25 @@
             (generate-equations ctx cond)
             (generate-equations ctx then)
             (generate-equations ctx else)
-            [['bool (get ctx cond)]
-             [(get ctx form) (get ctx then)]
-             [(get ctx form) (get ctx else)]]))
+            [['bool (get ctx cond) cond]
+             [(get ctx form) (get ctx then) then]
+             [(get ctx form) (get ctx else) else]]))
       fn (let [[_ args & body] form]
            (concat
             (->> (for [x body]
                    (generate-equations ctx x))
                  (apply concat))
             [[(get ctx form)
-              (list (map ctx args) '-> (get ctx (last body)))]]))
+              (list (map ctx args) '-> (get ctx (last body)))
+              form]]))
       (let [[f & args] form]
         (concat
          (->> (for [x form]
                 (generate-equations ctx x))
               (apply concat))
          [[(get ctx f)
-           (list (map ctx args) '-> (get ctx form))]])))
+           (list (map ctx args) '-> (get ctx form))
+           form]])))
     []))
 
 (comment
