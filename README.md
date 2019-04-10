@@ -1,6 +1,14 @@
 # foil
 
-A layered programming language.
+A small compiled and statically typed Lisp.
+
+## Building
+
+Depends on a C++14 compiler, Java and Leiningen being on the path.
+
+```sh
+make check
+```
 
 ## Language Properties
 
