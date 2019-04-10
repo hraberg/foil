@@ -19,10 +19,11 @@
    nil 'void})
 
 (def ^:private known-types (set (vals replacements)))
+(def ^:dynamic *built-ins* '{= ((t t) -> bool)})
 
 (defn assign-types
   ([form]
-   (assign-types {'= '((t t) -> bool)} form))
+   (assign-types *built-ins* form))
   ([ctx form]
    (let [t (or (get ctx form)
                (:tag (meta form))
