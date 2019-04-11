@@ -63,6 +63,7 @@ In rough order:
 * Cyclone
 * Clojure
 * Rust
+* ParaSail
 * Ada 2012 / SPARK 2014
 * Pre-Scheme
 * Shen
