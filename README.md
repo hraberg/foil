@@ -537,6 +537,8 @@ http://dev.stephendiehl.com/fun/000_introduction.html
 
 http://www.stephendiehl.com/llvm/
 
+https://xavierleroy.org/mpri/2-4/
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
