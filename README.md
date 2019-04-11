@@ -531,6 +531,12 @@ https://github.com/plasma-umass/mesh
 
 https://di.ku.dk/forskning/Publikationer/tekniske_rapporter/2003/03-10.pdf
 
+http://okmij.org/ftp/Computation/typeclass.html
+
+http://dev.stephendiehl.com/fun/000_introduction.html
+
+http://www.stephendiehl.com/llvm/
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
