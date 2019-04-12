@@ -182,8 +182,12 @@
   (let [form (if (instance? IObj form)
                (vary-meta form update :tag (partial apply-unifier subst))
                form)]
-    (if (coll? form)
+    (cond
+      (seq? form)
       (with-meta (map (partial type-all subst) form) (meta form))
+      (coll? form)
+      (with-meta (into (empty form) (map (partial type-all subst) form)) (meta form))
+      :else
       form)))
 
 (defn infer [form]
