@@ -111,7 +111,7 @@
            form]])))
     []))
 
-(defn unify [acc x y msg]
+(defn- unify [acc x y msg]
   (cond
     (= x y)
     acc
@@ -164,7 +164,7 @@
     :else
     (assert false (str x " != " y " " @msg))))
 
-(defn apply-unifier* [subst t]
+(defn- apply-unifier [subst t]
   (let [t-new (w/postwalk-replace subst t)]
     (if (= t-new t)
       t
@@ -173,20 +173,30 @@
 (defn unify-all [equations]
   (reduce
    (fn [acc [x y form]]
-     (unify acc x y (delay (pr-str (apply-unifier* acc x)
-                                   (apply-unifier* acc y)
+     (unify acc x y (delay (pr-str (apply-unifier acc x)
+                                   (apply-unifier acc y)
                                    form))))
    {} (reverse equations)))
 
-(defn apply-unifier [subst form]
-  (apply-unifier* subst (tag form)))
+(defn type-all [subst form]
+  (let [form (if (instance? IObj form)
+               (vary-meta form update :tag (partial apply-unifier subst))
+               form)]
+    (if (seq? form)
+      (with-meta (map (partial type-all subst) form) (meta form))
+      form)))
+
+(defn infer [form]
+  (let [form (assign-types form)
+        eqs (generate-equations form)
+        subst (unify-all eqs)]
+    (type-all subst form)))
 
 (comment
-  (let [form '(fn [f g x]
-                (if (f (= x 1))
-                  (g x)
-                  20))
-        form (foil.infer/assign-types form)
-        eqs (foil.infer/generate-equations form)
-        subst (foil.infer/unify-all eqs)]
-    (foil.infer/apply-unifier subst form)))
+  (->> '(fn [f g x]
+          (if (f (= x 1))
+            (g x)
+            20))
+       (foil.infer/infer)
+       (meta)
+       :tag))
