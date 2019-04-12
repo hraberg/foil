@@ -84,6 +84,9 @@
                            (map (partial assign-types ctx) body)))
                     (map (partial assign-types ctx) form))
                   form)]
+       (when (and (symbol? form)
+                  (not (contains? ctx form)))
+         (assert false (str "unknown var: " form)))
        (vary-meta form assoc :tag t))
      form)))
 
