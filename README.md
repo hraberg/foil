@@ -539,6 +539,8 @@ http://www.stephendiehl.com/llvm/
 
 https://xavierleroy.org/mpri/2-4/
 
+https://tiehuis.github.io/blog/c1.html
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
