@@ -36,10 +36,20 @@
                              mod ((t t) -> t)
                              set! ((t t) -> t)})
 
+(defn- find-generic-names [t]
+  (let [tn (atom (sorted-set))]
+    (w/postwalk
+     #(when (and (symbol? %) (= 1 (count (str %))))
+        (swap! tn conj %))
+     t)
+    @tn))
+
 (defn- gen-type [ctx form]
-  (or (get ctx form)
-      (:tag (meta form))
-      (gensym "t")))
+  (let [t (or (get ctx form)
+              (:tag (meta form))
+              (gensym "t"))
+        tn (find-generic-names t)]
+    (w/postwalk-replace (zipmap tn (map gensym tn)) t)))
 
 (defn assign-types
   ([form]
