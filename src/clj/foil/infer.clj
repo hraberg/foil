@@ -44,12 +44,15 @@
      t)
     @tn))
 
-(defn- gen-type [ctx form]
-  (let [t (or (get ctx form)
-              (:tag (meta form))
-              (gensym "t"))
-        tn (find-generic-names t)]
+(defn- update-generics [t]
+  (let [tn (find-generic-names t)]
     (w/postwalk-replace (zipmap tn (map gensym tn)) t)))
+
+(defn- gen-type [ctx form]
+  (->> (or (get ctx form)
+           (:tag (meta form))
+           (gensym "t"))
+       (update-generics)))
 
 (defn assign-types
   ([form]
