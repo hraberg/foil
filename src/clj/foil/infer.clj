@@ -129,13 +129,13 @@
     (and (symbol? x)
          (not (contains? known-types x)))
     (if (contains? acc x)
-      (unify acc (get acc x) y msg)
+      (unify (assoc acc x y) (get acc x) y msg)
       (assoc acc x y))
 
     (and (symbol? y)
          (not (contains? known-types y)))
     (if (contains? acc y)
-      (unify acc (get acc y) x msg)
+      (unify (assoc acc y x) (get acc y) x msg)
       (assoc acc y x))
 
     (and (seq? x) (seq? y))
