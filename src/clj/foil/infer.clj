@@ -54,6 +54,9 @@
            (gensym "t"))
        (update-generics)))
 
+(defn- tag [form]
+  (:tag (meta form) (get replacements (class form) form)))
+
 (defn assign-types
   ([form]
    (assign-types *built-ins* form))
@@ -96,9 +99,6 @@
          (assert false (str "unknown var: " form)))
        (vary-meta form assoc :tag t))
      form)))
-
-(defn- tag [form]
-  (:tag (meta form) (get replacements (class form) form)))
 
 (defn generate-equations [form]
   (if (seq? form)
