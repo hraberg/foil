@@ -81,7 +81,7 @@
                               (assign-types ctx else)))
                    fn (let [[_ args & body] form
                             ctx (apply dissoc ctx args)
-                            tags (set (cons (tag args) (map tag args)))
+                            tags (set (concat (keys ctx) (cons (tag args) (map tag args))))
                             tns (take (inc (count args))
                                       (remove tags (generic-type-names)))
                             arg-ts (for [[arg tv] (map vector args tns)]
