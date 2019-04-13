@@ -69,51 +69,48 @@
 
 (declare infer)
 
-(defn assign-types
-  ([form]
-   (assign-types *built-ins* form))
-  ([ctx form]
-   (if (instance? IObj form)
-     (let [t (gen-type ctx form)
-           form (if (seq? form)
-                  (case (first form)
-                    if (let [[_ cond then else] form]
-                         (list 'if
-                               (assign-types ctx cond)
-                               (assign-types ctx then)
-                               (assign-types ctx else)))
-                    fn (let [[_ args & body] form
-                             ctx (apply dissoc ctx args)
-                             arg-ts (for [[arg tv] (map vector args (generic-type-names))]
-                                      (or (:tag (meta arg)) tv))
-                             ctx (merge ctx (zipmap args arg-ts))]
+(defn assign-types [ctx form]
+  (if (instance? IObj form)
+    (let [t (gen-type ctx form)
+          form (if (seq? form)
+                 (case (first form)
+                   if (let [[_ cond then else] form]
+                        (list 'if
+                              (assign-types ctx cond)
+                              (assign-types ctx then)
+                              (assign-types ctx else)))
+                   fn (let [[_ args & body] form
+                            ctx (apply dissoc ctx args)
+                            arg-ts (for [[arg tv] (map vector args (generic-type-names))]
+                                     (or (:tag (meta arg)) tv))
+                            ctx (merge ctx (zipmap args arg-ts))]
+                        (concat
+                         (list 'fn
+                               (mapv (partial assign-types ctx) args))
+                         (map (partial assign-types ctx) body)))
+                   let (let [[_ bindings & body] form
+                             [ctx bindings] (reduce
+                                             (fn [[ctx acc] [var binding]]
+                                               (let [binding (infer ctx binding)
+                                                     ctx (dissoc ctx var)
+                                                     ctx (assoc ctx var (tag binding))]
+                                                 [ctx (concat acc [(assign-types ctx var)
+                                                                   binding])]))
+                                             [ctx []]
+                                             (partition 2 bindings))]
                          (concat
-                          (list 'fn
-                                (mapv (partial assign-types ctx) args))
+                          (list 'let (vec bindings))
                           (map (partial assign-types ctx) body)))
-                    let (let [[_ bindings & body] form
-                              [ctx bindings] (reduce
-                                              (fn [[ctx acc] [var binding]]
-                                                (let [binding (infer ctx binding)
-                                                      ctx (dissoc ctx var)
-                                                      ctx (assoc ctx var (tag binding))]
-                                                  [ctx (concat acc [(assign-types ctx var)
-                                                                    binding])]))
-                                              [ctx []]
-                                              (partition 2 bindings))]
-                          (concat
-                           (list 'let (vec bindings))
-                           (map (partial assign-types ctx) body)))
-                    (let [[f & args] form
-                          f (assign-types ctx f)]
-                      (cons (vary-meta f update :tag (partial update-generics ctx))
-                            (map (partial assign-types ctx) args))))
-                  form)]
-       (when (and (symbol? form)
-                  (not (contains? ctx form)))
-         (assert false (str "unknown var: " form)))
-       (vary-meta form assoc :tag t))
-     form)))
+                   (let [[f & args] form
+                         f (assign-types ctx f)]
+                     (cons (vary-meta f update :tag (partial update-generics ctx))
+                           (map (partial assign-types ctx) args))))
+                 form)]
+      (when (and (symbol? form)
+                 (not (contains? ctx form)))
+        (assert false (str "unknown var: " form)))
+      (vary-meta form assoc :tag t))
+    form))
 
 (defn generate-equations [form]
   (if (seq? form)
