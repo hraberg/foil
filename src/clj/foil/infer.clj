@@ -76,12 +76,18 @@
                                 (mapv (partial assign-types ctx) args))
                           (map (partial assign-types ctx) body)))
                     let (let [[_ bindings & body] form
-                              vars (map first (partition 2 bindings))
-                              var-ts (mapv (partial gen-type ctx) vars)
-                              ctx (merge ctx (zipmap vars var-ts))]
+                              [ctx bindings] (reduce
+                                              (fn [[ctx acc] [var binding]]
+                                                (let [binding (assign-types ctx binding)
+                                                      ctx (dissoc ctx var)
+                                                      t (gen-type ctx var)
+                                                      ctx (assoc ctx var t)]
+                                                  [ctx (concat acc [(assign-types ctx var)
+                                                                    binding])]))
+                                              [ctx []]
+                                              (partition 2 bindings))]
                           (concat
-                           (list 'let
-                                 (mapv (partial assign-types ctx) bindings))
+                           (list 'let (vec bindings))
                            (map (partial assign-types ctx) body)))
                     (map (partial assign-types ctx) form))
                   form)]
