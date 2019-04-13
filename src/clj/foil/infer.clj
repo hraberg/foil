@@ -36,26 +36,38 @@
                              mod ((t t) -> t)
                              set! ((t t) -> t)})
 
-(defn- find-generic-names [t]
+(defn generic-type-names []
+  (->> (iterate (fn [c]
+                  (char (inc (int c))))
+                \a)
+       (map (comp symbol str))))
+
+(defn- generic-name? [x]
+  (and (symbol? x)
+       (re-find #"^[a-z]$" (str x))))
+
+(defn- find-generic-names [ctx t]
   (let [tn (atom (sorted-set))]
     (w/postwalk
-     #(when (and (symbol? %) (= 1 (count (str %))))
+     #(when (and (generic-name? %)
+                 (not (contains? ctx %)))
         (swap! tn conj %))
      t)
     @tn))
 
-(defn- update-generics [t]
-  (let [tn (find-generic-names t)]
+(defn- update-generics [ctx t]
+  (let [tn (find-generic-names ctx t)]
     (w/postwalk-replace (zipmap tn (map gensym tn)) t)))
 
 (defn- gen-type [ctx form]
-  (->> (or (get ctx form)
-           (:tag (meta form))
-           (gensym "t"))
-       (update-generics)))
+  (or (get ctx form)
+      (:tag (meta form))
+      (gensym "t")))
 
 (defn- tag [form]
   (:tag (meta form) (get replacements (class form) form)))
+
+(declare infer)
 
 (defn assign-types
   ([form]
@@ -72,7 +84,8 @@
                                (assign-types ctx else)))
                     fn (let [[_ args & body] form
                              ctx (apply dissoc ctx args)
-                             arg-ts (mapv (partial gen-type ctx) args)
+                             arg-ts (for [[arg tv] (map vector args (generic-type-names))]
+                                      (or (:tag (meta arg)) tv))
                              ctx (merge ctx (zipmap args arg-ts))]
                          (concat
                           (list 'fn
@@ -81,10 +94,9 @@
                     let (let [[_ bindings & body] form
                               [ctx bindings] (reduce
                                               (fn [[ctx acc] [var binding]]
-                                                (let [binding (assign-types ctx binding)
+                                                (let [binding (infer ctx binding)
                                                       ctx (dissoc ctx var)
-                                                      t (gen-type ctx var)
-                                                      ctx (assoc ctx var t)]
+                                                      ctx (assoc ctx var (tag binding))]
                                                   [ctx (concat acc [(assign-types ctx var)
                                                                     binding])]))
                                               [ctx []]
@@ -92,7 +104,10 @@
                           (concat
                            (list 'let (vec bindings))
                            (map (partial assign-types ctx) body)))
-                    (map (partial assign-types ctx) form))
+                    (let [[f & args] form
+                          f (assign-types ctx f)]
+                      (cons (vary-meta f update :tag (partial update-generics ctx))
+                            (map (partial assign-types ctx) args))))
                   form)]
        (when (and (symbol? form)
                   (not (contains? ctx form)))
@@ -166,24 +181,6 @@
        acc
        (map vector (first x) (first y))))
 
-    (and (vector? x) (seq? y))
-    (let [fail (atom nil)]
-      (or (some #(try
-                   (unify acc % y msg)
-                   (catch AssertionError e
-                     (reset! fail e)
-                     nil)) x)
-          (throw @fail)))
-
-    (and (seq? x) (vector? y))
-    (let [fail (atom nil)]
-      (or (some #(try
-                   (unify acc x % msg)
-                   (catch AssertionError e
-                     (reset! fail e)
-                     nil)) y)
-          (throw @fail)))
-
     :else
     (assert false (str x " != " y " " @msg))))
 
@@ -213,11 +210,14 @@
       :else
       form)))
 
-(defn infer [form]
-  (let [form (assign-types form)
-        eqs (generate-equations form)
-        subst (unify-all eqs)]
-    (type-all subst form)))
+(defn infer
+  ([form]
+   (infer *built-ins* form))
+  ([ctx form]
+   (let [form (assign-types ctx form)
+         eqs (generate-equations form)
+         subst (unify-all eqs)]
+     (type-all subst form))))
 
 (comment
   (->> '(fn [f g x]
