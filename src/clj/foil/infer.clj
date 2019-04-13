@@ -136,8 +136,6 @@
                 bindings (partition 2 bindings)]
             (concat
              (mapcat generate-equations (concat (map second bindings) body))
-             (for [[var binding :as form] bindings]
-               [(tag var) (tag binding) (cons 'set! form)])
              [[(tag form)
                (tag (last body))
                form]]))
