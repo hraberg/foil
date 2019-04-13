@@ -81,12 +81,17 @@
                               (assign-types ctx else)))
                    fn (let [[_ args & body] form
                             ctx (apply dissoc ctx args)
-                            arg-ts (for [[arg tv] (map vector args (generic-type-names))]
+                            tags (set (cons (tag args) (map tag args)))
+                            tns (take (inc (count args))
+                                      (remove tags (generic-type-names)))
+                            arg-ts (for [[arg tv] (map vector args tns)]
                                      (or (:tag (meta arg)) tv))
                             ctx (merge ctx (zipmap args arg-ts))]
                         (concat
                          (list 'fn
-                               (mapv (partial assign-types ctx) args))
+                               (with-meta (mapv (partial assign-types ctx) args)
+                                 (update (meta args) :tag (fn [t]
+                                                            (or t (last tns))))))
                          (map (partial assign-types ctx) body)))
                    let (let [[_ bindings & body] form
                              [ctx bindings] (reduce
@@ -128,7 +133,10 @@
             (mapcat generate-equations body)
             [[(tag form)
               (list (map tag args) '-> (tag (last body)))
-              form]]))
+              form]
+             [(tag (last body))
+              (tag args)
+              args]]))
       let (let [[_ bindings & body] form
                 bindings (partition 2 bindings)]
             (concat
