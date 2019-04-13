@@ -68,6 +68,7 @@
                                (assign-types ctx then)
                                (assign-types ctx else)))
                     fn (let [[_ args & body] form
+                             ctx (apply dissoc ctx args)
                              arg-ts (mapv (partial gen-type ctx) args)
                              ctx (merge ctx (zipmap args arg-ts))]
                          (concat
@@ -135,13 +136,13 @@
     (and (symbol? x)
          (not (contains? known-types x)))
     (if (contains? acc x)
-      (unify (assoc acc x y) (get acc x) y msg)
+      (unify acc (get acc x) y msg)
       (assoc acc x y))
 
     (and (symbol? y)
          (not (contains? known-types y)))
     (if (contains? acc y)
-      (unify (assoc acc y x) (get acc y) x msg)
+      (unify acc (get acc y) x msg)
       (assoc acc y x))
 
     (and (seq? x) (seq? y))
