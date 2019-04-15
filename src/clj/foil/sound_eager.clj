@@ -133,7 +133,7 @@
         (= :unbound (first @(second ty)))
         (let [[_ name l'] @(second ty)
               min-level (if (= :unbound (first @(second tvr)))
-                          (let [[_ _ l] @(second ty)]
+                          (let [[_ _ l] @(second tvr)]
                             (min l l'))
                           l')]
           (reset! (second ty) [:unbound name min-level]))
@@ -315,7 +315,9 @@
 
     (= :let (first exp))
     (let [[_ x e e2] exp
-          ty-e (typeof env e)]
+          _ (enter-level)
+          ty-e (typeof env e)
+          _ (leave-level)]
       (typeof (assoc env x (gen ty-e)) e2))))
 
 (defn clean-type [typ]
