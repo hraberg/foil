@@ -492,6 +492,8 @@
   ;;  =
   ;;  reset_type_variables ();
   ;;  typeof [] (Lam ("x", Let ("y",Var"x", Var"y")));;
+  (t/is (= '[:tarrow [:tvar [:unbound a 1]] [:tvar [:unbound a 1]]]
+           (infer '[:lam x [:let y [:var x] [:var y]]])))
 
   ;; (* now sound generalization ! *)
   ;; let
@@ -501,6 +503,9 @@
   ;;  =
   ;;  reset_type_variables ();
   ;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"x"), Var"y")));;
+  (t/is (= '[:tarrow [:tvar [:unbound a 1]]
+             [:tarrow [:tvar [:unbound c 1]] [:tvar [:unbound a 1]]]]
+           (infer '[:lam x [:let y [:lam z [:var x]] [:var y]]])))
 
   ;; (* now sound generalization ! *)
   ;; let
@@ -515,7 +520,9 @@
   ;;  =
   ;;  reset_type_variables ();
   ;;  typeof [] (Lam ("x", Let ("y",Lam ("z",App (Var"x",Var"z")), Var"y")));;
-
+  (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tvar [:unbound b 1]] [:tvar [:unbound c 1]]]]]
+             [:tarrow [:tvar [:unbound b 1]] [:tvar [:unbound c 1]]]]
+           (infer '[:lam x [:let y [:lam z [:app [:var x] [:var z]]] [:var y]]])))
 
   ;; (* now sound generalization ! *)
   ;; let
@@ -535,8 +542,11 @@
   ;;  reset_type_variables ();
   ;;  typeof [] (Lam ("x", Lam("y",Let ("x",App (Var"x",Var"y"),
   ;;                                     App (Var"x",Var"y")))));;
-
-
+  (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tvar [:unbound b 1]]
+                                    [:tvar [:link [:tarrow [:tvar [:unbound b 1]] [:tvar [:unbound d 1]]]]]]]]
+             [:tarrow [:tvar [:unbound b 1]] [:tvar [:unbound d 1]]]]
+           (infer '[:lam x [:lam y [:let x [:app [:var x] [:var y]]
+                                    [:app [:var x] [:var y]]]]])))
 
   ;; (* now sound generalization ! *)
   ;; try
@@ -545,6 +555,7 @@
   ;;  assert false;
   ;;  with Failure e -> print_endline e
   ;; ;;
+  (t/is (thrown? AssertionError (infer '[:lam x [:let y [:var x] [:app [:var y] [:var y]]]])))
 
   ;; (* now sound generalization ! *)
   ;; (* fun x -> let y = let z = x (fun x -> x) in z in y;;
@@ -566,7 +577,12 @@
   ;;                     Let ("y",
   ;;                           Let ("z",App(Var"x",id), Var "z"),
   ;;                           Var"y")));;
-  )
-
+  (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tarrow [:tvar [:unbound b 1]] [:tvar [:unbound b 1]]]
+                                    [:tvar [:unbound c 1]]]]]
+             [:tvar [:unbound c 1]]]
+           (infer '[:lam x
+                    [:let y
+                     [:let z [:app [:var x] [:lam x [:var x]]] [:var z]]
+                     [:var y]]]))))
 
 ;; print_endline "\nAll Done\n";;

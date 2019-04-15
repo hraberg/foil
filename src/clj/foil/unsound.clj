@@ -274,25 +274,25 @@
   (clean-type (typeof {} exp)))
 
 (t/deftest test-infer
-;; let id = Lam("x",Var"x");;
-;; let c1 = Lam("x",Lam("y",App (Var"x",Var"y")));;
+  ;; let id = Lam("x",Var"x");;
+  ;; let c1 = Lam("x",Lam("y",App (Var"x",Var"y")));;
 
-;; let TArrow (TVar {contents = Unbound "a"}, TVar {contents = Unbound "a"})
-;;    = reset_gensym ();
-;;      typeof [] id
-;; ;;
+  ;; let TArrow (TVar {contents = Unbound "a"}, TVar {contents = Unbound "a"})
+  ;;    = reset_gensym ();
+  ;;      typeof [] id
+  ;; ;;
 
-;; let
-;;  TArrow
-;;  (TVar
-;;    {contents =
-;;      Link
-;;       (TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))},
-;;  TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))
-;;  =
-;;    reset_gensym ();
-;;    typeof [] c1
-;; ;;
+  ;; let
+  ;;  TArrow
+  ;;  (TVar
+  ;;    {contents =
+  ;;      Link
+  ;;       (TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))},
+  ;;  TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))
+  ;;  =
+  ;;    reset_gensym ();
+  ;;    typeof [] c1
+  ;; ;;
   (let [id (infer '[:lam x [:var x]])
         c1 '[:lam x [:lam y [:app [:var x] [:var y]]]]]
     (t/is (= '[:tarrow [:tvar [:unbound a]] [:tvar [:unbound a]]] id))
@@ -301,193 +301,193 @@
                [:tarrow [:tvar [:unbound b]] [:tvar [:unbound c]]]]
              (infer c1))))
 
-;; let
-;;  TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "b"})
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Let ("y",Lam ("z",Var"z"), Var"y"));;
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "b"})
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Let ("y",Lam ("z",Var"z"), Var"y"));;
   (t/is (= '[:tarrow [:tvar [:unbound b]] [:tvar [:unbound b]]]
            (infer '[:let y [:lam z [:var z]] [:var y]])))
 
-;; let
-;;  TArrow (TVar {contents = Unbound "a"},
-;;   TArrow (TVar {contents = Unbound "c"}, TVar {contents = Unbound "c"}))
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"z"), Var"y")));;
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "a"},
+  ;;   TArrow (TVar {contents = Unbound "c"}, TVar {contents = Unbound "c"}))
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"z"), Var"y")));;
   (t/is (= '[:tarrow [:tvar [:unbound a]] [:tarrow [:tvar [:unbound c]] [:tvar [:unbound c]]]]
            (infer '[:lam x [:let y [:lam z [:var z]] [:var y]]])))
 
-;; let
-;;  TArrow (TVar {contents = Unbound "a"},
-;;    TVar
-;;     {contents = Link (TVar {contents = Link (TVar {contents = Unbound "a"})})})
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"z"),
-;;                                     App (Var"y",Var"x"))));;
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "a"},
+  ;;    TVar
+  ;;     {contents = Link (TVar {contents = Link (TVar {contents = Unbound "a"})})})
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"z"),
+  ;;                                     App (Var"y",Var"x"))));;
   (t/is (= '[:tarrow [:tvar [:unbound a]] [:tvar [:link [:tvar [:link [:tvar [:unbound a]]]]]]]
            (infer '[:lam x [:let y [:lam z [:var z]] [:app [:var y] [:var x]]]])))
 
-;; try
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x",App (Var"x",Var"x")));
-;;  assert false;
-;;  with Failure e -> print_endline e
-;; ;;
+  ;; try
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x",App (Var"x",Var"x")));
+  ;;  assert false;
+  ;;  with Failure e -> print_endline e
+  ;; ;;
   (t/is (thrown? AssertionError (infer '[:lam x [:app [:var x] [:var x]]])))
 
-;; try
-;;  reset_gensym ();
-;;  typeof [] (Let ("x",Var"x",Var"x"));
-;;  assert false;
-;;  with Not_found -> print_endline "unbound var"
-;; ;;
+  ;; try
+  ;;  reset_gensym ();
+  ;;  typeof [] (Let ("x",Var"x",Var"x"));
+  ;;  assert false;
+  ;;  with Not_found -> print_endline "unbound var"
+  ;; ;;
   (t/is (thrown? AssertionError (infer '[:let x [:app [:var x] [:var x]]])))
 
-;; (* id can be `self-applied', on the surface of it *)
-;; let
-;;  TVar
-;;  {contents =
-;;    Link
-;;     (TVar
-;;       {contents =
-;;         Link
-;;          (TArrow (TVar {contents = Unbound "c"},
-;;            TVar {contents = Unbound "c"}))})}
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Let ("id",id, App (Var"id",Var"id")));;
+  ;; (* id can be `self-applied', on the surface of it *)
+  ;; let
+  ;;  TVar
+  ;;  {contents =
+  ;;    Link
+  ;;     (TVar
+  ;;       {contents =
+  ;;         Link
+  ;;          (TArrow (TVar {contents = Unbound "c"},
+  ;;            TVar {contents = Unbound "c"}))})}
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Let ("id",id, App (Var"id",Var"id")));;
   (t/is (= '[:tvar [:link [:tvar [:link [:tarrow [:tvar [:unbound c]] [:tvar [:unbound c]]]]]]]
            (infer '[:let id [:lam x [:var x]] [:app [:var id] [:var id]]])))
 
-;; let
-;;  TArrow (TVar {contents = Unbound "i"}, TVar {contents = Unbound "i"})
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Let ("x",c1,
-;;                     Let ("y",
-;;                           Let ("z",App(Var"x",id), Var "z"),
-;;                          Var"y")));;
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "i"}, TVar {contents = Unbound "i"})
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Let ("x",c1,
+  ;;                     Let ("y",
+  ;;                           Let ("z",App(Var"x",id), Var "z"),
+  ;;                          Var"y")));;
   (t/is (= '[:tarrow [:tvar [:unbound i]] [:tvar [:unbound i]]]
            (infer '[:let x [:lam x [:lam y [:app [:var x] [:var y]]]]
                     [:let y [:let z [:app [:var x] [:lam x [:var x]]]
                              [:var z]]
                      [:var y]]])))
 
-;; (*
-;; fun x -> fun y -> let x = x y in fun x -> y x;;
-;; - : (('a -> 'b) -> 'c) -> ('a -> 'b) -> 'a -> 'b = <fun>
-;; *)
-;; let
-;;  TArrow
-;;  (TVar
-;;    {contents =
-;;      Link
-;;       (TArrow
-;;         (TVar
-;;           {contents =
-;;             Link
-;;              (TArrow (TVar {contents = Unbound "d"},
-;;                TVar {contents = Unbound "e"}))},
-;;         TVar {contents = Unbound "c"}))},
-;;  TArrow
-;;   (TVar
-;;     {contents =
-;;       Link
-;;        (TArrow (TVar {contents = Unbound "d"}, TVar {contents = Unbound "e"}))},
-;;   TArrow (TVar {contents = Unbound "d"}, TVar {contents = Unbound "e"})))
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Lam("y",Let ("x",App (Var"x",Var"y"),
-;;                                   Lam ("x",App (Var"y",Var"x"))))));;
+  ;; (*
+  ;; fun x -> fun y -> let x = x y in fun x -> y x;;
+  ;; - : (('a -> 'b) -> 'c) -> ('a -> 'b) -> 'a -> 'b = <fun>
+  ;; *)
+  ;; let
+  ;;  TArrow
+  ;;  (TVar
+  ;;    {contents =
+  ;;      Link
+  ;;       (TArrow
+  ;;         (TVar
+  ;;           {contents =
+  ;;             Link
+  ;;              (TArrow (TVar {contents = Unbound "d"},
+  ;;                TVar {contents = Unbound "e"}))},
+  ;;         TVar {contents = Unbound "c"}))},
+  ;;  TArrow
+  ;;   (TVar
+  ;;     {contents =
+  ;;       Link
+  ;;        (TArrow (TVar {contents = Unbound "d"}, TVar {contents = Unbound "e"}))},
+  ;;   TArrow (TVar {contents = Unbound "d"}, TVar {contents = Unbound "e"})))
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Lam("y",Let ("x",App (Var"x",Var"y"),
+  ;;                                   Lam ("x",App (Var"y",Var"x"))))));;
   (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tvar [:link [:tarrow [:tvar [:unbound d]]
                                                            [:tvar [:unbound e]]]]]
                                     [:tvar [:unbound c]]]]]
              [:tarrow [:tvar [:link [:tarrow [:tvar [:unbound d]] [:tvar [:unbound e]]]]]
-             [:tarrow [:tvar [:unbound d]] [:tvar [:unbound e]]]]]
+              [:tarrow [:tvar [:unbound d]] [:tvar [:unbound e]]]]]
            (infer '[:lam x [:lam y [:let x [:app [:var x] [:var y]]
                                     [:lam x [:app [:var y] [:var x]]]]]])))
 
-;; (* unsound generalization ! *)
-;; let
-;;  TArrow (TVar {contents = Unbound "a"}, TVar {contents = Unbound "b"})
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Let ("y",Var"x", Var"y")));;
+  ;; (* unsound generalization ! *)
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "a"}, TVar {contents = Unbound "b"})
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Let ("y",Var"x", Var"y")));;
   (t/is (= '[:tarrow [:tvar [:unbound a]] [:tvar [:unbound b]]]
            (infer '[:lam x [:let y [:var x] [:var y]]])))
 
-;; (* unsound generalization ! *)
-;; let
-;;  TArrow (TVar {contents = Unbound "a"},
-;;   TArrow (TVar {contents = Unbound "c"}, TVar {contents = Unbound "d"}))
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"x"), Var"y")));;
+  ;; (* unsound generalization ! *)
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "a"},
+  ;;   TArrow (TVar {contents = Unbound "c"}, TVar {contents = Unbound "d"}))
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Let ("y",Lam ("z",Var"x"), Var"y")));;
   (t/is (= '[:tarrow [:tvar [:unbound a]]
              [:tarrow [:tvar [:unbound c]] [:tvar [:unbound d]]]]
            (infer '[:lam x [:let y [:lam z [:var x]] [:var y]]])))
 
-;; (* unsound generalization ! *)
-;; let
-;;  TArrow
-;;  (TVar
-;;    {contents =
-;;      Link
-;;       (TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))},
-;;   TArrow (TVar {contents = Unbound "d"}, TVar {contents = Unbound "e"}))
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Let ("y",Lam ("z",App (Var"x",Var"z")), Var"y")));;
+  ;; (* unsound generalization ! *)
+  ;; let
+  ;;  TArrow
+  ;;  (TVar
+  ;;    {contents =
+  ;;      Link
+  ;;       (TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))},
+  ;;   TArrow (TVar {contents = Unbound "d"}, TVar {contents = Unbound "e"}))
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Let ("y",Lam ("z",App (Var"x",Var"z")), Var"y")));;
   (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tvar [:unbound b]] [:tvar [:unbound c]]]]]
              [:tarrow [:tvar [:unbound d]] [:tvar [:unbound e]]]]
            (infer '[:lam x [:let y [:lam z [:app [:var x] [:var z]]] [:var y]]])))
 
-;; (* unsound generalization ! *)
-;; let
-;;  TArrow
-;;  (TVar
-;;    {contents =
-;;      Link
-;;       (TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))},
-;;  TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "e"}))
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x", Lam("y",Let ("x",App (Var"x",Var"y"),
-;;                                     App (Var"x",Var"y")))));;
+  ;; (* unsound generalization ! *)
+  ;; let
+  ;;  TArrow
+  ;;  (TVar
+  ;;    {contents =
+  ;;      Link
+  ;;       (TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "c"}))},
+  ;;  TArrow (TVar {contents = Unbound "b"}, TVar {contents = Unbound "e"}))
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x", Lam("y",Let ("x",App (Var"x",Var"y"),
+  ;;                                     App (Var"x",Var"y")))));;
   (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tvar [:unbound b]] [:tvar [:unbound c]]]]]
              [:tarrow [:tvar [:unbound b]] [:tvar [:unbound e]]]]
            (infer '[:lam x [:lam y [:let x [:app [:var x] [:var y]]
                                     [:app [:var x] [:var y]]]]])))
 
-;; (* unsound generalization ! *)
-;; let
-;;  TArrow (TVar {contents = Unbound "a"}, TVar {contents = Unbound "d"})
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x",Let("y",Var"x", App (Var"y",Var"y"))));;
+  ;; (* unsound generalization ! *)
+  ;; let
+  ;;  TArrow (TVar {contents = Unbound "a"}, TVar {contents = Unbound "d"})
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x",Let("y",Var"x", App (Var"y",Var"y"))));;
   (t/is (= '[:tarrow [:tvar [:unbound a]] [:tvar [:unbound d]]]
            (infer '[:lam x [:let y [:var x] [:app [:var y] [:var y]]]])))
 
-;; (* unsound generalization ! *)
-;; let
-;;  TArrow
-;;  (TVar
-;;    {contents =
-;;      Link
-;;       (TArrow
-;;         (TArrow (TVar {contents = Unbound "b"},
-;;           TVar {contents = Unbound "b"}),
-;;         TVar {contents = Unbound "c"}))},
-;;   TVar {contents = Unbound "e"})
-;;  =
-;;  reset_gensym ();
-;;  typeof [] (Lam ("x",
-;;                     Let ("y",
-;;                           Let ("z",App(Var"x",id), Var "z"),
-;;                          Var"y")));;
-  (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tarrow [:tvar [:unbound b]] [:tvar [:unbound b]] ]
+  ;; (* unsound generalization ! *)
+  ;; let
+  ;;  TArrow
+  ;;  (TVar
+  ;;    {contents =
+  ;;      Link
+  ;;       (TArrow
+  ;;         (TArrow (TVar {contents = Unbound "b"},
+  ;;           TVar {contents = Unbound "b"}),
+  ;;         TVar {contents = Unbound "c"}))},
+  ;;   TVar {contents = Unbound "e"})
+  ;;  =
+  ;;  reset_gensym ();
+  ;;  typeof [] (Lam ("x",
+  ;;                     Let ("y",
+  ;;                           Let ("z",App(Var"x",id), Var "z"),
+  ;;                          Var"y")));;
+  (t/is (= '[:tarrow [:tvar [:link [:tarrow [:tarrow [:tvar [:unbound b]] [:tvar [:unbound b]]]
                                     [:tvar [:unbound c]]]]]
              [:tvar [:unbound e]]]
            (infer '[:lam x
