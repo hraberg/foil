@@ -129,7 +129,7 @@
       (= :tvar (first ty))
       (cond
         (= tvr ty)
-        (assert false "occurs check")
+        (assert false (str "occurs check: " (pr-str tvr)))
         (= :unbound (first @(second ty)))
         (let [[_ name l'] @(second ty)
               min-level (if (= :unbound (first @(second tvr)))
@@ -190,7 +190,7 @@
         (unify tyl2 tyr2))
 
       :else
-      (assert false (str t1 " != " t2)))))
+      (assert false (str "unification failed: " (pr-str t1) " != " (pr-str t2))))))
 
 ;; (* The type environment *)
 ;; type env = (varname * typ) list
@@ -296,7 +296,7 @@
   (cond
     (= :var (first exp))
     (let [[_ x] exp]
-      (assert (contains? env x) (str "unknown var: " x))
+      (assert (contains? env x) (str "unbound var: " x))
       (inst (get env x)))
 
     (= :lam (first exp))
@@ -409,7 +409,7 @@
   ;;  assert false;
   ;;  with Failure e -> print_endline e
   ;; ;;
-  (t/is (thrown? AssertionError (infer '[:lam x [:app [:var x] [:var x]]])))
+  (t/is (thrown-with-msg? AssertionError #"occurs check:" (infer '[:lam x [:app [:var x] [:var x]]])))
 
   ;; try
   ;;  reset_type_variables ();
@@ -417,7 +417,7 @@
   ;;  assert false;
   ;;  with Not_found -> print_endline "unbound var"
   ;; ;;
-  (t/is (thrown? AssertionError (infer '[:let x [:app [:var x] [:var x]]])))
+  (t/is (thrown-with-msg? AssertionError #"unbound var: x" (infer '[:let x [:app [:var x] [:var x]]])))
 
   ;; (* id can be `self-applied', on the surface of it *)
   ;; let
@@ -555,7 +555,7 @@
   ;;  assert false;
   ;;  with Failure e -> print_endline e
   ;; ;;
-  (t/is (thrown? AssertionError (infer '[:lam x [:let y [:var x] [:app [:var y] [:var y]]]])))
+  (t/is (thrown-with-msg? AssertionError #"occurs check:" (infer '[:lam x [:let y [:var x] [:app [:var y] [:var y]]]])))
 
   ;; (* now sound generalization ! *)
   ;; (* fun x -> let y = let z = x (fun x -> x) in z in y;;
