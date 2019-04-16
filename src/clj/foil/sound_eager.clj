@@ -6,6 +6,12 @@
 
 ;; http://okmij.org/ftp/ML/generalization.html
 
+;; This is also very close to this, which also uses levels:
+;; https://github.com/tomprimozic/type-systems/blob/master/algorithm_w/infer.ml
+;; This might be a better starting point, as it demonstrates slightly
+;; more features (constants, multiple arguments, lists, pairs, higher
+;; order fns) but not much more code.
+
 ;; (*
 ;;   Simple Hindley-Milner type checker for pure lambda-calculus with let
 
