@@ -543,6 +543,8 @@ https://tiehuis.github.io/blog/c1.html
 
 http://cs242.stanford.edu/f18/
 
+http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.23.5498
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
