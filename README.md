@@ -547,6 +547,10 @@ http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.23.5498
 
 http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.9806
 
+https://www.haible.de/bruno/documentation/ffcall/callback/callback.html
+
+https://hokstad.com/how-to-implement-closures
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
