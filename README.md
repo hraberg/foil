@@ -551,6 +551,8 @@ https://www.haible.de/bruno/documentation/ffcall/callback/callback.html
 
 https://hokstad.com/how-to-implement-closures
 
+https://extemporelang.github.io/docs/reference/memory-management/
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
