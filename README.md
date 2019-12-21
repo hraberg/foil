@@ -553,6 +553,8 @@ https://hokstad.com/how-to-implement-closures
 
 https://extemporelang.github.io/docs/reference/memory-management/
 
+http://aardappel.github.io/lobster/memory_management.html
+
 ## License
 
 Copyright © 2019 Håkan Råberg.
